@@ -8,25 +8,28 @@
     enableZshIntegration = true;
   };
 
-  # Git with delta for better diffs
+  # Git
   programs.git = {
     enable = true;
-    userName = "Dustin Poage";
-    delta = {
-      enable = true;
-      options = {
-        navigate = true;
-        side-by-side = true;
-        line-numbers = true;
-      };
-    };
-    extraConfig = {
+    settings = {
+      user.name = "Dustin Poage";
       init.defaultBranch = "main";
       pull.rebase = true;
       core.editor = "nvim";
       merge.conflictstyle = "zdiff3";
       diff.algorithm = "histogram";
       rerere.enable = true;
+    };
+  };
+
+  # Delta (better diffs)
+  programs.delta = {
+    enable = true;
+    enableGitIntegration = true;
+    options = {
+      navigate = true;
+      side-by-side = true;
+      line-numbers = true;
     };
   };
 

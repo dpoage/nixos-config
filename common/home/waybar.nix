@@ -28,6 +28,7 @@
           "memory"
           "bluetooth"
           "network"
+          "backlight"
           "pulseaudio"
           "battery"
           "clock"
@@ -153,6 +154,15 @@
           tooltip-format-wifi = "{ifname}: {ipaddr}/{cidr} ";
           format-linked = "(No IP) ";
           format-disconnected = "Disconnected ⚠";
+        };
+
+        backlight = {
+          format = "{percent}% {icon}";
+          format-icons = [ "" "" "" "" "" "" "" "" "" ];
+          scroll-step = 5;
+          on-scroll-up = "brightnessctl set +5%";
+          on-scroll-down = "brightnessctl set 5%-";
+          tooltip-format = "Brightness: {percent}%";
         };
 
         pulseaudio = {
@@ -283,6 +293,7 @@
 
       #mpris,
       #clock,
+      #backlight,
       #pulseaudio,
       #bluetooth,
       #network,
@@ -357,6 +368,11 @@
           background-color: @maroon;
           color: @mantle;
           min-width: 40px;
+      }
+
+      #backlight {
+          background-color: @lavender;
+          color: @mantle;
       }
 
       #pulseaudio {

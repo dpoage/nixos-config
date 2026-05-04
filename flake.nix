@@ -9,13 +9,17 @@
       url = "github:nix-community/home-manager/release-25.11";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    nix-index-database = {
+      url = "github:nix-community/nix-index-database";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
     beads = {
       url = "github:gastownhall/beads";
       inputs.nixpkgs.follows = "nixpkgs";
     };
   };
 
-  outputs = { self, nixpkgs, nixos-hardware, nixvim, home-manager, beads, ... }:
+  outputs = { self, nixpkgs, nixos-hardware, nixvim, home-manager, nix-index-database, beads, ... }:
   let
     system = "x86_64-linux";
     extraPkgs = {
@@ -30,6 +34,7 @@
         modules = [
           nixvim.nixosModules.nixvim
           home-manager.nixosModules.home-manager
+          { home-manager.sharedModules = [ nix-index-database.homeModules.nix-index ]; }
           ./tunguska
           ./common
         ];
@@ -40,6 +45,7 @@
         modules = [
           nixvim.nixosModules.nixvim
           home-manager.nixosModules.home-manager
+          { home-manager.sharedModules = [ nix-index-database.homeModules.nix-index ]; }
           ./oerlikon
           ./common
         ];

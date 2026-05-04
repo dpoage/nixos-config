@@ -61,6 +61,9 @@
         { mode = "n"; key = "<C-k>"; action = "<C-w>k"; options.desc = "Go to upper window"; }                              
         { mode = "n"; key = "<C-l>"; action = "<C-w>l"; options.desc = "Go to right window"; }                              
                                                                                                                           
+        # Save
+        { mode = ["n" "i" "v"]; key = "<C-s>"; action = "<cmd>w<cr><esc>"; options.desc = "Save file"; }
+
         # Buffer navigation                                                                                                 
         { mode = "n"; key = "<S-h>"; action = "<cmd>bprevious<cr>"; options.desc = "Prev buffer"; }
         { mode = "n"; key = "<S-l>"; action = "<cmd>bnext<cr>"; options.desc = "Next buffer"; }                             

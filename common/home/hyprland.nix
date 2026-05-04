@@ -1,7 +1,7 @@
 { pkgs, ... }:
 
 let
-  wallpaper = "${pkgs.nixos-artwork.wallpapers.catppuccin-mocha}/share/backgrounds/nixos/nixos-wallpaper-catppuccin-mocha.png";
+  wallpaper = "${pkgs.nixos-artwork.wallpapers.nineish-catppuccin-mocha-alt}/share/backgrounds/nixos/nix-wallpaper-nineish-catppuccin-mocha-alt.png";
 in
 {
   # Wallpaper via hyprpaper
@@ -169,6 +169,10 @@ in
         ", Print, exec, grim - | wl-copy"
         "SHIFT, Print, exec, grim -g \"$(slurp)\" - | wl-copy"
 
+        # Relative workspace navigation
+        "$mod, Left, split:workspace, e-1"
+        "$mod, Right, split:workspace, e+1"
+
         # Mouse scroll through workspaces
         "$mod, mouse_down, split:workspace, e+1"
         "$mod, mouse_up, split:workspace, e-1"
@@ -192,7 +196,6 @@ in
       ];
     };
 
-    extraConfig = ''
-    '';
+    extraConfig = "";
   };
 }

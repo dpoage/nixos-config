@@ -193,6 +193,10 @@
             # Lua                                           
             lua_ls.enable = true;
 
+            # TypeScript / JavaScript
+            ts_ls.enable = true;
+            eslint.enable = true;
+
             # Bazel / Starlark
             starpls.enable = true;
 
@@ -219,6 +223,14 @@
               c = [ "clang-format" ];                                                                                       
               nix = [ "nixfmt" ];
               lua = [ "stylua" ];
+              javascript = [ "prettierd" ];
+              typescript = [ "prettierd" ];
+              javascriptreact = [ "prettierd" ];
+              typescriptreact = [ "prettierd" ];
+              css = [ "prettierd" ];
+              html = [ "prettierd" ];
+              json = [ "prettierd" ];
+              yaml = [ "prettierd" ];
               bzl = [ "buildifier" ];
               "_" = [ "trim_whitespace" ];                  
             };                                                                                                              
@@ -329,6 +341,7 @@
         gofumpt
         gotools
         nixfmt-rfc-style
+        prettierd
         starpls
         stylua
       ];

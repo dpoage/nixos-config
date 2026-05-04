@@ -195,7 +195,10 @@
 
             # TypeScript / JavaScript
             ts_ls.enable = true;
-            eslint.enable = true;
+            eslint = {
+              enable = true;
+              extraOptions.settings.nodePath = "${pkgs.nodePackages.eslint}/lib/node_modules";
+            };
 
             # Bazel / Starlark
             starpls.enable = true;
@@ -340,7 +343,9 @@
         buildifier
         gofumpt
         gotools
+        jre_minimal
         nixfmt-rfc-style
+        nodePackages.eslint
         prettierd
         starpls
         stylua

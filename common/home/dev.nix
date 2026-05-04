@@ -51,5 +51,11 @@
   home.packages = with pkgs; [
     comma
     cachix
+
+    # Kubernetes
+    kubectl
+    kubectx
+    kubernetes-helm
+    k9s
   ];
 }

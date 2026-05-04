@@ -5,7 +5,7 @@
   home-manager.useGlobalPkgs = true;
   home-manager.useUserPackages = true;
   home-manager.backupFileExtension = "backup";
-  home-manager.users.dustin = import ../common/hyprland.nix;
+  home-manager.users.dustin = import ../common/home;
 
   # Kernel - pinned for NVIDIA compatibility (6.13+ breaks NVIDIA drivers)
   boot.kernelPackages = pkgs.linuxPackages_6_12;
@@ -100,7 +100,6 @@
       thunderbird
 
       # Hyprland essentials
-      waybar
       wofi
       dunst
       wl-clipboard
@@ -155,7 +154,7 @@
     lm_sensors
 
     # GPU tools
-    glxinfo
+    mesa-demos
     vulkan-tools
     mesa
   ];

@@ -1,4 +1,4 @@
-{ lib, pkgs, ... }:
+{ lib, pkgs, extraPkgs, ... }:
 
 {
   imports = [
@@ -50,6 +50,7 @@
   # System packages
   environment.systemPackages = with pkgs; [
     claude-code
+    extraPkgs.beads
 
     # Core utilities
     wget
@@ -85,7 +86,15 @@
     python3
     rustup
     go
+    bazelisk
     podman
+    lazygit
+    opencode
+    bun
+    sops
+    kubectl
+    kubernetes-helm
+    kind
 
     # System monitoring
     iotop
@@ -120,7 +129,15 @@
     # Wayland utilities
     wayland-utils
     wlr-randr
+
+    # Keyboard (QMK / Keychron)
+    qmk
+    qmk_hid
+    vial
   ];
+
+  # QMK/Keychron udev rules (allow flashing without root)
+  hardware.keyboard.qmk.enable = true;
 
   # Tailscale
   services.tailscale.enable = true;

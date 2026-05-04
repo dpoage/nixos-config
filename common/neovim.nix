@@ -1,7 +1,20 @@
-  { pkgs, ... }:                                                                                                            
-   
-  {                                                                                                                         
-    programs.nixvim = {                                                                                                   
+  { pkgs, ... }:
+
+  let
+    tla-nvim = pkgs.vimUtils.buildVimPlugin {
+      pname = "tla-nvim";
+      version = "unstable";
+      src = pkgs.fetchFromGitHub {
+        owner = "susliko";
+        repo = "tla.nvim";
+        rev = "1752abe9b7dec23a26ff11a629e2ee88e66c366b";
+        hash = "sha256-O9qYMy8LoXR/aUjqsTfbMFNl3Me6SpnLVsCgiIhD6Fk=";
+      };
+      dependencies = [ pkgs.vimPlugins.plenary-nvim ];
+    };
+  in
+  {
+    programs.nixvim = {
       enable = true;
 
       globals = {                                                                                                           
@@ -144,7 +157,7 @@
               "bash" "c" "cpp" "css" "dockerfile" "go" "gomod" "gosum"
               "html" "javascript" "json" "lua" "make" "markdown"                                                            
               "markdown_inline" "nix" "python" "query" "regex" "rust"
-              "toml" "tsx" "typescript" "vim" "vimdoc" "yaml" "zig"                                                         
+              "tlaplus" "toml" "tsx" "typescript" "vim" "vimdoc" "yaml" "zig"                                                         
             ];                                                                                                              
           };                                                                                                                
         };                                                                                                                  
@@ -288,6 +301,21 @@
         rustaceanvim.enable = true;
       };                                                                                                                    
                                                             
+      # TLA+ support
+      extraPlugins = [ tla-nvim ];
+      extraConfigLua = ''
+        -- TLA+ filetype: route to tlaplus treesitter parser, enable conceals
+        vim.treesitter.language.register("tlaplus", "tla")
+        vim.api.nvim_create_autocmd("FileType", {
+          pattern = "tla",
+          callback = function()
+            vim.opt_local.conceallevel = 2
+            vim.opt_local.concealcursor = ""
+          end,
+        })
+        require("tla").setup()
+      '';
+
       # Extra packages for formatters                                                                                       
       extraPackages = with pkgs; [
         gofumpt                                                                                                             

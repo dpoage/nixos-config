@@ -7,7 +7,7 @@
   home-manager.useGlobalPkgs = true;
   home-manager.useUserPackages = true;
   home-manager.backupFileExtension = "backup";
-  home-manager.users.dpoage = import ../common/hyprland.nix;
+  home-manager.users.dpoage = import ../common/home;
 
   # User account
   users.users.dpoage = {
@@ -39,7 +39,6 @@
       thunderbird
 
       # Hyprland essentials
-      waybar
       wofi
       dunst
       wl-clipboard

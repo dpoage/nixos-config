@@ -9,12 +9,24 @@
       url = "github:nix-community/home-manager/release-25.11";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    beads = {
+      url = "github:gastownhall/beads";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
-  outputs = { self, nixpkgs, nixos-hardware, nixvim, home-manager, ... }: {
+  outputs = { self, nixpkgs, nixos-hardware, nixvim, home-manager, beads, ... }:
+  let
+    system = "x86_64-linux";
+    extraPkgs = {
+      beads = beads.packages.${system}.default;
+    };
+  in
+  {
     nixosConfigurations = {
       tunguska = nixpkgs.lib.nixosSystem {
-        system = "x86_64-linux";
+        inherit system;
+        specialArgs = { inherit extraPkgs; };
         modules = [
           nixvim.nixosModules.nixvim
           home-manager.nixosModules.home-manager
@@ -23,7 +35,8 @@
         ];
       };
       oerlikon = nixpkgs.lib.nixosSystem {
-        system = "x86_64-linux";
+        inherit system;
+        specialArgs = { inherit extraPkgs; };
         modules = [
           nixvim.nixosModules.nixvim
           home-manager.nixosModules.home-manager

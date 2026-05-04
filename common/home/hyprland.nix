@@ -1,14 +1,9 @@
 { pkgs, ... }:
 
 let
-  wallpaper = "${pkgs.nixos-artwork.wallpapers.catppuccin-mocha}/share/backgrounds/nixos/nix-wallpaper-catppuccin-mocha.png";
+  wallpaper = "${pkgs.nixos-artwork.wallpapers.catppuccin-mocha}/share/backgrounds/nixos/nixos-wallpaper-catppuccin-mocha.png";
 in
 {
-  imports = [
-    ./terminal.nix
-  ];
-
-
   # Wallpaper via hyprpaper
   services.hyprpaper = {
     enable = true;

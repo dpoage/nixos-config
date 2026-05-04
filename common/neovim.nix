@@ -195,10 +195,7 @@
 
             # TypeScript / JavaScript
             ts_ls.enable = true;
-            eslint = {
-              enable = true;
-              extraOptions.settings.nodePath = "${pkgs.nodePackages.eslint}/lib/node_modules";
-            };
+            eslint.enable = true;
 
             # Bazel / Starlark
             starpls.enable = true;
@@ -335,7 +332,9 @@
             vim.opt_local.concealcursor = ""
           end,
         })
-        require("tla").setup()
+        require("tla").setup({
+          java_executable = "${pkgs.jre_minimal}/bin/java",
+        })
       '';
 
       # Extra packages for formatters                                                                                       
@@ -345,7 +344,6 @@
         gotools
         jre_minimal
         nixfmt-rfc-style
-        nodePackages.eslint
         prettierd
         starpls
         stylua

@@ -102,6 +102,7 @@
     bandwhich
 
     # Network tools
+    socat
     tailscale
     nmap
     traceroute

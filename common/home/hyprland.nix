@@ -93,6 +93,8 @@ in
       exec-once = [
         "waybar"
         "dunst"
+        # Restart waybar on monitor hotplug to avoid duplicate bars
+        "socat -U - UNIX-CONNECT:$XDG_RUNTIME_DIR/hypr/$HYPRLAND_INSTANCE_SIGNATURE/.socket2.sock | while read -r line; do case $line in monitoradded*|monitorremoved*) pkill waybar; sleep 0.5; waybar & ;; esac; done"
       ];
 
       # Key bindings

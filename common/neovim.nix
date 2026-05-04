@@ -156,11 +156,11 @@
           settings = {
             highlight.enable = true;
             indent.enable = true;
-            ensure_installed = [                                                                                            
+            ensure_installed = [
               "bash" "c" "cpp" "css" "dockerfile" "go" "gomod" "gosum"
-              "html" "javascript" "json" "lua" "make" "markdown"                                                            
+              "html" "javascript" "json" "lua" "make" "markdown"
               "markdown_inline" "nix" "python" "query" "regex" "rust"
-              "tlaplus" "toml" "tsx" "typescript" "vim" "vimdoc" "yaml" "zig"                                                         
+              "starlark" "tlaplus" "toml" "tsx" "typescript" "vim" "vimdoc" "yaml" "zig"
             ];                                                                                                              
           };                                                                                                                
         };                                                                                                                  
@@ -193,6 +193,9 @@
             # Lua                                           
             lua_ls.enable = true;
 
+            # Bazel / Starlark
+            starpls.enable = true;
+
             # General
             jsonls.enable = true;
             yamlls.enable = true;
@@ -215,7 +218,8 @@
               cpp = [ "clang-format" ];                                                                                     
               c = [ "clang-format" ];                                                                                       
               nix = [ "nixfmt" ];
-              lua = [ "stylua" ];                                                                                           
+              lua = [ "stylua" ];
+              bzl = [ "buildifier" ];
               "_" = [ "trim_whitespace" ];                  
             };                                                                                                              
           };
@@ -321,9 +325,11 @@
 
       # Extra packages for formatters                                                                                       
       extraPackages = with pkgs; [
-        gofumpt                                                                                                             
-        gotools                                             
+        buildifier
+        gofumpt
+        gotools
         nixfmt-rfc-style
+        starpls
         stylua
       ];
     };                                                                                                                      

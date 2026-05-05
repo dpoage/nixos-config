@@ -18,7 +18,7 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     pattern-cli = {
-      url = "git+ssh://git@github.com/Pattern-Labs/pattern_cli";
+      url = "github:Pattern-Labs/pattern_cli";
       inputs.nixpkgs.follows = "nixpkgs";
     };
   };

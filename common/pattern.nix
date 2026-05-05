@@ -21,7 +21,10 @@ in
     bazelisk
   ];
 
-  # Private Go modules (github.com/Pattern-Labs) need ~/.netrc in the sandbox.
+  # Private repo access: netrc-file lets the Nix daemon authenticate HTTPS
+  # fetches (flake inputs, go mod download FODs). extra-sandbox-paths makes
+  # the netrc available inside build sandboxes for GOPRIVATE module fetching.
+  nix.settings.netrc-file = "${primaryUser.home}/.netrc";
   nix.settings.extra-sandbox-paths = [
     "${primaryUser.home}/.netrc"
   ];

@@ -126,6 +126,10 @@
         { mode = "n"; key = "<leader>ql"; action = "<cmd>lua require('persistence').load({ last = true })<cr>"; options.desc = "Restore last session"; }
         { mode = "n"; key = "<leader>qd"; action = "<cmd>lua require('persistence').stop()<cr>"; options.desc = "Stop persistence"; }
 
+        # Window splits
+        { mode = "n"; key = "<leader>|"; action = "<cmd>vsplit<cr>"; options.desc = "Vertical split"; }
+        { mode = "n"; key = "<leader>-"; action = "<cmd>split<cr>"; options.desc = "Horizontal split"; }
+
         # Undotree
         { mode = "n"; key = "<leader>u"; action = "<cmd>UndotreeToggle<cr>"; options.desc = "Toggle undotree"; }       
                                                                                                                             

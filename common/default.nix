@@ -5,6 +5,7 @@
     ./neovim.nix
     ./desktop.nix
     ./pattern.nix
+    ./gastown.nix
   ];
 
   nix.settings.experimental-features = [ "nix-command" "flakes" ];

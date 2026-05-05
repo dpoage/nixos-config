@@ -21,13 +21,18 @@
       url = "github:Pattern-Labs/pattern_cli";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    gastown = {
+      url = "github:steveyegge/gastown";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
-  outputs = { self, nixpkgs, nixos-hardware, nixvim, home-manager, nix-index-database, beads, pattern-cli, ... }:
+  outputs = { self, nixpkgs, nixos-hardware, nixvim, home-manager, nix-index-database, beads, pattern-cli, gastown, ... }:
   let
     system = "x86_64-linux";
     extraPkgs = {
       beads = beads.packages.${system}.default;
+      gastown = gastown.packages.${system}.default;
     };
 
     sharedModules = [

@@ -4,6 +4,7 @@
   imports = [
     ./neovim.nix
     ./desktop.nix
+    ./pattern.nix
   ];
 
   nix.settings.experimental-features = [ "nix-command" "flakes" ];
@@ -86,15 +87,11 @@
     python3
     rustup
     go
-    bazelisk
     podman
     lazygit
     opencode
     bun
     sops
-    kubectl
-    kubernetes-helm
-    kind
 
     # System monitoring
     iotop

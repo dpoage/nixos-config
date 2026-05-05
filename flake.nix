@@ -17,9 +17,13 @@
       url = "github:gastownhall/beads";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    pattern-cli = {
+      url = "git+ssh://git@github.com/Pattern-Labs/pattern_cli";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
-  outputs = { self, nixpkgs, nixos-hardware, nixvim, home-manager, nix-index-database, beads, ... }:
+  outputs = { self, nixpkgs, nixos-hardware, nixvim, home-manager, nix-index-database, beads, pattern-cli, ... }:
   let
     system = "x86_64-linux";
     extraPkgs = {
@@ -32,6 +36,7 @@
         inherit system;
         specialArgs = { inherit extraPkgs; };
         modules = [
+          { nixpkgs.overlays = [ pattern-cli.overlays.default ]; }
           nixvim.nixosModules.nixvim
           home-manager.nixosModules.home-manager
           { home-manager.sharedModules = [ nix-index-database.homeModules.nix-index ]; }
@@ -43,6 +48,7 @@
         inherit system;
         specialArgs = { inherit extraPkgs; };
         modules = [
+          { nixpkgs.overlays = [ pattern-cli.overlays.default ]; }
           nixvim.nixosModules.nixvim
           home-manager.nixosModules.home-manager
           { home-manager.sharedModules = [ nix-index-database.homeModules.nix-index ]; }

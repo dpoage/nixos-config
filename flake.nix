@@ -29,33 +29,25 @@
     extraPkgs = {
       beads = beads.packages.${system}.default;
     };
+
+    sharedModules = [
+      { nixpkgs.overlays = [ pattern-cli.overlays.default ]; }
+      nixvim.nixosModules.nixvim
+      home-manager.nixosModules.home-manager
+      { home-manager.sharedModules = [ nix-index-database.homeModules.nix-index ]; }
+      ./common
+    ];
+
+    mkHost = hostModule: nixpkgs.lib.nixosSystem {
+      inherit system;
+      specialArgs = { inherit extraPkgs; };
+      modules = sharedModules ++ [ hostModule ];
+    };
   in
   {
     nixosConfigurations = {
-      tunguska = nixpkgs.lib.nixosSystem {
-        inherit system;
-        specialArgs = { inherit extraPkgs; };
-        modules = [
-          { nixpkgs.overlays = [ pattern-cli.overlays.default ]; }
-          nixvim.nixosModules.nixvim
-          home-manager.nixosModules.home-manager
-          { home-manager.sharedModules = [ nix-index-database.homeModules.nix-index ]; }
-          ./tunguska
-          ./common
-        ];
-      };
-      oerlikon = nixpkgs.lib.nixosSystem {
-        inherit system;
-        specialArgs = { inherit extraPkgs; };
-        modules = [
-          { nixpkgs.overlays = [ pattern-cli.overlays.default ]; }
-          nixvim.nixosModules.nixvim
-          home-manager.nixosModules.home-manager
-          { home-manager.sharedModules = [ nix-index-database.homeModules.nix-index ]; }
-          ./oerlikon
-          ./common
-        ];
-      };
+      tunguska = mkHost ./tunguska;
+      oerlikon = mkHost ./oerlikon;
     };
   };
 }

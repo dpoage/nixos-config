@@ -102,11 +102,29 @@
         { mode = "t"; key = "<C-/>"; action = "<cmd>ToggleTerm<cr>"; options.desc = "Toggle terminal"; }
         { mode = "t"; key = "<Esc><Esc>"; action = "<C-\\><C-n>"; options.desc = "Exit terminal mode"; }
 
+        # Window navigation from terminal
+        { mode = "t"; key = "<C-h>"; action = "<cmd>wincmd h<cr>"; options.desc = "Go to left window"; }
+        { mode = "t"; key = "<C-j>"; action = "<cmd>wincmd j<cr>"; options.desc = "Go to lower window"; }
+        { mode = "t"; key = "<C-k>"; action = "<cmd>wincmd k<cr>"; options.desc = "Go to upper window"; }
+        { mode = "t"; key = "<C-l>"; action = "<cmd>wincmd l<cr>"; options.desc = "Go to right window"; }
+
         # Trouble
         { mode = "n"; key = "<leader>xx"; action = "<cmd>Trouble diagnostics toggle<cr>"; options.desc = "Diagnostics"; }
         { mode = "n"; key = "<leader>xX"; action = "<cmd>Trouble diagnostics toggle filter.buf=0<cr>"; options.desc = "Buffer diagnostics"; }
         { mode = "n"; key = "<leader>xl"; action = "<cmd>Trouble loclist toggle<cr>"; options.desc = "Location list"; }
         { mode = "n"; key = "<leader>xq"; action = "<cmd>Trouble qflist toggle<cr>"; options.desc = "Quickfix list"; }
+
+        # Format
+        { mode = ["n" "v"]; key = "<leader>cf"; action = "<cmd>lua require('conform').format({ timeout_ms = 3000, lsp_format = 'fallback' })<cr>"; options.desc = "Format"; }
+
+        # Search and replace
+        { mode = "n"; key = "<leader>sr"; action = "<cmd>GrugFar<cr>"; options.desc = "Search and replace"; }
+        { mode = "v"; key = "<leader>sr"; action = "<cmd>lua require('grug-far').with_visual_selection()<cr>"; options.desc = "Search and replace (selection)"; }
+
+        # Session
+        { mode = "n"; key = "<leader>qs"; action = "<cmd>lua require('persistence').load()<cr>"; options.desc = "Restore session"; }
+        { mode = "n"; key = "<leader>ql"; action = "<cmd>lua require('persistence').load({ last = true })<cr>"; options.desc = "Restore last session"; }
+        { mode = "n"; key = "<leader>qd"; action = "<cmd>lua require('persistence').stop()<cr>"; options.desc = "Stop persistence"; }
 
         # Undotree
         { mode = "n"; key = "<leader>u"; action = "<cmd>UndotreeToggle<cr>"; options.desc = "Toggle undotree"; }       
@@ -134,7 +152,18 @@
         indent-blankline.enable = true;                                                                                     
         noice.enable = true;
         notify.enable = true;                                                                                               
-        which-key.enable = true;                            
+        which-key = {
+          enable = true;
+          settings.spec = [
+            { __unkeyed-1 = "<leader>f"; group = "Find"; }
+            { __unkeyed-1 = "<leader>g"; group = "Git"; }
+            { __unkeyed-1 = "<leader>c"; group = "Code"; }
+            { __unkeyed-1 = "<leader>x"; group = "Diagnostics"; }
+            { __unkeyed-1 = "<leader>b"; group = "Buffer"; }
+            { __unkeyed-1 = "<leader>s"; group = "Search/Replace"; }
+            { __unkeyed-1 = "<leader>q"; group = "Session"; }
+          ];
+        };                            
         gitsigns.enable = true;                                                                                             
         neo-tree.enable = true;
         dashboard = {                                                                                                       
@@ -316,13 +345,35 @@
         todo-comments.enable = true;                        
         flash.enable = true;
 
-        # Language extras                                                                                                   
+        # Search and replace
+        grug-far = {
+          enable = true;
+          settings.headerMaxWidth = 80;
+        };
+
+        # Session persistence
+        persistence.enable = true;
+
+        # Language extras
         rustaceanvim.enable = true;
       };                                                                                                                    
                                                             
       # TLA+ support
       extraPlugins = [ tla-nvim ];
       extraConfigLua = ''
+        -- Lazygit toggle via toggleterm
+        local Terminal = require("toggleterm.terminal").Terminal
+        local lazygit = Terminal:new({
+          cmd = "lazygit",
+          dir = "git_dir",
+          direction = "float",
+          float_opts = { border = "rounded" },
+          on_open = function(term)
+            vim.cmd("startinsert!")
+          end,
+        })
+        vim.keymap.set("n", "<leader>gg", function() lazygit:toggle() end, { desc = "Lazygit" })
+
         -- TLA+ filetype: route to tlaplus treesitter parser, enable conceals
         vim.treesitter.language.register("tlaplus", "tla")
         vim.api.nvim_create_autocmd("FileType", {

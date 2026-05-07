@@ -17,26 +17,25 @@
       url = "github:gastownhall/beads";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    pattern-cli = {
-      url = "github:Pattern-Labs/pattern_cli";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
     gastown = {
       url = "github:steveyegge/gastown";
       inputs.nixpkgs.follows = "nixpkgs";
     };
   };
 
-  outputs = { self, nixpkgs, nixos-hardware, nixvim, home-manager, nix-index-database, beads, pattern-cli, gastown, ... }:
+  outputs = { self, nixpkgs, nixos-hardware, nixvim, home-manager, nix-index-database, beads, gastown, ... }:
   let
     system = "x86_64-linux";
     extraPkgs = {
       beads = beads.packages.${system}.default;
-      gastown = gastown.packages.${system}.default;
+      gastown = gastown.packages.${system}.default.overrideAttrs (old: {
+        goModules = old.goModules.overrideAttrs {
+          outputHash = "sha256-PQT/Xq9na3vI8Oy9INBYJf3GsiN5IxAVCxrNLhyIpO8=";
+        };
+      });
     };
 
     sharedModules = [
-      { nixpkgs.overlays = [ pattern-cli.overlays.default ]; }
       nixvim.nixosModules.nixvim
       home-manager.nixosModules.home-manager
       { home-manager.sharedModules = [ nix-index-database.homeModules.nix-index ]; }

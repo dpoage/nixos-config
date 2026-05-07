@@ -22,8 +22,8 @@ in
     ];
 
     settings = {
-      # Monitor config - auto-detect, override per-host in local.conf
-      monitor = ", preferred, auto, 1";
+      # Monitor config - generic fallback, hosts add specific rules
+      monitor = [ ", preferred, auto, 1" ];
 
       plugin = {
         hyprsplit = {

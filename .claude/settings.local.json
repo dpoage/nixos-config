@@ -37,7 +37,22 @@
       "WebFetch(domain:nix-community.github.io)",
       "Bash(curl -sL https://raw.githubusercontent.com/MikaelFangel/nixvim-config/main/config/which_key.nix)",
       "Bash(curl -sL https://api.github.com/search/code?q=which-key+spec+group+filename:nix+repo:nix-community/nixvim)",
-      "Bash(python3 -c \"import sys,json; d=json.load\\(sys.stdin\\); [print\\(i[''''html_url'''']\\) for i in d.get\\(''''items'''',[]\\)]\")"
+      "Bash(python3 -c \"import sys,json; d=json.load\\(sys.stdin\\); [print\\(i[''''html_url'''']\\) for i in d.get\\(''''items'''',[]\\)]\")",
+      "Bash(hyprctl monitors:*)",
+      "Bash(hyprctl keyword:*)",
+      "Bash(find /nix/store -maxdepth 2 -path */hyprland/* -name *.nix)",
+      "Bash(find /nix/store -maxdepth 1 -name *home-manager* -type d)",
+      "WebFetch(domain:wiki.hyprland.org)",
+      "WebFetch(domain:wiki.hypr.land)",
+      "Bash(hyprctl version:*)",
+      "Bash(find /nix/store -maxdepth 3 -path */hm/modules/services/window-managers/hyprland* -name *.nix)",
+      "Bash(find /nix/store -maxdepth 4 -path *home-manager* -name hyprland.nix)",
+      "Bash(python3 -c \"import json,sys; print\\(json.load\\(sys.stdin\\).get\\(''''locked'''',{}\\).get\\(''''rev'''',''''unknown''''\\)\\)\")",
+      "Bash(python3 -c \"import json,sys; d=json.load\\(sys.stdin\\); print\\(d[''''nodes''''][''''home-manager''''][''''locked''''][''''rev'''']\\)\")",
+      "WebFetch(domain:api.github.com)",
+      "Bash(gh search:*)",
+      "Bash(python3 -c \":*)",
+      "Bash(nix build:*)"
     ],
     "deny": [],
     "ask": []

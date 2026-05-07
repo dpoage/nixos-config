@@ -7,7 +7,9 @@
   home-manager.useGlobalPkgs = true;
   home-manager.useUserPackages = true;
   home-manager.backupFileExtension = "backup";
-  home-manager.users.dpoage = import ../common/home;
+  home-manager.users.dpoage = {
+    imports = [ ../common/home ./monitors.nix ];
+  };
 
   # User account
   users.users.dpoage = {

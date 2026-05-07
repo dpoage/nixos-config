@@ -4,7 +4,9 @@
   imports = [
     ./neovim.nix
     ./desktop.nix
-    ./pattern.nix
+    ./bazel.nix
+    ./cloud.nix
+    ./kubernetes.nix
     ./gastown.nix
   ];
 

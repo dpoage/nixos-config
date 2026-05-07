@@ -3,6 +3,7 @@
 
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixos-25.11";
+    nixpkgs-unstable.url = "github:nixos/nixpkgs/nixos-unstable";
     nixos-hardware.url = "github:nixos/nixos-hardware/master";
     nixvim.url = "github:nix-community/nixvim/nixos-25.11";
     home-manager = {
@@ -23,11 +24,13 @@
     };
   };
 
-  outputs = { self, nixpkgs, nixos-hardware, nixvim, home-manager, nix-index-database, beads, gastown, ... }:
+  outputs = { self, nixpkgs, nixpkgs-unstable, nixos-hardware, nixvim, home-manager, nix-index-database, beads, gastown, ... }:
   let
     system = "x86_64-linux";
+    unstable = import nixpkgs-unstable { inherit system; };
     extraPkgs = {
       beads = beads.packages.${system}.default;
+      dolt = unstable.dolt;
       gastown = gastown.packages.${system}.default.overrideAttrs (old: {
         goModules = old.goModules.overrideAttrs {
           outputHash = "sha256-PQT/Xq9na3vI8Oy9INBYJf3GsiN5IxAVCxrNLhyIpO8=";

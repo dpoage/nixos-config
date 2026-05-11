@@ -2,6 +2,7 @@
 
 {
   networking.hostName = "oerlikon";
+  pattern.primaryUser = "dpoage";
 
   # Home Manager
   home-manager.useGlobalPkgs = true;

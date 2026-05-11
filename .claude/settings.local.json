@@ -52,7 +52,14 @@
       "WebFetch(domain:api.github.com)",
       "Bash(gh search:*)",
       "Bash(python3 -c \":*)",
-      "Bash(nix build:*)"
+      "Bash(nix build:*)",
+      "Bash(python3 -c \"import json,sys; d=json.load\\(sys.stdin\\); [print\\(k\\) for k in d.get\\(''''locks'''',{}\\).get\\(''''nodes'''',{}\\).keys\\(\\)]\")",
+      "Bash(python3 -c \"import json,sys; d=json.load\\(sys.stdin\\); nodes=d[''''locks''''][''''nodes'''']; gas=nodes.get\\(''''gastown'''',{}\\); print\\(json.dumps\\(gas.get\\(''''inputs'''',{}\\), indent=2\\)\\)\")",
+      "Bash(python3 -c \"import json,sys; d=json.load\\(sys.stdin\\); gas=d[''''nodes''''].get\\(''''gastown'''',{}\\); print\\(json.dumps\\(gas.get\\(''''inputs'''',{}\\), indent=2\\)\\)\")",
+      "Bash(for repo:*)",
+      "Bash(do echo:*)",
+      "Read(//home/dpoage/code/$repo/**)",
+      "Bash(python3 -c \"import json,sys; d=json.load\\(sys.stdin\\); drv=list\\(d.values\\(\\)\\)[0]; print\\(''''builder:'''', drv.get\\(''''builder'''',''''''''\\)\\); env=drv.get\\(''''env'''',{}\\); print\\(''''nativeBuildInputs:'''', env.get\\(''''nativeBuildInputs'''',''''''''\\)[:200]\\)\")"
     ],
     "deny": [],
     "ask": []

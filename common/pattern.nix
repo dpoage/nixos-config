@@ -1,31 +1,30 @@
-{ config, lib, pkgs, ... }:
+{ config, lib, pkgs, extraPkgs, ... }:
 
 let
-  normalUsers = builtins.filter
-    (u: u.isNormalUser)
-    (builtins.attrValues config.users.users);
-  primaryUser = builtins.head normalUsers;
+  # Avoid reading config.users.users here — it creates infinite recursion
+  # with nix.settings (nix-daemon.nix evaluates users during nrBuildUsers).
+  netrcPath = "/home/${config.pattern.primaryUser}/.netrc";
 in
 {
   imports = [
     ./kubernetes.nix
   ];
 
-  assertions = [{
-    assertion = builtins.length normalUsers > 0;
-    message = "pattern.nix: no normal users found; cannot determine netrc path for Nix sandbox";
-  }];
+  options.pattern.primaryUser = lib.mkOption {
+    type = lib.types.str;
+    description = "Username whose ~/.netrc is used for private repo access in Nix sandbox";
+  };
 
-  environment.systemPackages = with pkgs; [
-    pattern
-    bazelisk
-  ];
+  config = {
+    environment.systemPackages = [
+      extraPkgs.pattern
+      pkgs.bazelisk
+    ];
 
-  # Private repo access: netrc-file lets the Nix daemon authenticate HTTPS
-  # fetches (flake inputs, go mod download FODs). extra-sandbox-paths makes
-  # the netrc available inside build sandboxes for GOPRIVATE module fetching.
-  nix.settings.netrc-file = "${primaryUser.home}/.netrc";
-  nix.settings.extra-sandbox-paths = [
-    "${primaryUser.home}/.netrc"
-  ];
+    # Private repo access: netrc-file lets the Nix daemon authenticate HTTPS
+    # fetches (flake inputs, go mod download FODs). extra-sandbox-paths makes
+    # the netrc available inside build sandboxes for GOPRIVATE module fetching.
+    nix.settings.netrc-file = netrcPath;
+    nix.settings.extra-sandbox-paths = [ netrcPath ];
+  };
 }

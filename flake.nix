@@ -22,9 +22,13 @@
       url = "github:steveyegge/gastown";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    pattern-cli = {
+      url = "git+ssh://git@github.com/Pattern-Labs/pattern_cli";
+      inputs.flake-utils.follows = "gastown/flake-utils";
+    };
   };
 
-  outputs = { self, nixpkgs, nixpkgs-unstable, nixos-hardware, nixvim, home-manager, nix-index-database, beads, gastown, ... }:
+  outputs = { self, nixpkgs, nixpkgs-unstable, nixos-hardware, nixvim, home-manager, nix-index-database, beads, gastown, pattern-cli, ... }:
   let
     system = "x86_64-linux";
     unstable = import nixpkgs-unstable { inherit system; };
@@ -36,6 +40,7 @@
           outputHash = "sha256-PQT/Xq9na3vI8Oy9INBYJf3GsiN5IxAVCxrNLhyIpO8=";
         };
       });
+      pattern = pattern-cli.packages.${system}.default;
     };
 
     sharedModules = [

@@ -266,6 +266,22 @@
         "type": "github"
       }
     },
+    "nixpkgs_4": {
+      "locked": {
+        "lastModified": 1777918403,
+        "narHash": "sha256-7QiZv0LcW1yIOLo2LNuCQjWon1Z1r99FwK24hbtBOF4=",
+        "owner": "NixOS",
+        "repo": "nixpkgs",
+        "rev": "afc5551119aae6eab73a95c1960891cfe63204f6",
+        "type": "github"
+      },
+      "original": {
+        "owner": "NixOS",
+        "ref": "nixpkgs-unstable",
+        "repo": "nixpkgs",
+        "type": "github"
+      }
+    },
     "nixvim": {
       "inputs": {
         "flake-parts": "flake-parts",
@@ -311,6 +327,28 @@
         "type": "github"
       }
     },
+    "pattern-cli": {
+      "inputs": {
+        "flake-utils": [
+          "gastown",
+          "flake-utils"
+        ],
+        "nixpkgs": "nixpkgs_4"
+      },
+      "locked": {
+        "lastModified": 1778534970,
+        "narHash": "sha256-U9jYqC9JrHKByAkUKpZH2jJukM6zDcZ6kAIa9Q+bCPU=",
+        "ref": "refs/heads/main",
+        "rev": "1e73ff3f331dfd661504004f3a2345f50485a544",
+        "revCount": 196,
+        "type": "git",
+        "url": "ssh://git@github.com/Pattern-Labs/pattern_cli"
+      },
+      "original": {
+        "type": "git",
+        "url": "ssh://git@github.com/Pattern-Labs/pattern_cli"
+      }
+    },
     "root": {
       "inputs": {
         "beads": "beads",
@@ -320,7 +358,8 @@
         "nixos-hardware": "nixos-hardware",
         "nixpkgs": "nixpkgs_2",
         "nixpkgs-unstable": "nixpkgs-unstable",
-        "nixvim": "nixvim"
+        "nixvim": "nixvim",
+        "pattern-cli": "pattern-cli"
       }
     },
     "systems": {

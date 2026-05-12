@@ -19,7 +19,7 @@ Beads is not a todo list. It is **persistent memory**. Context gets compacted; b
 - **`--description`**: The intent. Update it if scope changes.
 - **`bd comments add <id> "..."`**: Timestamped progress and open questions.
 
-**Goal**: `bd show <id>` tells a future session *what*, *why*, and *what was tried*.
+**Goal**: `bd show <id>` tells a future session *what*, *why*, *what was tried*, and *what a solution looks like*.
 
 For research beads: capture findings in `--design`/`--notes` as you go, close with `--reason` stating the recommendation, put rationale on the *consuming* issue.
 

@@ -12,6 +12,10 @@
 
   nix.settings.experimental-features = [ "nix-command" "flakes" ];
   nix.settings.trusted-users = [ "root" "@wheel" ];
+  nix.settings.extra-platforms = [ "aarch64-linux" ];
+
+  # QEMU binfmt registration so nix can build aarch64 derivations transparently.
+  boot.binfmt.emulatedSystems = [ "aarch64-linux" ];
   nixpkgs.config.allowUnfree = true;
 
   # Bootloader
@@ -85,17 +89,39 @@
     kitty
 
     # Development tools
-    gcc
-    gnumake
-    cmake
-    python3
-    rustup
-    go
     podman
     lazygit
     opencode
     bun
     sops
+    pkg-config
+    ninja
+
+    # Python
+    python3
+    uv
+    ruff
+
+    # Go
+    go
+    gopls
+    golangci-lint
+    delve
+
+    # C/C++
+    gcc
+    gnumake
+    cmake
+    clang-tools
+    gdb
+
+    # Elixir
+    elixir
+    elixir-ls
+
+    # Rust
+    rustup
+    rust-analyzer
 
     # System monitoring
     iotop

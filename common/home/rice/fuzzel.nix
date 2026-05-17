@@ -9,7 +9,7 @@ let
   c   = cfg.colors;
 in
 {
-  config = lib.mkIf (cfg.enable && cfg.programs.fuzzel) {
+  config = lib.mkIf cfg.enable {
     programs.fuzzel = {
       enable = true;
       settings = {

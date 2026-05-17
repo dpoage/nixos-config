@@ -63,21 +63,23 @@
     fg3     = "a6adc8";
     fg4     = "9399b2";
 
-    red     = "f38ba8";
-    redBr   = "f38ba8";
-    green   = "a6e3a1";
-    greenBr = "a6e3a1";
-    yellow  = "f9e2af";
-    yellowBr = "f9e2af";
-    blue    = "89b4fa";
-    blueBr  = "89b4fa";
-    purple  = "cba6f7";
-    purpleBr = "cba6f7";
-    aqua    = "94e2d5";
-    aquaBr  = "94e2d5";
-    orange  = "fab387";
-    orangeBr = "fab387";
-    gray    = "6c7086";
+    # Bright variants use neighboring mocha colors so bold text and
+    # bright ANSI codes actually look distinct.
+    red      = "eba0ac"; # maroon
+    redBr    = "f38ba8"; # red
+    green    = "a6e3a1";
+    greenBr  = "94e2d5"; # teal
+    yellow   = "f9e2af";
+    yellowBr = "fab387"; # peach
+    blue     = "89b4fa";
+    blueBr   = "74c7ec"; # sapphire
+    purple   = "cba6f7"; # mauve
+    purpleBr = "b4befe"; # lavender
+    aqua     = "94e2d5"; # teal
+    aquaBr   = "89dceb"; # sky
+    orange   = "fab387"; # peach
+    orangeBr = "f5c2e7"; # pink
+    gray     = "6c7086";
 
     accent       = "cba6f7"; # mauve
     accentSecond = "89b4fa"; # blue

@@ -13,6 +13,7 @@ in
 
   options.pattern.primaryUser = lib.mkOption {
     type = lib.types.str;
+    default = config.myUser.name;
     description = "Username whose ~/.netrc is used for private repo access in Nix sandbox";
   };
 

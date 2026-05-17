@@ -1,11 +1,12 @@
-{ pkgs, ... }:
+{ config, lib, pkgs, ... }:
 
 let
   wallpaper = "${pkgs.nixos-artwork.wallpapers.nineish-catppuccin-mocha-alt}/share/backgrounds/nixos/nix-wallpaper-nineish-catppuccin-mocha-alt.png";
 in
 {
-  # Wallpaper via hyprpaper
-  services.hyprpaper = {
+  # Wallpaper via hyprpaper. Disabled when myRice owns the wallpaper —
+  # rice runs swww and the two daemons fight over the layer surface.
+  services.hyprpaper = lib.mkIf (!(config.myRice.enable or false)) {
     enable = true;
     settings = {
       preload = [ wallpaper ];

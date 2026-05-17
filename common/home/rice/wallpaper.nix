@@ -26,9 +26,11 @@ let
 
       mkdir -p "$(dirname "$STATE_FILE")"
 
-      if ! pgrep -x swww-daemon >/dev/null 2>&1; then
+      # Probe the daemon's socket directly instead of pgrep — avoids a
+      # procps scan and a race when two invocations land near-simultaneously.
+      if ! swww query >/dev/null 2>&1; then
           swww-daemon >/dev/null 2>&1 &
-          for _ in $(seq 1 50); do
+          for _ in {1..50}; do
               swww query >/dev/null 2>&1 && break
               sleep 0.1
           done
@@ -40,19 +42,21 @@ let
             | shuf -n 1
       }
 
-      case "''${1:-random}" in
+      mode="''${1:-random}"
+      case "$mode" in
           restore)
-              if [[ -s "$STATE_FILE" ]] && [[ -f "$(cat "$STATE_FILE")" ]]; then
-                  target="$(cat "$STATE_FILE")"
-              else
-                  target="$(pick_random)"
+              target=""
+              if [[ -s "$STATE_FILE" ]]; then
+                  target=$(<"$STATE_FILE")
+                  [[ -f "$target" ]] || target=""
               fi
+              [[ -n "$target" ]] || target="$(pick_random)"
               ;;
           random)
               target="$(pick_random)"
               ;;
           *)
-              target="$1"
+              target="$mode"
               ;;
       esac
 
@@ -61,17 +65,23 @@ let
           exit 1
       fi
 
-      swww img "$target" \
-          --transition-type any \
-          --transition-fps 60 \
-          --transition-duration 1.2
+      # Skip the cross-fade on session-start restore — it just delays the
+      # first paint with no visible source to fade from.
+      if [[ "$mode" == "restore" ]]; then
+          swww img "$target" --transition-type none
+      else
+          swww img "$target" \
+              --transition-type any \
+              --transition-fps 60 \
+              --transition-duration 1.2
+      fi
 
       echo "$target" > "$STATE_FILE"
     '';
   };
 in
 {
-  config = lib.mkIf (cfg.enable && cfg.programs.wallpaper) {
+  config = lib.mkIf cfg.enable {
     home.packages = [ pkgs.swww setWallpaper ];
 
     # Hyprland users want the daemon spawned via exec-once; the niri module

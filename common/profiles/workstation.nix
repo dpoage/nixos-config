@@ -1,8 +1,7 @@
 # Desktop/tower profile: AC-only power assumptions, more aggressive
-# build parallelism. Stub for now — fill in as the first workstation
-# host gets added.
+# build parallelism.
 
-{ config, lib, pkgs, ... }:
+{ lib, ... }:
 
 {
   # Make sure no laptop power-management daemons sneak in via defaults.

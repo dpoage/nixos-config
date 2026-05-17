@@ -11,7 +11,7 @@ let
   hex = v: "0x${v}";
 in
 {
-  config = lib.mkIf (cfg.enable && cfg.programs.alacritty) {
+  config = lib.mkIf cfg.enable {
     programs.alacritty = {
       enable = true;
       settings = {

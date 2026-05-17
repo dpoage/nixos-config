@@ -9,7 +9,7 @@ let
   c   = cfg.colors;
 in
 {
-  config = lib.mkIf (cfg.enable && cfg.programs.swaylock) {
+  config = lib.mkIf cfg.enable {
     programs.swaylock = {
       enable = true;
       package = pkgs.swaylock-effects;

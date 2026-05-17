@@ -1,12 +1,7 @@
-# Single source of truth for the primary user on each host.
+# Single source of truth for the primary user on each host. Drives
+# users.users.<name>, home-manager.users.<name>, and pattern.primaryUser.
 #
-# Eliminates the per-host duplication of `users.users.<name>`,
-# `home-manager.users.<name>`, and per-tool integrations like
-# `pattern.primaryUser` — all of which previously had to be kept
-# manually in sync across hosts.
-#
-# Example (in a host's configuration.nix):
-#
+# Example:
 #   myUser = {
 #     name = "dustin";
 #     fullName = "Dustin Poage";
@@ -41,11 +36,11 @@ in
 
     extraGroups = lib.mkOption {
       type = lib.types.listOf lib.types.str;
-      default = [ "networkmanager" "wheel" "video" "audio" "input" "docker" "render" ];
+      default = [ ];
       description = ''
-        Groups the user belongs to beyond the implicit ones. Profile
-        modules may extend this list (e.g. `personal.nix` could add
-        "gamemode") via `config.myUser.extraGroups`.
+        Additional groups beyond the baseline (networkmanager, wheel,
+        video, audio, input, docker, render). Profiles can append here:
+        Nix merges list options across modules.
       '';
     };
 
@@ -73,7 +68,7 @@ in
     users.users.${cfg.name} = {
       isNormalUser = true;
       description = cfg.fullName;
-      extraGroups = cfg.extraGroups;
+      extraGroups = [ "networkmanager" "wheel" "video" "audio" "input" "docker" "render" ] ++ cfg.extraGroups;
       packages = cfg.extraPackages;
       shell = cfg.shell;
     };

@@ -140,8 +140,8 @@ in
       // Per-host autostart: waybar + wallpaper restore + notifications.
       // Hosts can override these via config.d/ overrides.
       spawn-at-startup "waybar"
-      ${lib.optionalString cfg.programs.wallpaper ''spawn-sh-at-startup "set-wallpaper restore"''}
-      ${lib.optionalString cfg.programs.mako ''spawn-at-startup "mako"''}
+      spawn-sh-at-startup "set-wallpaper restore"
+      spawn-at-startup "mako"
 
       binds {
           Mod+Shift+Slash { show-hotkey-overlay; }
@@ -151,8 +151,7 @@ in
           Mod+Space  hotkey-overlay-title="Run an Application: fuzzel" { spawn "fuzzel"; }
           Mod+D      hotkey-overlay-title="Run an Application: fuzzel" { spawn "fuzzel"; }
           Super+Alt+L hotkey-overlay-title="Lock the Screen: swaylock" { spawn "swaylock"; }
-          ${lib.optionalString cfg.programs.wallpaper
-            ''Mod+Shift+W hotkey-overlay-title="Random Wallpaper" { spawn "set-wallpaper"; }''}
+          Mod+Shift+W hotkey-overlay-title="Random Wallpaper" { spawn "set-wallpaper"; }
 
           XF86AudioRaiseVolume allow-when-locked=true { spawn-sh "wpctl set-volume @DEFAULT_AUDIO_SINK@ 0.1+ -l 1.0"; }
           XF86AudioLowerVolume allow-when-locked=true { spawn-sh "wpctl set-volume @DEFAULT_AUDIO_SINK@ 0.1-"; }

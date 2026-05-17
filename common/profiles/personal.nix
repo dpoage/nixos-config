@@ -2,7 +2,7 @@
 # full personal communication set. Import on machines that aren't
 # locked down for work use.
 
-{ config, lib, pkgs, extraPkgs, ... }:
+{ pkgs, ... }:
 
 {
   # Gaming
@@ -50,9 +50,6 @@
     libreoffice-fresh
     obsidian
     thunderbird
-
-    # Desktop essentials (hyprland tools + wayland utilities are in
-    # common/desktop.nix and installed system-wide).
 
     # System tray utilities
     networkmanagerapplet

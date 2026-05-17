@@ -92,14 +92,6 @@ in
         Used by the awww/swww wallpaper daemon integration.
       '';
     };
-
-    programs = {
-      fuzzel = lib.mkEnableOption "themed fuzzel launcher" // { default = cfg.enable; };
-      mako = lib.mkEnableOption "themed mako notification daemon" // { default = cfg.enable; };
-      swaylock = lib.mkEnableOption "themed swaylock-effects lockscreen" // { default = cfg.enable; };
-      alacritty = lib.mkEnableOption "themed alacritty terminal" // { default = cfg.enable; };
-      wallpaper = lib.mkEnableOption "swww wallpaper daemon + set-wallpaper helper" // { default = cfg.enable; };
-    };
   };
 
   config = lib.mkIf cfg.enable {

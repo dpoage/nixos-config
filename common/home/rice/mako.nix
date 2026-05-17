@@ -9,7 +9,7 @@ let
   c   = cfg.colors;
 in
 {
-  config = lib.mkIf (cfg.enable && cfg.programs.mako) {
+  config = lib.mkIf cfg.enable {
     services.mako = {
       enable = true;
       settings = {

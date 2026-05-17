@@ -5,6 +5,6 @@
     ./hardware-configuration.nix
     ./configuration.nix
     ./nvidia.nix
-    ../common/pattern.nix
+    # pattern.nix is pulled in transitively via profiles/work.nix.
   ];
 }

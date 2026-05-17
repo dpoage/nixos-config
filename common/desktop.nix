@@ -46,7 +46,8 @@
     wireplumber.enable = true;
   };
 
-  # Desktop packages
+  # Compositor-agnostic desktop packages only. Compositor-specific tools
+  # live in profiles/hyprland-stack.nix and profiles/niri-stack.nix.
   environment.systemPackages = with pkgs; [
     rofi
     brightnessctl

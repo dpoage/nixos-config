@@ -8,6 +8,10 @@
     ./cloud.nix
     ./kubernetes.nix
     ./gastown.nix
+    ./myUser.nix
+    # Profiles in ./profiles/ are *not* imported here — hosts pick the
+    # subset they want (laptop + work, workstation + personal, etc.)
+    # directly. See common/profiles/default.nix for the list.
   ];
 
   nix.settings.experimental-features = [ "nix-command" "flakes" ];

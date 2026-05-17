@@ -1,13 +1,19 @@
-{ config, pkgs, ... }:
+{ config, lib, pkgs, ... }:
 
 {
-  # Home Manager
-  home-manager.useGlobalPkgs = true;
-  home-manager.useUserPackages = true;
-  home-manager.backupFileExtension = "backup";
-  home-manager.users.dustin = import ../common/home;
+  imports = [
+    ../common/profiles/laptop.nix
+    ../common/profiles/personal.nix
+    # tunguska keeps both compositors installed so greetd can offer either
+    # at login. niri is the daily-driver per myRice below.
+    ../common/profiles/hyprland-stack.nix
+    ../common/profiles/niri-stack.nix
+  ];
 
-  # Kernel - pinned for NVIDIA compatibility (6.13+ breaks NVIDIA drivers)
+  networking.hostName = "tunguska";
+
+  # Kernel pinned for NVIDIA compatibility (6.13+ breaks NVIDIA drivers).
+  # Truly host-specific because it depends on this laptop's GPU.
   boot.kernelPackages = pkgs.linuxPackages_6_12;
   boot.kernelParams = [
     "amd_pstate=active"
@@ -18,118 +24,34 @@
     "splash"
   ];
 
-  networking.hostName = "tunguska";
+  # System-level niri: provides the session entry that greetd lists, plus
+  # the xdg-desktop-portal-gnome wiring that niri needs. Hyprland from
+  # common/desktop.nix stays installed; greetd's default switches below.
+  programs.niri.enable = true;
+  services.greetd.settings.default_session.command = lib.mkForce
+    "${pkgs.tuigreet}/bin/tuigreet --time --cmd niri-session";
 
-  # ASUS specific services
-  services.asusd = {
-    enable = true;
-    enableUserService = true;
-    package = pkgs.asusctl;
-  };
-
-  # Power management (laptop-specific)
-  services.power-profiles-daemon.enable = false;
-  services.tlp = {
-    enable = true;
-    settings = {
-      CPU_SCALING_GOVERNOR_ON_AC = "performance";
-      CPU_SCALING_GOVERNOR_ON_BAT = "powersave";
-      CPU_ENERGY_PERF_POLICY_ON_AC = "performance";
-      CPU_ENERGY_PERF_POLICY_ON_BAT = "balance_power";
-      PLATFORM_PROFILE_ON_AC = "performance";
-      PLATFORM_PROFILE_ON_BAT = "balanced";
-      USB_AUTOSUSPEND = 1;
-      WIFI_PWR_ON_AC = "off";
-      WIFI_PWR_ON_BAT = "on";
+  # Primary user + rice preferences for this host.
+  myUser = {
+    name = "dustin";
+    fullName = "dustin";
+    home = { ... }: {
+      imports = [ ../common/home ];
+      myRice = {
+        enable = true;
+        palette = "gruvbox";
+        compositor = "niri";
+        wallpaperDir = "/home/dustin/Pictures/Wallpapers/gruvbox/wallpapers";
+      };
     };
-  };
-  services.thermald.enable = true;
-
-  # Touchpad
-  services.libinput = {
-    enable = true;
-    touchpad = {
-      naturalScrolling = true;
-      tapping = true;
-      clickMethod = "clickfinger";
-      disableWhileTyping = true;
-    };
+    # Hyprland tooling now lives in common/desktop.nix so it's available
+    # whether the host runs Hyprland or niri; no host-level extras needed.
+    extraPackages = [ ];
   };
 
-  # Gaming
-  programs.gamescope = {
-    enable = true;
-    capSysNice = true;
-  };
-  programs.steam = {
-    enable = true;
-    remotePlay.openFirewall = true;
-    dedicatedServer.openFirewall = true;
-    localNetworkGameTransfers.openFirewall = true;
-    gamescopeSession.enable = true;
-    extraCompatPackages = with pkgs; [ proton-ge-bin ];
-  };
-
-  # User account
-  users.users.dustin = {
-    isNormalUser = true;
-    description = "dustin";
-    extraGroups = [ "networkmanager" "wheel" "video" "audio" "input" "docker" "render" ];
-    packages = with pkgs; [
-      # Browsers
-      firefox
-      chromium
-      brave
-
-      # Communication
-      discord
-      slack
-      signal-desktop
-      telegram-desktop
-
-      # Multimedia
-      spotify
-      vlc
-      obs-studio
-      gimp
-      inkscape
-
-      # Productivity
-      libreoffice-fresh
-      obsidian
-      thunderbird
-
-      # Hyprland essentials
-      wofi
-      dunst
-      wl-clipboard
-      cliphist
-      grim
-      slurp
-      swappy
-      hyprpicker
-      hyprlock
-      hypridle
-
-      # System tray
-      networkmanagerapplet
-      pavucontrol
-      blueman
-
-      # Gaming
-      mangohud
-      gamemode
-      lutris
-      heroic
-
-      # ASUS tools
-      asusctl
-      supergfxctl
-    ];
-    shell = pkgs.zsh;
-  };
-
-  # Device-specific system packages
+  # Host-specific helper: launches Steam in a gamescope session sized to
+  # whatever monitor Hyprland currently focuses. Stays on the host because
+  # it shells out to `hyprctl`, which only works under Hyprland.
   environment.systemPackages = with pkgs; [
     (pkgs.writeShellScriptBin "steam-gamescope" ''
       MONITOR_INFO=$(${pkgs.hyprland}/bin/hyprctl monitors -j | ${pkgs.jq}/bin/jq -r '.[] | select(.focused == true) | "\(.width)x\(.height)@\(.refreshRate)"')
@@ -147,19 +69,13 @@
         -- ${pkgs.steam}/bin/steam "$@"
     '')
 
-    # Laptop utilities
-    acpi
-    powertop
-    brightnessctl
-    lm_sensors
-
-    # GPU tools
+    # GPU diagnostics (host-specific because dGPU)
     mesa-demos
     vulkan-tools
     mesa
   ];
 
-  # NVIDIA graphics (extra packages beyond common)
+  # NVIDIA graphics (extra packages beyond common). True host-specific.
   hardware.graphics.extraPackages = with pkgs; [
     libglvnd
     mesa

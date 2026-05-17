@@ -1,74 +1,29 @@
 { config, pkgs, ... }:
 
 {
+  imports = [
+    ../common/profiles/laptop.nix
+    ../common/profiles/work.nix
+    # oerlikon runs hyprland only; switch to niri-stack alongside myRice
+    # when you migrate this host.
+    ../common/profiles/hyprland-stack.nix
+  ];
+
   networking.hostName = "oerlikon";
-  pattern.primaryUser = "dpoage";
 
-  # Home Manager
-  home-manager.useGlobalPkgs = true;
-  home-manager.useUserPackages = true;
-  home-manager.backupFileExtension = "backup";
-  home-manager.users.dpoage = {
-    imports = [ ../common/home ./monitors.nix ];
-  };
-
-  # User account
-  users.users.dpoage = {
-    isNormalUser = true;
-    description = "Dustin";
-    extraGroups = [ "networkmanager" "wheel" "video" "audio" "input" "docker" "render" ];
-    packages = with pkgs; [
-      # Browsers
-      firefox
-      chromium
-      brave
-
-      # Communication
-      discord
-      slack
-      signal-desktop
-      telegram-desktop
-
-      # Multimedia
-      spotify
-      vlc
-      obs-studio
-      gimp
-      inkscape
-
-      # Productivity
-      libreoffice-fresh
-      obsidian
-      thunderbird
-
-      # Hyprland essentials
-      wofi
-      dunst
-      wl-clipboard
-      cliphist
-      grim
-      slurp
-      swappy
-      hyprpicker
-      hyprlock
-      hypridle
-
-      # System tray
-      networkmanagerapplet
-      pavucontrol
-      blueman
-    ];
-    shell = pkgs.zsh;
-  };
-
-  # Touchpad
-  services.libinput = {
-    enable = true;
-    touchpad = {
-      naturalScrolling = true;
-      tapping = true;
-      clickMethod = "clickfinger";
-      disableWhileTyping = true;
+  myUser = {
+    name = "dpoage";
+    fullName = "Dustin";
+    home = { ... }: {
+      imports = [ ../common/home ./monitors.nix ];
+      # No rice opt-in yet — oerlikon stays on hyprland + catppuccin
+      # defaults. Flip these to migrate the work laptop to gruvbox+niri:
+      #
+      #   myRice = {
+      #     enable = true;
+      #     palette = "gruvbox";
+      #     compositor = "niri";
+      #   };
     };
   };
 

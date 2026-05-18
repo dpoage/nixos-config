@@ -21,7 +21,7 @@ in
         window = {
           dynamic_padding = true;
           decorations = "full";
-          opacity = 1.0;
+          opacity = cfg.terminal.opacity;
           decorations_theme_variant = "Dark";
           dimensions = {
             columns = 100;
@@ -37,11 +37,11 @@ in
           multiplier = 3;
         };
         font = {
-          size = 12;
-          normal = { family = "FantasqueSansM Nerd Font Mono"; style = "Regular"; };
-          bold   = { family = "FantasqueSansM Nerd Font Mono"; style = "Bold"; };
-          italic = { family = "FantasqueSansM Nerd Font Mono"; style = "Italic"; };
-          bold_italic = { family = "FantasqueSansM Nerd Font Mono"; style = "Bold Italic"; };
+          size = cfg.fonts.monoSize;
+          normal = { family = cfg.fonts.mono; style = "Regular"; };
+          bold   = { family = cfg.fonts.mono; style = "Bold"; };
+          italic = { family = cfg.fonts.mono; style = "Italic"; };
+          bold_italic = { family = cfg.fonts.mono; style = "Bold Italic"; };
         };
         colors = {
           draw_bold_text_with_bright_colors = true;

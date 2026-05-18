@@ -2,10 +2,12 @@
 
 let
   cfg = config.myPrompt;
+  rice = config.myRice;
+  c = rice.colors; # lazy — only evaluated when rice.enable gates access
 
-  # Build the badge segment for the Starship format string.
-  # Badges appear between the username (mauve) and directory (peach) segments,
-  # on a flamingo-colored background.
+  # --- Badge generation ---
+  # Badges appear between the username and directory segments,
+  # on a distinctive background.
   badgeTexts = map (b:
     let text = if b.label != "" then "${b.icon} ${b.label}" else b.icon;
     in "[ ${text} ](bg:flamingo fg:crust)"
@@ -21,6 +23,81 @@ let
   afterBadge = if hasBadges
     then "[](fg:flamingo bg:peach)"
     else "[](bg:peach fg:mauve)";
+
+  # --- Starship palette generation ---
+  # When myRice is enabled, derive Starship named colors from the active
+  # palette's prompt keys. When disabled, fall back to Catppuccin Mocha.
+  # The format string references these names (mauve, peach, green, etc.)
+  # so the mapping is defined here, not in palettes.nix.
+  generatedPalette = {
+    mauve    = "#${c.promptUser}";
+    flamingo = "#${c.promptBadge}";
+    peach    = "#${c.promptPath}";
+    green    = "#${c.promptVcs}";
+    teal     = "#${c.promptLang}";
+    blue     = "#${c.promptInfo}";
+    purple   = "#${c.promptMuted}";
+    crust    = "#${c.promptFg}";
+    red      = "#${c.redBr}";
+    yellow   = "#${c.yellow}";
+    text     = "#${c.fg}";
+    base     = "#${c.bg}";
+    mantle   = "#${c.bg0}";
+    surface0 = "#${c.bg1}";
+    surface1 = "#${c.bg2}";
+    surface2 = "#${c.bg3}";
+    overlay0 = "#${c.bg4}";
+    subtext0 = "#${c.fg3}";
+    subtext1 = "#${c.fg2}";
+  };
+
+  catppuccinPalette = {
+    rosewater = "#f5e0dc";
+    flamingo = "#f2cdcd";
+    pink = "#f5c2e7";
+    mauve = "#cba6f7";
+    red = "#f38ba8";
+    maroon = "#eba0ac";
+    peach = "#fab387";
+    yellow = "#f9e2af";
+    green = "#a6e3a1";
+    teal = "#94e2d5";
+    sky = "#89dceb";
+    sapphire = "#74c7ec";
+    blue = "#89b4fa";
+    lavender = "#b4befe";
+    text = "#cdd6f4";
+    subtext1 = "#bac2de";
+    subtext0 = "#a6adc8";
+    overlay2 = "#9399b2";
+    overlay1 = "#7f849c";
+    overlay0 = "#6c7086";
+    surface2 = "#585b70";
+    surface1 = "#45475a";
+    surface0 = "#313244";
+    base = "#1e1e2e";
+    mantle = "#181825";
+    crust = "#11111b";
+    purple = "#b4befe";
+  };
+
+  starshipPalette = if rice.enable then generatedPalette else catppuccinPalette;
+
+  # --- FZF color generation ---
+  fzfColorOpts = if rice.enable then
+    builtins.concatStringsSep " " [
+      "--color=bg+:#${c.bg1},bg:#${c.bg},spinner:#${c.fg2},hl:#${c.redBr}"
+      "--color=fg:#${c.fg},header:#${c.redBr},info:#${c.accent},pointer:#${c.fg2}"
+      "--color=marker:#${c.promptMuted},fg+:#${c.fg},prompt:#${c.accent},hl+:#${c.redBr}"
+      "--color=selected-bg:#${c.bg2}"
+    ]
+  else
+    builtins.concatStringsSep " " [
+      "--color=bg+:#313244,bg:#1e1e2e,spinner:#f5e0dc,hl:#f38ba8"
+      "--color=fg:#cdd6f4,header:#f38ba8,info:#cba6f7,pointer:#f5e0dc"
+      "--color=marker:#b4befe,fg+:#cdd6f4,prompt:#cba6f7,hl+:#f38ba8"
+      "--color=selected-bg:#45475a"
+    ];
 
 in
 {
@@ -175,13 +252,8 @@ in
           source "$(fzf-share)/completion.zsh"
         fi
 
-        # FZF Catppuccin Mocha theme
-        export FZF_DEFAULT_OPTS=" \
-          --color=bg+:#313244,bg:#1e1e2e,spinner:#f5e0dc,hl:#f38ba8 \
-          --color=fg:#cdd6f4,header:#f38ba8,info:#cba6f7,pointer:#f5e0dc \
-          --color=marker:#b4befe,fg+:#cdd6f4,prompt:#cba6f7,hl+:#f38ba8 \
-          --color=selected-bg:#45475a \
-          --multi"
+        # FZF theme (generated from palette when myRice is enabled)
+        export FZF_DEFAULT_OPTS="${fzfColorOpts} --multi"
       '';
     };
 
@@ -253,8 +325,8 @@ in
       };
     };
 
-    # Starship prompt — format is generated from myPrompt options so that
-    # profiles can inject badges and enable cloud/k8s context modules.
+    # Starship prompt — palette is generated from myRice.colors when rice is
+    # enabled, otherwise falls back to hardcoded Catppuccin Mocha.
     programs.starship = {
       enable = true;
       settings = {
@@ -285,37 +357,8 @@ in
           "$character"
         ];
 
-        palette = "catppuccin_mocha";
-
-        palettes.catppuccin_mocha = {
-          rosewater = "#f5e0dc";
-          flamingo = "#f2cdcd";
-          pink = "#f5c2e7";
-          mauve = "#cba6f7";
-          red = "#f38ba8";
-          maroon = "#eba0ac";
-          peach = "#fab387";
-          yellow = "#f9e2af";
-          green = "#a6e3a1";
-          teal = "#94e2d5";
-          sky = "#89dceb";
-          sapphire = "#74c7ec";
-          blue = "#89b4fa";
-          lavender = "#b4befe";
-          text = "#cdd6f4";
-          subtext1 = "#bac2de";
-          subtext0 = "#a6adc8";
-          overlay2 = "#9399b2";
-          overlay1 = "#7f849c";
-          overlay0 = "#6c7086";
-          surface2 = "#585b70";
-          surface1 = "#45475a";
-          surface0 = "#313244";
-          base = "#1e1e2e";
-          mantle = "#181825";
-          crust = "#11111b";
-          purple = "#b4befe";
-        };
+        palette = "prompt";
+        palettes.prompt = starshipPalette;
 
         os = {
           disabled = false;

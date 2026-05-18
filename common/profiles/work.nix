@@ -6,6 +6,19 @@
 {
   imports = [ ../pattern.nix ];
 
+  # Inject work-specific prompt badges and cloud context modules.
+  # These merge into terminal.nix's myPrompt options via deferredModule.
+  myUser.home = { ... }: {
+    myPrompt = {
+      badges = [
+        { icon = ""; label = "Pattern"; }
+      ];
+      kubernetes = true;
+      gcloud = true;
+      aws = true;
+    };
+  };
+
   myUser.extraPackages = with pkgs; [
     # Browsers
     firefox

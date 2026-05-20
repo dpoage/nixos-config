@@ -40,6 +40,18 @@
           outputHash = "sha256-PQT/Xq9na3vI8Oy9INBYJf3GsiN5IxAVCxrNLhyIpO8=";
         };
       });
+      gcx = unstable.buildGoModule rec {
+        pname = "gcx";
+        version = "0.2.15";
+        src = unstable.fetchFromGitHub {
+          owner = "grafana";
+          repo = "gcx";
+          tag = "v${version}";
+          hash = "sha256-R5uEIgcsrqXYEeflgfSO8Y2k8vuY1xj4WDxK+v2T2ew=";
+        };
+        vendorHash = "sha256-DxAqHLV7J2mu5x+rQ79NXtkcDkn48u35r7P6sKq2mrY=";
+        subPackages = [ "cmd/gcx" ];
+      };
       pattern = pattern-cli.packages.${system}.default;
     };
 

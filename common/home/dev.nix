@@ -57,5 +57,14 @@
     kubectx
     kubernetes-helm
     k9s
+
+    # TypeScript / Node
+    nodejs
+    typescript
+    nodePackages.typescript-language-server
+
+    # Elixir
+    elixir
+    elixir-ls
   ];
 }

@@ -19,6 +19,7 @@ in
 
   config = {
     environment.systemPackages = [
+      extraPkgs.gcx
       extraPkgs.pattern
       pkgs.bazelisk
     ];

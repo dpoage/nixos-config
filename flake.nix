@@ -31,9 +31,10 @@
   outputs = { self, nixpkgs, nixpkgs-unstable, nixos-hardware, nixvim, home-manager, nix-index-database, beads, gastown, pattern-cli, ... }:
   let
     system = "x86_64-linux";
-    unstable = import nixpkgs-unstable { inherit system; };
+    unstable = import nixpkgs-unstable { inherit system; config.allowUnfree = true; };
     extraPkgs = {
       beads = beads.packages.${system}.default;
+      claude-code = unstable.claude-code;
       dolt = unstable.dolt;
       gastown = gastown.packages.${system}.default.overrideAttrs (old: {
         goModules = old.goModules.overrideAttrs {

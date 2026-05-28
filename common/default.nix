@@ -61,7 +61,7 @@
 
   # System packages
   environment.systemPackages = with pkgs; [
-    claude-code
+    extraPkgs.claude-code
     extraPkgs.beads
 
     # Core utilities

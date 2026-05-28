@@ -14,17 +14,22 @@
   myUser = {
     name = "dpoage";
     fullName = "Dustin";
-    home = { ... }: {
-      imports = [ ../common/home ./monitors.nix ];
-      # No rice opt-in yet — oerlikon stays on hyprland + catppuccin
-      # defaults. Flip these to migrate the work laptop to gruvbox+niri:
-      #
-      #   myRice = {
-      #     enable = true;
-      #     palette = "gruvbox";
-      #     compositor = "niri";
-      #   };
-    };
+    home =
+      { ... }:
+      {
+        imports = [
+          ../common/home
+          ./monitors.nix
+        ];
+        # No rice opt-in yet — oerlikon stays on hyprland + catppuccin
+        # defaults. Flip these to migrate the work laptop to gruvbox+niri:
+        #
+        #   myRice = {
+        #     enable = true;
+        #     palette = "gruvbox";
+        #     compositor = "niri";
+        #   };
+      };
   };
 
   system.stateVersion = "25.11";

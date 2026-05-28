@@ -54,6 +54,12 @@
         subPackages = [ "cmd/gcx" ];
       };
       pattern = pattern-cli.packages.${system}.default;
+
+      # NVIDIA developer tooling — pulled from unstable for newer Nsight versions
+      # (stable currently ships nsight-systems 2024.6; unstable has 2025.1).
+      nsight-systems = unstable.cudaPackages.nsight_systems;
+      nsight-compute = unstable.cudaPackages.nsight_compute;
+      cuda-gdb = unstable.cudaPackages.cuda_gdb;
     };
 
     sharedModules = [

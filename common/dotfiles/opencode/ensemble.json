@@ -1,0 +1,9 @@
+{
+  "modelPool": [
+    "anthropic/claude-opus-4-7",
+    "minimax/MiniMax-M3"
+  ],
+  "modelAssignment": "rotate",
+  "dashboardPort": 4747,
+  "promptForModels": false
+}

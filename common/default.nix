@@ -94,7 +94,7 @@
     # Development tools
     podman
     lazygit
-    opencode
+    extraPkgs.opencode
     bun
     sops
     pkg-config

@@ -36,6 +36,7 @@
       beads = beads.packages.${system}.default;
       claude-code = unstable.claude-code;
       dolt = unstable.dolt;
+      opencode = unstable.opencode;
       gastown = gastown.packages.${system}.default.overrideAttrs (old: {
         goModules = old.goModules.overrideAttrs {
           outputHash = "sha256-PQT/Xq9na3vI8Oy9INBYJf3GsiN5IxAVCxrNLhyIpO8=";

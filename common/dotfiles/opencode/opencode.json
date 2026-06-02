@@ -1,4 +1,33 @@
 {
   "$schema": "https://opencode.ai/config.json",
-  "instructions": ["~/.config/opencode/AGENTS.md"]
+  "instructions": ["~/.config/opencode/AGENTS.md"],
+  "plugin": [
+    "@khalilgharbaoui/opencode-claude-code-plugin",
+    "@hueyexe/opencode-ensemble@0.15.0",
+    "@simonwjackson/opencode-direnv",
+    "opencode-ntfy.sh",
+    "@tarquinen/opencode-dcp@latest",
+    "envsitter-guard@latest"
+  ],
+  "mcp": {
+    "context7": {
+      "type": "local",
+      "command": ["npx", "-y", "@upstash/context7-mcp"],
+      "enabled": true
+    }
+  },
+  "permission": {
+    "bash": {
+      "rm -rf *": "deny",
+      "rm -rf /*": "deny",
+      "git push --force*": "deny",
+      "git push -f*": "deny",
+      "git reset --hard*": "ask",
+      "git clean -f*": "ask",
+      "*": "allow"
+    },
+    "external_directory": {
+      "~/.local/share/opencode/worktree/**": "allow"
+    }
+  }
 }

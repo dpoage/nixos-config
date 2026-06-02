@@ -1,7 +1,7 @@
 ---
 description: Reviews code for quality and best practices
 mode: subagent
-model: minimax/M2.5
+model: minimax/MiniMax-M3
 temperature: 0.1
 tools:
   write: false

@@ -190,6 +190,9 @@
   virtualisation.docker = {
     enable = true;
     enableOnBoot = true;
+    # nixos-25.11's default docker package is docker_28, marked insecure
+    # (unmaintained since Nov 2025). Pin docker_29 instead.
+    package = pkgs.docker_29;
     autoPrune = {
       enable = true;
       dates = "weekly";

@@ -95,7 +95,8 @@
     podman
     lazygit
     extraPkgs.opencode
-    bun
+    extraPkgs.bun
+    extraPkgs.omp
     sops
     pkg-config
     ninja

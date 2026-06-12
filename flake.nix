@@ -26,9 +26,13 @@
       url = "git+ssh://git@github.com/Pattern-Labs/pattern_cli";
       inputs.flake-utils.follows = "gastown/flake-utils";
     };
+    omp-flake = {
+      url = "github:cernoh/omp-flake";
+      inputs.nixpkgs.follows = "nixpkgs-unstable";
+    };
   };
 
-  outputs = { self, nixpkgs, nixpkgs-unstable, nixos-hardware, nixvim, home-manager, nix-index-database, beads, gastown, pattern-cli, ... }:
+  outputs = { self, nixpkgs, nixpkgs-unstable, nixos-hardware, nixvim, home-manager, nix-index-database, beads, gastown, pattern-cli, omp-flake, ... }:
   let
     system = "x86_64-linux";
     unstable = import nixpkgs-unstable { inherit system; config.allowUnfree = true; };
@@ -37,6 +41,7 @@
       claude-code = unstable.claude-code;
       dolt = unstable.dolt;
       opencode = unstable.opencode;
+      bun = unstable.bun;
       gastown = gastown.packages.${system}.default.overrideAttrs (old: {
         goModules = old.goModules.overrideAttrs {
           outputHash = "sha256-PQT/Xq9na3vI8Oy9INBYJf3GsiN5IxAVCxrNLhyIpO8=";
@@ -55,6 +60,7 @@
         subPackages = [ "cmd/gcx" ];
       };
       pattern = pattern-cli.packages.${system}.default;
+      omp = omp-flake.packages.${system}.default;
 
       # NVIDIA developer tooling — pulled from unstable for newer Nsight versions
       # (stable currently ships nsight-systems 2024.6; unstable has 2025.1).

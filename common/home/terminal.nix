@@ -229,11 +229,14 @@ in
         ll = "eza -la --icons --git";
         lt = "eza --tree --icons --level=2";
         cat = "bat";
-        cd = "z";
         grep = "rg";
         find = "fd";
         top = "btop";
         ".." = "cd ..";
+        # NOTE: `cd` is provided by programs.zoxide (--cmd cd) below, not aliased
+        # here. A static `cd = "z"` alias breaks in non-interactive shells (e.g.
+        # the Claude Code Bash tool) where zoxide's functions aren't loaded,
+        # yielding `__zoxide_z: command not found`.
         "..." = "cd ../..";
         gs = "git status";
         gd = "git diff";
@@ -243,9 +246,6 @@ in
       };
 
       initContent = ''
-        # Initialize zoxide
-        eval "$(zoxide init zsh)"
-
         # FZF keybindings
         if [ -n "''${commands[fzf-share]}" ]; then
           source "$(fzf-share)/key-bindings.zsh"
@@ -255,6 +255,18 @@ in
         # FZF theme (generated from palette when myRice is enabled)
         export FZF_DEFAULT_OPTS="${fzfColorOpts} --multi"
       '';
+    };
+
+    # Zoxide (smart cd). Managed via the home-manager module rather than a
+    # manual `eval "$(zoxide init zsh)"` so initialization stays in sync with the
+    # package and ordering. `--cmd cd` defines a `cd` shell function that handles
+    # real paths directly and falls back to zoxide queries — and, crucially, when
+    # the integration isn't loaded (non-interactive shells like the Claude Code
+    # Bash tool) `cd` is simply the builtin, instead of a dangling `z` alias.
+    programs.zoxide = {
+      enable = true;
+      enableZshIntegration = true;
+      options = [ "--cmd cd" ];
     };
 
     # Tmux

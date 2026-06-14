@@ -7,11 +7,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1781276561,
-        "narHash": "sha256-nmNXbsi9oDQExoaPjfDY7l1v5CiOLcsDsthpu9keLM4=",
+        "lastModified": 1781278923,
+        "narHash": "sha256-3ur5e391DZQJuTRQjojxia/oVugjkIZVRM3vZnlv9Ss=",
         "owner": "gastownhall",
         "repo": "beads",
-        "rev": "794ff0790aa3384f3b0514f60a1377d8c0b8b97e",
+        "rev": "1825cf3572ce763d6e03d1dd7091b70d2e733135",
         "type": "github"
       },
       "original": {

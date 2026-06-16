@@ -7,11 +7,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1781278923,
-        "narHash": "sha256-3ur5e391DZQJuTRQjojxia/oVugjkIZVRM3vZnlv9Ss=",
+        "lastModified": 1781506882,
+        "narHash": "sha256-Kx+kwIQlZoC/XYo33en4VLznep12nmCYpUcWH9IrWaY=",
         "owner": "gastownhall",
         "repo": "beads",
-        "rev": "1825cf3572ce763d6e03d1dd7091b70d2e733135",
+        "rev": "8e18581dc0dd1eb1edf175e13dcb4f5fd5021cd7",
         "type": "github"
       },
       "original": {
@@ -100,15 +100,15 @@
         "beads": "beads_2",
         "flake-utils": "flake-utils",
         "nixpkgs": [
-          "nixpkgs"
+          "nixpkgs-unstable"
         ]
       },
       "locked": {
-        "lastModified": 1781273993,
-        "narHash": "sha256-Z9Eh6g//5LB7M6Lbew8M8OqRGsYTAnHPMOiXOibx9xg=",
+        "lastModified": 1781556002,
+        "narHash": "sha256-o29yrnxkMWPjbq+726PQcL0rlPmxf2ck5SC2NTWhheg=",
         "owner": "steveyegge",
         "repo": "gastown",
-        "rev": "0a3255f1221d8448c75db2415e00f86d7db96f5c",
+        "rev": "5427dfb4acc0e3ca5315ffc2a4837520ec431edb",
         "type": "github"
       },
       "original": {
@@ -173,11 +173,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1780816331,
-        "narHash": "sha256-0BYqs8yKWkOz2Q7+SP18N5E5gmDKSo6LSxIVIa0wWes=",
+        "lastModified": 1781422160,
+        "narHash": "sha256-W7S8O86bVrw2gaomEwkHStOzmPpnFIHQ6lS4Q2HffJ0=",
         "owner": "nix-community",
         "repo": "nix-index-database",
-        "rev": "1a2ea89c917781e88508d9fd2b507f2d2a0e173c",
+        "rev": "854d04e2368fb2e9c328a36b3c0a04cd713bfae1",
         "type": "github"
       },
       "original": {
@@ -350,11 +350,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1780994205,
-        "narHash": "sha256-VHmt2Zs+USIZd24JLlPSfMtOWHwDzuwWxNxMP7iCq+k=",
+        "lastModified": 1781297934,
+        "narHash": "sha256-WNAoZNOqg60/kUn7xlhs3qFihMLUotj7CyL0dp8+uPs=",
         "owner": "cernoh",
         "repo": "omp-flake",
-        "rev": "1077cb40f92ff6248f3f58e67c251443e07ab4d6",
+        "rev": "12c6192f29fc866fe89d6cdb70c1efa1c5ef2c34",
         "type": "github"
       },
       "original": {

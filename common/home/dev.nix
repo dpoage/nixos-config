@@ -48,6 +48,11 @@
     enableZshIntegration = true;
   };
 
+  # Put `go install` output (GOPATH/bin) on PATH. Entries are expanded in a
+  # double-quoted context, so $HOME resolves at session init. Lets binaries
+  # like `go install github.com/dpoage/bugbot@latest` run by bare name.
+  home.sessionPath = [ "$HOME/go/bin" ];
+
   home.packages = with pkgs; [
     comma
     cachix

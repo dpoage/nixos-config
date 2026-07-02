@@ -1,9 +1,9 @@
-{ pkgs, extraPkgs, ... }:
+{ pkgs, ... }:
 
 {
   environment.systemPackages = [
-    extraPkgs.gastown
-    extraPkgs.dolt
+    pkgs.gastown
+    pkgs.dolt
   ];
 
   environment.sessionVariables = {

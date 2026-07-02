@@ -1,4 +1,4 @@
-{ lib, pkgs, extraPkgs, ... }:
+{ lib, pkgs, ... }:
 
 {
   imports = [
@@ -9,6 +9,7 @@
     ./kubernetes.nix
     ./gastown.nix
     ./myUser.nix
+    ./nvidia.nix
     # Profiles in ./profiles/ are imported directly by each host
     # (laptop + work, workstation + personal, etc.) — not from here.
   ];
@@ -46,14 +47,6 @@
   # Programs
   programs.firefox.enable = true;
   programs.zsh.enable = true;
-  programs.git = {
-    enable = true;
-    config = {
-      init.defaultBranch = "main";
-      pull.rebase = true;
-      core.editor = "nvim";
-    };
-  };
   # Neovim is configured via nixvim in neovim.nix
   # programs.neovim is not used — it conflicts with nixvim's wrapped binary
   programs.nixvim.viAlias = true;
@@ -61,8 +54,8 @@
 
   # System packages
   environment.systemPackages = with pkgs; [
-    extraPkgs.claude-code
-    extraPkgs.beads
+    claude-code
+    beads
 
     # Core utilities
     wget
@@ -94,9 +87,9 @@
     # Development tools
     podman
     lazygit
-    extraPkgs.opencode
-    extraPkgs.bun
-    extraPkgs.omp
+    opencode
+    bun
+    omp
     sops
     pkg-config
     ninja

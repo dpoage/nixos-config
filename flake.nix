@@ -35,85 +35,26 @@
   };
 
   outputs =
-    {
+    inputs@{
       self,
       nixpkgs,
-      nixpkgs-unstable,
-      nixos-hardware,
       nixvim,
       home-manager,
       nix-index-database,
-      beads,
-      gastown,
-      pattern-cli,
-      omp-flake,
       ...
     }:
     let
       system = "x86_64-linux";
-      unstable = import nixpkgs-unstable {
-        inherit system;
-        config.allowUnfree = true;
-      };
-      extraPkgs = {
-        beads = beads.packages.${system}.default;
-        claude-code = unstable.claude-code;
-        dolt = unstable.dolt;
-        opencode = unstable.opencode;
-        bun = unstable.bun;
-        gastown = gastown.packages.${system}.default.overrideAttrs (old: {
-          goModules = old.goModules.overrideAttrs {
-            outputHash = "sha256-DHZSRowj1thS/yARB0B5bWMfvegaEAhVB1AI9wfYEDk=";
-          };
-          # gastown vendors dolt, which pulls in dolthub/go-icu-regex. That package
-          # uses cgo and includes <unicode/uregex.h>, linking against -licui18n
-          # -licuuc -licudata. Add ICU so the headers and libs are on the search path.
-          buildInputs = (old.buildInputs or [ ]) ++ [ unstable.icu ];
-        });
-        gcx = unstable.buildGoModule rec {
-          pname = "gcx";
-          version = "0.2.15";
-          src = unstable.fetchFromGitHub {
-            owner = "grafana";
-            repo = "gcx";
-            tag = "v${version}";
-            hash = "sha256-R5uEIgcsrqXYEeflgfSO8Y2k8vuY1xj4WDxK+v2T2ew=";
-          };
-          vendorHash = "sha256-DxAqHLV7J2mu5x+rQ79NXtkcDkn48u35r7P6sKq2mrY=";
-          subPackages = [ "cmd/gcx" ];
-        };
-        pattern = pattern-cli.packages.${system}.default;
-        # omp-flake wraps the omp binary with `--prefix LD_LIBRARY_PATH`, and the
-        # lib set it injects includes glibc. LD_LIBRARY_PATH is inherited by every
-        # child process omp spawns, so Go+cgo tools it shells out to (bd, dolt, gt)
-        # load the wrong libc and abort with "pthread_create failed: Invalid
-        # argument". Re-wrap without glibc — omp's patched interpreter resolves
-        # libc on its own, so glibc never needs to be on LD_LIBRARY_PATH.
-        omp = omp-flake.packages.${system}.default.overrideAttrs (old: {
-          postFixup = (old.postFixup or "") + ''
-            rm -f "$out/bin/omp"
-            makeWrapper "$out/libexec/omp" "$out/bin/omp" \
-              --prefix LD_LIBRARY_PATH : "${
-                unstable.lib.makeLibraryPath [
-                  unstable.stdenv.cc.cc.lib
-                  unstable.openssl
-                  unstable.zlib
-                ]
-              }"
-          '';
-        });
 
-        # NVIDIA developer tooling — pulled from unstable for newer Nsight versions
-        # (stable currently ships nsight-systems 2024.6; unstable has 2025.1).
-        nsight-systems = unstable.cudaPackages.nsight_systems;
-        nsight-compute = unstable.cudaPackages.nsight_compute;
-        cuda-gdb = unstable.cudaPackages.cuda_gdb;
-      };
+      # All non-nixpkgs packages (flake inputs + pinned unstable builds) are
+      # injected via this overlay, so modules just reference `pkgs.<name>`.
+      overlay = import ./overlays { inherit inputs system; };
 
       sharedModules = [
         nixvim.nixosModules.nixvim
         home-manager.nixosModules.home-manager
         { home-manager.sharedModules = [ nix-index-database.homeModules.nix-index ]; }
+        { nixpkgs.overlays = [ overlay ]; }
         ./common
       ];
 
@@ -121,7 +62,6 @@
         hostModule:
         nixpkgs.lib.nixosSystem {
           inherit system;
-          specialArgs = { inherit extraPkgs; };
           modules = sharedModules ++ [ hostModule ];
         };
     in

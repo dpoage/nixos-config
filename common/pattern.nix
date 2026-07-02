@@ -1,4 +1,4 @@
-{ config, lib, pkgs, extraPkgs, ... }:
+{ config, lib, pkgs, ... }:
 
 let
   userNetrc = "/home/${config.pattern.primaryUser}/.netrc";
@@ -19,9 +19,8 @@ in
 
   config = {
     environment.systemPackages = [
-      extraPkgs.gcx
-      extraPkgs.pattern
-      pkgs.bazelisk
+      pkgs.gcx
+      pkgs.pattern
     ];
 
     # Copy the user's .netrc to a daemon-accessible location so nixbld users

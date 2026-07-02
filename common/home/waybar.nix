@@ -1,5 +1,29 @@
-{ pkgs, ... }:
+{ config, lib, ... }:
 
+let
+  rice = config.myRice;
+  c = rice.colors;
+  named = import ./rice/named.nix c;
+
+  # Waybar CSS @define-color block, generated from the shared semantic map so
+  # the bar re-themes with the active palette.
+  colorDefs = lib.concatStringsSep "\n"
+    (lib.mapAttrsToList (name: hex: "@define-color ${name} #${hex};") named);
+
+  # Compositor-aware workspace/window modules — waybar exposes distinct module
+  # names per compositor, so pick them from myRice.compositor.
+  isNiri = rice.compositor == "niri";
+  wsModule = if isNiri then "niri/workspaces" else "hyprland/workspaces";
+  winModule = if isNiri then "niri/window" else "hyprland/window";
+
+  workspacesSettings = {
+    format = "{icon}";
+    format-icons.urgent = "";
+  } // lib.optionalAttrs (!isNiri) {
+    on-scroll-up = "hyprctl dispatch workspace e+1";
+    on-scroll-down = "hyprctl dispatch workspace e-1";
+  };
+in
 {
   programs.waybar = {
     enable = true;
@@ -11,13 +35,13 @@
         spacing = 1;
 
         modules-left = [
-          "hyprland/workspaces"
+          wsModule
           "tray"
           "mpris"
         ];
 
         modules-center = [
-          "hyprland/window"
+          winModule
         ];
 
         modules-right = [
@@ -34,16 +58,9 @@
           "clock"
         ];
 
-        "hyprland/workspaces" = {
-          format = "{icon}";
-          format-icons = {
-            urgent = "";
-          };
-          on-scroll-up = "hyprctl dispatch workspace e+1";
-          on-scroll-down = "hyprctl dispatch workspace e-1";
-        };
+        ${wsModule} = workspacesSettings;
 
-        "hyprland/window" = {
+        ${winModule} = {
           max-length = 60;
         };
 
@@ -97,11 +114,11 @@
             on-scroll = 1;
             on-click-right = "mode";
             format = {
-              months = "<span color='#cba6f7'><b>{}</b></span>";
-              days = "<span color='#cdd6f4'><b>{}</b></span>";
-              weeks = "<span color='#94e2d5'>W{}</span>";
-              weekdays = "<span color='#f9e2af'><b>{}</b></span>";
-              today = "<span color='#f5e0dc'><b><u>{}</u></b></span>";
+              months = "<span color='#${named.mauve}'><b>{}</b></span>";
+              days = "<span color='#${named.text}'><b>{}</b></span>";
+              weeks = "<span color='#${named.teal}'>W{}</span>";
+              weekdays = "<span color='#${named.yellow}'><b>{}</b></span>";
+              today = "<span color='#${named.rosewater}'><b><u>{}</u></b></span>";
             };
           };
           actions = {
@@ -201,32 +218,7 @@
     };
 
     style = ''
-      @define-color rosewater #f5e0dc;
-      @define-color flamingo #f2cdcd;
-      @define-color pink #f5c2e7;
-      @define-color mauve #cba6f7;
-      @define-color red #f38ba8;
-      @define-color maroon #eba0ac;
-      @define-color peach #fab387;
-      @define-color yellow #f9e2af;
-      @define-color green #a6e3a1;
-      @define-color teal #94e2d5;
-      @define-color sky #89dceb;
-      @define-color sapphire #74c7ec;
-      @define-color blue #89b4fa;
-      @define-color lavender #b4befe;
-      @define-color text #cdd6f4;
-      @define-color subtext1 #bac2de;
-      @define-color subtext0 #a6adc8;
-      @define-color overlay2 #9399b2;
-      @define-color overlay1 #7f849c;
-      @define-color overlay0 #6c7086;
-      @define-color surface2 #585b70;
-      @define-color surface1 #45475a;
-      @define-color surface0 #313244;
-      @define-color base #1e1e2e;
-      @define-color mantle #181825;
-      @define-color crust #11111b;
+      ${colorDefs}
 
       * {
           border: none;
@@ -360,7 +352,7 @@
       }
 
       #network.disconnected {
-          background-color: red;
+          background-color: @red;
           color: @mantle;
       }
 
@@ -381,7 +373,7 @@
       }
 
       #pulseaudio.muted {
-          background-color: red;
+          background-color: @red;
           color: @mantle;
       }
 
@@ -392,7 +384,7 @@
       }
 
       #temperature.critical {
-          background-color: red;
+          background-color: @red;
           color: @mantle;
           min-width: 37px;
       }

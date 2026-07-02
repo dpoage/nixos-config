@@ -38,6 +38,5 @@
     # System tray utilities
     networkmanagerapplet
     pavucontrol
-    blueman
   ];
 }

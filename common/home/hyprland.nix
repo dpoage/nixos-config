@@ -1,6 +1,7 @@
 { config, lib, pkgs, ... }:
 
 let
+  c = config.myRice.colors; # resolved palette (default catppuccin)
   wallpaper = "${pkgs.nixos-artwork.wallpapers.nineish-catppuccin-mocha-alt}/share/backgrounds/nixos/nix-wallpaper-nineish-catppuccin-mocha-alt.png";
 in
 {
@@ -48,8 +49,8 @@ in
         gaps_in = 4;
         gaps_out = 8;
         border_size = 2;
-        "col.active_border" = "rgba(88c0d0ff) rgba(81a1c1ff) 45deg";
-        "col.inactive_border" = "rgba(3b4252ff)";
+        "col.active_border" = "rgba(${c.accent}ff) rgba(${c.accentTri}ff) 45deg";
+        "col.inactive_border" = "rgba(${c.bg2}ff)";
         layout = "dwindle";
       };
 
@@ -65,7 +66,7 @@ in
           enabled = true;
           range = 8;
           render_power = 2;
-          color = "rgba(1a1a1aee)";
+          color = "rgba(${c.bg}ee)";
         };
       };
 

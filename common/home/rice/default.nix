@@ -155,11 +155,15 @@ in
     };
   };
 
-  config = lib.mkIf cfg.enable (let p = palettes.${cfg.palette}; in {
+  # Resolve the palette unconditionally so base components (kitty, waybar,
+  # hyprland, starship) can theme from `myRice.colors` even on hosts that
+  # haven't opted into the full rice bundle. `cfg.enable` still gates the
+  # opt-in program modules (niri, fuzzel, mako, swaylock, alacritty, swww).
+  config = let p = palettes.${cfg.palette}; in {
     myRice.colors   = p.colors;
     myRice.meta     = p.meta;
     # mkDefault so hosts can override fonts/terminal without fighting
     myRice.fonts    = lib.mkDefault p.fonts;
     myRice.terminal = lib.mkDefault p.terminal;
-  });
+  };
 }

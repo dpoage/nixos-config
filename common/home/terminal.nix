@@ -3,7 +3,8 @@
 let
   cfg = config.myPrompt;
   rice = config.myRice;
-  c = rice.colors; # lazy — only evaluated when rice.enable gates access
+  c = rice.colors; # resolved palette; always defined (default catppuccin)
+  named = import ./rice/named.nix c; # shared semantic color names
 
   # --- Badge generation ---
   # Badges appear between the username and directory segments,
@@ -24,80 +25,17 @@ let
     then "[](fg:flamingo bg:peach)"
     else "[](bg:peach fg:mauve)";
 
-  # --- Starship palette generation ---
-  # When myRice is enabled, derive Starship named colors from the active
-  # palette's prompt keys. When disabled, fall back to Catppuccin Mocha.
-  # The format string references these names (mauve, peach, green, etc.)
-  # so the mapping is defined here, not in palettes.nix.
-  generatedPalette = {
-    mauve    = "#${c.promptUser}";
-    flamingo = "#${c.promptBadge}";
-    peach    = "#${c.promptPath}";
-    green    = "#${c.promptVcs}";
-    teal     = "#${c.promptLang}";
-    blue     = "#${c.promptInfo}";
-    purple   = "#${c.promptMuted}";
-    crust    = "#${c.promptFg}";
-    red      = "#${c.redBr}";
-    yellow   = "#${c.yellow}";
-    text     = "#${c.fg}";
-    base     = "#${c.bg}";
-    mantle   = "#${c.bg0}";
-    surface0 = "#${c.bg1}";
-    surface1 = "#${c.bg2}";
-    surface2 = "#${c.bg3}";
-    overlay0 = "#${c.bg4}";
-    subtext0 = "#${c.fg3}";
-    subtext1 = "#${c.fg2}";
-  };
+  # Starship named colors, derived once from the active palette via the shared
+  # semantic map. The format string references these names (mauve, peach, ...).
+  starshipPalette = lib.mapAttrs (_: v: "#${v}") named;
 
-  catppuccinPalette = {
-    rosewater = "#f5e0dc";
-    flamingo = "#f2cdcd";
-    pink = "#f5c2e7";
-    mauve = "#cba6f7";
-    red = "#f38ba8";
-    maroon = "#eba0ac";
-    peach = "#fab387";
-    yellow = "#f9e2af";
-    green = "#a6e3a1";
-    teal = "#94e2d5";
-    sky = "#89dceb";
-    sapphire = "#74c7ec";
-    blue = "#89b4fa";
-    lavender = "#b4befe";
-    text = "#cdd6f4";
-    subtext1 = "#bac2de";
-    subtext0 = "#a6adc8";
-    overlay2 = "#9399b2";
-    overlay1 = "#7f849c";
-    overlay0 = "#6c7086";
-    surface2 = "#585b70";
-    surface1 = "#45475a";
-    surface0 = "#313244";
-    base = "#1e1e2e";
-    mantle = "#181825";
-    crust = "#11111b";
-    purple = "#b4befe";
-  };
-
-  starshipPalette = if rice.enable then generatedPalette else catppuccinPalette;
-
-  # --- FZF color generation ---
-  fzfColorOpts = if rice.enable then
-    builtins.concatStringsSep " " [
-      "--color=bg+:#${c.bg1},bg:#${c.bg},spinner:#${c.fg2},hl:#${c.redBr}"
-      "--color=fg:#${c.fg},header:#${c.redBr},info:#${c.accent},pointer:#${c.fg2}"
-      "--color=marker:#${c.promptMuted},fg+:#${c.fg},prompt:#${c.accent},hl+:#${c.redBr}"
-      "--color=selected-bg:#${c.bg2}"
-    ]
-  else
-    builtins.concatStringsSep " " [
-      "--color=bg+:#313244,bg:#1e1e2e,spinner:#f5e0dc,hl:#f38ba8"
-      "--color=fg:#cdd6f4,header:#f38ba8,info:#cba6f7,pointer:#f5e0dc"
-      "--color=marker:#b4befe,fg+:#cdd6f4,prompt:#cba6f7,hl+:#f38ba8"
-      "--color=selected-bg:#45475a"
-    ];
+  # --- FZF colors (derived from the active palette) ---
+  fzfColorOpts = builtins.concatStringsSep " " [
+    "--color=bg+:#${c.bg1},bg:#${c.bg},spinner:#${c.fg2},hl:#${c.redBr}"
+    "--color=fg:#${c.fg},header:#${c.redBr},info:#${c.accent},pointer:#${c.fg2}"
+    "--color=marker:#${c.promptMuted},fg+:#${c.fg},prompt:#${c.accent},hl+:#${c.redBr}"
+    "--color=selected-bg:#${c.bg2}"
+  ];
 
 in
 {
@@ -129,57 +67,49 @@ in
   };
 
   config = {
-    # Kitty terminal - Catppuccin Mocha theme
+    # Kitty terminal, themed from the active palette (myRice.colors).
     programs.kitty = {
       enable = true;
       font = {
-        name = "JetBrainsMono Nerd Font";
-        size = 12;
+        name = rice.fonts.mono;
+        size = rice.fonts.monoSize;
       };
       settings = {
-        # Catppuccin Mocha colors
-        foreground = "#CDD6F4";
-        background = "#1E1E2E";
-        selection_foreground = "#1E1E2E";
-        selection_background = "#F5E0DC";
-        cursor = "#F5E0DC";
-        cursor_text_color = "#1E1E2E";
-        url_color = "#F5E0DC";
+        foreground = "#${c.fg}";
+        background = "#${c.bg}";
+        selection_foreground = "#${c.bg}";
+        selection_background = "#${c.fg2}";
+        cursor = "#${c.fg2}";
+        cursor_text_color = "#${c.bg}";
+        url_color = "#${c.fg2}";
 
-        # Black
-        color0 = "#45475A";
-        color8 = "#585B70";
-        # Red
-        color1 = "#F38BA8";
-        color9 = "#F38BA8";
-        # Green
-        color2 = "#A6E3A1";
-        color10 = "#A6E3A1";
-        # Yellow
-        color3 = "#F9E2AF";
-        color11 = "#F9E2AF";
-        # Blue
-        color4 = "#89B4FA";
-        color12 = "#89B4FA";
-        # Magenta
-        color5 = "#F5C2E7";
-        color13 = "#F5C2E7";
-        # Cyan
-        color6 = "#94E2D5";
-        color14 = "#94E2D5";
-        # White
-        color7 = "#BAC2DE";
-        color15 = "#A6ADC8";
+        # Normal (0-7) / bright (8-15) ANSI, matching alacritty's mapping.
+        color0 = "#${c.bg0}";
+        color8 = "#${c.gray}";
+        color1 = "#${c.red}";
+        color9 = "#${c.redBr}";
+        color2 = "#${c.green}";
+        color10 = "#${c.greenBr}";
+        color3 = "#${c.yellow}";
+        color11 = "#${c.yellowBr}";
+        color4 = "#${c.blue}";
+        color12 = "#${c.blueBr}";
+        color5 = "#${c.purple}";
+        color13 = "#${c.purpleBr}";
+        color6 = "#${c.aqua}";
+        color14 = "#${c.aquaBr}";
+        color7 = "#${c.fg4}";
+        color15 = "#${c.fg}";
 
         # Tab bar
-        active_tab_foreground = "#11111B";
-        active_tab_background = "#CBA6F7";
-        inactive_tab_foreground = "#CDD6F4";
-        inactive_tab_background = "#181825";
-        tab_bar_background = "#11111B";
+        active_tab_foreground = "#${c.promptFg}";
+        active_tab_background = "#${c.purple}";
+        inactive_tab_foreground = "#${c.fg}";
+        inactive_tab_background = "#${c.bg0}";
+        tab_bar_background = "#${c.promptFg}";
 
         # Window
-        background_opacity = "0.92";
+        background_opacity = toString rice.terminal.opacity;
         window_padding_width = "8";
         confirm_os_window_close = "0";
         enable_audio_bell = "no";

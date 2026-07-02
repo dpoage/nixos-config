@@ -54,7 +54,6 @@
     # System tray utilities
     networkmanagerapplet
     pavucontrol
-    blueman
 
     # Gaming
     mangohud

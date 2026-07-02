@@ -34,9 +34,9 @@
     };
   };
 
-  # Brightness control utility (also referenced by compositor brightness binds).
+  # Laptop diagnostics: power, thermal, sensors. brightnessctl is provided
+  # system-wide by common/desktop.nix (shared with compositor brightness binds).
   environment.systemPackages = with pkgs; [
-    brightnessctl
     acpi
     powertop
     lm_sensors

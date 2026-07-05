@@ -1,37 +1,71 @@
-# Development Tips
+# Development Principles
 
-Code correctness over speed. Benchmarks and tests are critical.
+Read before writing. Understand existing code, tests, and context before proposing changes.
 
-## Beads -- Cross-Session Memory
+Verify with tests and benchmarks — do not assume correctness from reading alone.
+Thoroughness is never wasted. Reading extra files, running tests to confirm,
+and checking edge cases are all preferable to fast but wrong output.
+
+You MUST:
+- Make invalid states unrepresentable
+- Write SOLID code
+- Use strong typing
+- Parse, don't validate
+
+## Beads as Persistent Memory
 
 `bd prime` gives you the commands. This section tells you how to think.
 
-Beads is not a todo list. It is **persistent memory**. Context gets compacted; bead fields survive. Every finding, decision, and rationale that matters beyond this session belongs on a bead -- not in chat.
+Beads is not a todo list. It is **cross-session memory**. Conversation context gets compacted; beads fields persist. Every finding, decision, and rationale that matters beyond this session must be written to a bead — not left in chat.
 
-**Bead before code.** Create a bead before investigating, deciding, or writing non-trivial code. Skip only for mechanical changes where nothing is decided.
+**Bead before code.** If you'll investigate, decide, or write more than a few lines — create a bead first. It makes work visible in `bd ready` and captures knowledge as you go.
 
-### Write: Capture Knowledge on Fields
+### Bead Requirements (every bead, no exceptions)
 
-- **`--reason` on close**: What was *decided*, not "done."
-- **`--design`**: Alternatives evaluated, rationale for the chosen approach.
-- **`--notes`**: Gotchas the next session needs to know.
-- **`--acceptance`**: Concrete, testable conditions -- not vague goals.
-- **`--description`**: The intent. Update it if scope changes.
-- **`bd comments add <id> "..."`**: Timestamped progress and open questions.
+| When | MUST do |
+|---|---|
+| **Create** | Set `--description` (what and why) AND `--acceptance` (testable "done" conditions) |
+| **Close** | Set `--reason` (what was decided — never just "done") |
 
-**Goal**: `bd show <id>` tells a future session *what*, *why*, *what was tried*, and *what a solution looks like*.
+A bead without `--acceptance` cannot be verified as complete. A bead without `--reason` loses its decision context. These are not optional.
 
-For research beads: capture findings in `--design`/`--notes` as you go, close with `--reason` stating the recommendation, put rationale on the *consuming* issue.
+### Creating a Bead
 
-### Read: Retrieve Before You Act
+ALWAYS set these two fields:
+- **`--description`**: The intent statement. What is this bead *about* and *why*.
+- **`--acceptance`**: Concrete, testable conditions for "done." Not vague goals.
 
-- **Session start**: `bd ready` + `bd list --status=in_progress`. Don't start fresh when prior work exists.
-- **Before new work**: `bd search "<topic>"` for prior beads (open or closed). Check `--notes` and `--design` on hits.
-- **Closed beads are not dead**: `bd search "<topic>" --status closed` surfaces past decisions. A closed bead's `--reason` is institutional memory.
+Set these at creation if known, otherwise add during work:
+- **`--design`**: Architectural decisions, alternatives evaluated, rationale.
+- **`--notes`**: Implementation gotchas, things the next session needs to know.
 
-### Rules of Thumb
+### During Work
 
-- Dependencies: children depend on *siblings*, not the parent epic. After closing a blocker, `bd ready` to see what unblocked.
-- Prefer a single well-described task over an epic with subtasks.
-- Never close without `--reason`. Never start work without `bd search`.
-- If description no longer matches intent, update it or create a new bead.
+- **`bd comments add <id> "..."`**: Timestamped findings, progress, open questions.
+- Update `--design` and `--notes` as you learn things a future session needs to know.
+
+### Closing a Bead
+
+- **`--reason`**: MUST capture *what was decided*, not "done" or "completed."
+
+**Goal**: `bd show <id>` tells a future session *what* to do, *why* this approach, and *what was already tried*.
+
+### Research Tasks
+
+1. Create issue with clear evaluation criteria in `--description` and `--acceptance`
+2. Capture findings in `--design` or `--notes` as you go — not just in conversation
+3. Close with `--reason` stating the recommendation
+4. Put detailed rationale on the *consuming* issue via `--design`
+
+### Dependency Design
+
+- Children depend on *siblings*, not the parent epic
+- After closing a blocker, `bd ready` to see what unblocked
+
+### Anti-patterns
+
+- **Missing acceptance**: A bead created without `--acceptance` cannot be verified as complete. ALWAYS set it at creation.
+- **Empty closes**: No `--reason` loses decision context. ALWAYS state what was decided.
+- **Orphan knowledge**: Research that exists only in conversation will be lost at compaction.
+- **Description drift**: If the description no longer reflects the bead's actual intent, update it or create a new bead.
+- **Over-nesting**: A single well-described task often beats an epic with subtasks.

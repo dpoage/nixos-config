@@ -6,11 +6,19 @@ Verify with tests and benchmarks — do not assume correctness from reading alon
 Thoroughness is never wasted. Reading extra files, running tests to confirm,
 and checking edge cases are all preferable to fast but wrong output.
 
+## REQUIRED CODING GUIDELINES
+
 You MUST:
 - Make invalid states unrepresentable
-- Write SOLID code
 - Use strong typing
 - Parse, don't validate
+
+## Reuse Before Writing
+
+Before authoring any new function, type, or helper:
+- Search for an existing implementation or near-match. Extend it rather than duplicate it.
+- Match the conventions of the surrounding module. A second convention beside an existing one is a bug, not a style choice.
+- Limits: do not contort an ill-fitting abstraction to force reuse. Duplication is cheaper than the wrong abstraction.
 
 ## Beads as Persistent Memory
 

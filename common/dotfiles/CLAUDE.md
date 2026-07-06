@@ -6,14 +6,15 @@ Verify with tests and benchmarks — do not assume correctness from reading alon
 Thoroughness is never wasted. Reading extra files, running tests to confirm,
 and checking edge cases are all preferable to fast but wrong output.
 
-## REQUIRED CODING GUIDELINES
+## Coding Guidelines
 
 You MUST:
 - Make invalid states unrepresentable
 - Use strong typing
 - Parse, don't validate
+- No speculative generality — abstract only on the second concrete use
 
-## Reuse Before Writing
+### Reuse Before Writing
 
 Before authoring any new function, type, or helper:
 - Search for an existing implementation or near-match. Extend it rather than duplicate it.

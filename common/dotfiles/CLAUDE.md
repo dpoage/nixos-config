@@ -12,7 +12,7 @@ You MUST:
 - Make invalid states unrepresentable
 - Use strong typing
 - Parse, don't validate
-- Avoid speculative generality - abstract only on the second concrete use
+- Abstract only on the second concrete use; no speculative generality
 
 ### Reuse Before Writing
 

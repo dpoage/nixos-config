@@ -20,7 +20,24 @@ in
 
   # Flake-input packages
   beads = inputs.beads.packages.${system}.default;
-  pattern = inputs.pattern-cli.packages.${system}.default;
+  # pattern shells out to `bazel`. Instead of installing real bazel, put a
+  # `bazel` symlink to bazelisk on pattern's PATH (scoped to its wrapper, not
+  # system-wide), so bazelisk fetches and runs the workspace-pinned version.
+  pattern =
+    let
+      bazel-shim = prev.runCommand "bazel-shim" { } ''
+        mkdir -p $out/bin
+        ln -s ${prev.bazelisk}/bin/bazelisk $out/bin/bazel
+      '';
+    in
+    prev.symlinkJoin {
+      name = "pattern";
+      paths = [ inputs.pattern-cli.packages.${system}.default ];
+      nativeBuildInputs = [ prev.makeWrapper ];
+      postBuild = ''
+        wrapProgram $out/bin/pattern --prefix PATH : ${bazel-shim}/bin
+      '';
+    };
 
   gastown = inputs.gastown.packages.${system}.default.overrideAttrs (old: {
     goModules = old.goModules.overrideAttrs {

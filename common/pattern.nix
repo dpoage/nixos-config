@@ -23,6 +23,13 @@ in
       pkgs.pattern
     ];
 
+    # Tools pattern shells out to hardcode /bin/bash, which doesn't exist on
+    # NixOS (only /bin/sh). Provide it as a symlink; bashInteractive matches
+    # what /bin/sh already points at, so this adds nothing to the closure.
+    systemd.tmpfiles.rules = [
+      "L+ /bin/bash - - - - ${pkgs.bashInteractive}/bin/bash"
+    ];
+
     # Copy the user's .netrc to a daemon-accessible location so nixbld users
     # can reach it (user home dirs are typically mode 700).
     system.activationScripts.nix-netrc = ''

@@ -11,6 +11,7 @@
   # Git
   programs.git = {
     enable = true;
+    lfs.enable = true;
     settings = {
       user.name = "Dustin Poage";
       init.defaultBranch = "main";

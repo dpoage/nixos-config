@@ -94,10 +94,17 @@
     pkg-config
     ninja
 
+    # Sandboxing — unprivileged namespace jails (`bwrap`); NixOS enables
+    # user namespaces by default, so no setuid wrapper is required
+    bubblewrap
+    landrun # Landlock CLI — unprivileged path/TCP restrictions (kernel 6.12 → ABI v6)
+    passt # user-mode net stack (`pasta`) for --unshare-net jails, outbound-only
+
     # Python
     python3
     uv
     ruff
+    pyright
 
     # Go
     go
@@ -150,6 +157,7 @@
     killall
     pstree
     lsof
+    strace # syscall tracing — prerequisite for authoring sandbox policies
 
     # Wayland utilities
     wayland-utils

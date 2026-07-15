@@ -15,7 +15,7 @@ IS the comment ("duplicate of #203").
 
 - No greetings, sign-offs, thanks, or restating the thread. Start with the substance.
 - Short comments often drop the trailing period. Never force one on.
-- No exclamation marks. No em-dashes — use semicolons, parentheses, or a plain " - ".
+- No exclamation marks. No em-dashes, ever: prefer colons, semicolons, or parentheses.
   Semicolon chains compress status: "Unknown issue; can't replicate; reopen if it happens again".
 - Lowercase openers are fine for quick replies ("this almost certainly happens when...").
 - State uncertainty plainly, no ceremony: "probably fixed", "I suspect", "almost

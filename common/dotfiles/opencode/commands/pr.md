@@ -26,4 +26,4 @@ Produce a PR body with this structure:
 
 Keep the title (first line) under 70 chars; put detail in the body. Write in the voice
 described by `~/.config/opencode/github-voice.md`: terse, honest test plan, no filler.
-Output only the title on the first line, a blank line, then the body — nothing else.
+Output only the title on the first line, a blank line, then the body: nothing else.

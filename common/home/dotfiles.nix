@@ -3,12 +3,14 @@
 {
   # Claude Code base config
   home.file.".claude/CLAUDE.md".source = ../dotfiles/CLAUDE.md;
+  home.file.".claude/github-voice.md".source = ../dotfiles/github-voice.md;
 
   # OpenCode config
   xdg.configFile = {
     "opencode/opencode.json".source = ../dotfiles/opencode/opencode.json;
     "opencode/AGENTS.md".source = ../dotfiles/opencode/AGENTS.md;
     "opencode/ensemble.json".source = ../dotfiles/opencode/ensemble.json;
+    "opencode/github-voice.md".source = ../dotfiles/github-voice.md;
 
     "opencode/agent/review.md".source = ../dotfiles/opencode/agent/review.md;
     "opencode/agent/explore.md".source = ../dotfiles/opencode/agent/explore.md;

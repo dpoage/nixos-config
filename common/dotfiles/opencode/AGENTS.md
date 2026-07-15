@@ -2,6 +2,11 @@
 
 Code correctness over speed. Benchmarks and tests are critical.
 
+## GitHub Voice
+
+When posting to GitHub (comments, issues, PR bodies, reviews), follow
+`~/.config/opencode/github-voice.md`. Terse, evidence-linked, no assistant-ese.
+
 ## Beads -- Cross-Session Memory
 
 `bd prime` gives you the commands. This section tells you how to think.

@@ -6,6 +6,11 @@ Verify with tests and benchmarks — do not assume correctness from reading alon
 Thoroughness is never wasted. Reading extra files, running tests to confirm,
 and checking edge cases are all preferable to fast but wrong output.
 
+## GitHub Voice
+
+When posting to GitHub (comments, issues, PR bodies, reviews), follow
+`~/.claude/github-voice.md`. Terse, evidence-linked, no assistant-ese.
+
 ## Coding Guidelines
 
 You MUST:

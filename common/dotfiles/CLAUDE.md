@@ -17,14 +17,27 @@ You MUST:
 - Make invalid states unrepresentable
 - Use strong typing
 - Parse, don't validate
-- Abstract only on the second concrete use; no speculative generality
+
+### KISS · YAGNI · DRY
+
+- **KISS** — the boring solution wins unless cleverness buys something
+  measurable. Optimize for the next maintainer, not the author.
+- **YAGNI** — governs what you *build*, not what you *handle*. No features,
+  options, or hooks without a demonstrated need; no generality before the
+  second concrete use. NOT license to strip defensive code: guards on
+  reachable states (I/O, user input, concurrency) stay until the type system
+  makes the state unrepresentable. An untested branch is a missing test, not
+  dead code.
+- **DRY** — deduplicate *knowledge*, not text: one source of truth per
+  invariant. Extract on the second concrete use; duplication is cheaper than
+  the wrong abstraction.
 
 ### Reuse Before Writing
 
 Before authoring any new function, type, or helper:
 - Search for an existing implementation or near-match. Extend it rather than duplicate it.
 - Match the conventions of the surrounding module. A second convention beside an existing one is a bug, not a style choice.
-- Limits: do not contort an ill-fitting abstraction to force reuse. Duplication is cheaper than the wrong abstraction.
+- Limits: do not contort an ill-fitting abstraction to force reuse.
 
 ## Beads as Persistent Memory
 

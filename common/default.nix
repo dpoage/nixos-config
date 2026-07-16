@@ -16,10 +16,15 @@
 
   nix.settings.experimental-features = [ "nix-command" "flakes" ];
   nix.settings.trusted-users = [ "root" "@wheel" ];
-  nix.settings.extra-platforms = [ "aarch64-linux" ];
 
-  # QEMU binfmt registration so nix can build aarch64 derivations transparently.
-  boot.binfmt.emulatedSystems = [ "aarch64-linux" ];
+  # QEMU binfmt registration so nix can build aarch64/riscv64 derivations
+  # transparently. The binfmt module also adds these to
+  # nix.settings.extra-platforms (plus i686-linux) and wires up the
+  # extra-sandbox-paths the emulators need, so no manual extra-platforms here.
+  boot.binfmt.emulatedSystems = [
+    "aarch64-linux"
+    "riscv64-linux"
+  ];
   nixpkgs.config.allowUnfree = true;
 
   # Bootloader

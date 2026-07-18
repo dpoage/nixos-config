@@ -5,6 +5,12 @@
   home.file.".claude/CLAUDE.md".source = ../dotfiles/CLAUDE.md;
   home.file.".claude/github-voice.md".source = ../dotfiles/github-voice.md;
 
+  # Agent skills (~/.agents/skills)
+  home.file.".agents/skills/arbiter-architect/SKILL.md".source =
+    ../dotfiles/agents/skills/arbiter-architect/SKILL.md;
+  home.file.".agents/skills/oracle-rounds/SKILL.md".source =
+    ../dotfiles/agents/skills/oracle-rounds/SKILL.md;
+
   # OpenCode config
   xdg.configFile = {
     "opencode/opencode.json".source = ../dotfiles/opencode/opencode.json;

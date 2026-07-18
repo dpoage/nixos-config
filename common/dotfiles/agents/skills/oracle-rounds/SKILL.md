@@ -1,14 +1,16 @@
 ---
 name: oracle-rounds
-description: Use when driving a multi-issue development round with parallel subagents — worktree-per-slice implementation gated by dual adversarial oracle reviews. The round STOPS when every slice holds two APPROVE verdicts; integration and landing stay with the user. Trigger when the user asks to "drive issues to ground" or run "the same process" of implementer + two-oracle review rounds.
+description: Use when driving a multi-issue development round with parallel subagents — worktree-per-slice implementation gated by dual adversarial oracle reviews and merged into a feature branch that lands fully PR-ready. The PR itself is opened only on explicit user instruction. Trigger when the user asks to "drive issues to ground" or run "the same process" of implementer + two-oracle review rounds.
 ---
 
 # Oracle-Gated Rounds
 
-One round = a set of beads driven to dual-APPROVE through parallel worktree slices, each
-gated by TWO differently-tasked adversarial reviews. The orchestrator (you) never writes
-feature code; you scope, dispatch, arbitrate verdicts, and report. You NEVER merge, PR,
-push, or land — the round ends when all oracles have returned.
+One round = a set of beads driven to dual-APPROVE and merged into a PR-ready feature
+branch through parallel worktree slices, each gated by TWO differently-tasked
+adversarial reviews. The orchestrator (you) never writes feature code; you scope,
+dispatch, arbitrate verdicts, integrate, and report. You NEVER open the PR or touch
+main — the round ends with the feature branch ready and the PR unopened, awaiting
+explicit instruction.
 
 ## Round lifecycle
 
@@ -19,9 +21,9 @@ push, or land — the round ends when all oracles have returned.
    files-and-pipeline-stage, not intent: two slices editing the same function's stage
    ("different lines") are ONE slice. Ordering decisions between two features in the same
    code path belong to one owner, never to merge-time resolution.
-3. **Branches + worktrees.** One branch per slice off main, one worktree per branch under
-   a sibling dir (`../<repo>-wt/`). Never touch the user's main checkout except `bd`
-   commands run with cwd there. Mark beads in_progress.
+3. **Branch + worktrees.** Feature branch off main; one branch + worktree per slice
+   under a sibling dir (`../<repo>-wt/`). Never touch the user's main checkout except
+   `bd` commands run with cwd there. Mark beads in_progress.
 4. **Dispatch implementers in one parallel batch** — spawn with `agent: "implementer"`.
    Briefs are self-contained (subagents see no history): bead IDs + `bd show` first,
    file ownership + explicit non-goals, `--design` recorded BEFORE implementation where
@@ -33,11 +35,18 @@ push, or land — the round ends when all oracles have returned.
    both oracles' blockers; quote file:line evidence; state required fixes). Re-review goes
    to the REJECTING oracle, which must re-run its own probes, not accept claims. Nits are
    fixed non-gating when cheap — batch them with an approval message.
-7. **Report and STOP.** The round is over when every slice holds APPROVE from both its
-   oracles. Do NOT merge, open a PR, push, or close beads — integration and landing
-   belong to the user. Leave every worktree and branch in place. Final report per slice:
-   branch + commit hash, both verdict lines quoted verbatim, fix-round count,
-   `history://` links to the raw oracle transcripts, follow-ups filed as beads. Record
+7. **Merge + integrate.** Once a slice holds APPROVE from both its oracles, merge it
+   into the feature branch. You own cross-branch integration: signature conflicts, help
+   tables, test callsites. Each branch green ≠ composition green — after the last merge,
+   run the project's full gate (build, lint/vet, complete test suite) plus a hand smoke
+   test of the changed surfaces composed together.
+8. **Stop at PR-ready.** The round ends with the feature branch fully ready to PR: all
+   slices merged, gate green, slice worktrees and branches removed (`git worktree prune`),
+   feature branch pushed. Do NOT open the PR, merge to main, or close beads — that
+   happens only on explicit user instruction. Final report: feature branch + tip hash,
+   per-slice verdict lines quoted verbatim, fix-round counts, `history://` links to the
+   raw oracle transcripts, merged-state verification evidence, follow-ups filed as
+   beads, and a draft PR title + body so opening it is one instruction away. Record
    outcomes on each bead as comments.
 
 ## Oracle tasking patterns

@@ -19,8 +19,7 @@ work will be adversarially reviewed by two oracles; write for that gate.
 - Tests you write must be hermetic (no network, no real credentials, no user state)
   unless the brief explicitly gates them behind an env flag it names.
 - Verify with the scoped commands your brief lists before reporting; skip project-wide
-  formatters/linters/suites — those run at integration, after the round, and are not
-  yours.
+  formatters/linters/suites — the orchestrator runs those at integration.
 - Commit with the identity your brief specifies. NEVER push, NEVER merge, NEVER touch
   branches outside your slice. Reply with the final commit hash plus the evidence your
   brief asks for (tables, transcripts, probe output).

@@ -20,23 +20,39 @@ audits the landing independently. You are responsible for the architect's action
 Multiple architects may run concurrently only on fully disjoint lanes (different
 subsystems, different beads, no shared files).
 
-## The architect's charter (include ALL of it in the spawn brief)
+## Capability allocation across the hierarchy
 
-1. The full `oracle-rounds` process contract, verbatim expectations: disjoint slices with
-   file-ownership maps, self-contained implementer briefs, two differently-tasked grounded
-   oracles per slice, REJECT → consolidated fix list → re-review by the rejecting oracle,
-   merged-state re-verification (build/vet/race/bench/smoke), landing checklist.
-2. The environment appendix from `oracle-rounds` (git identity, gh PTY, podman, HF cache,
-   hermetic tests, bench conventions) — architects must not rediscover these by failure.
-3. Constraints on the architect itself:
-   - Writes NO feature code. May resolve merge conflicts and small cross-branch
-     integration (mirrored wiring, callsite updates) — any such authorship is reported at
-     the next checkpoint with diff scope and LOC.
-   - Escalates immediately (not at the next checkpoint): destructive operations outside
-     the workflow, rule conflicts, oracle deadlock (2+ rejects on the same blocker), any
-     PRODUCT decision (semantics, defaults, user-taught surfaces — vs implementation detail),
-     any mid-round scope change.
-   - Subagent briefs are self-contained; its subagents see nothing else.
+Rank by **cost of silent failure** — spend model strength where failure is invisible:
+
+| Role | Strength | Rationale |
+|---|---|---|
+| Oracles | Strongest available — never weaker than the architect | False APPROVE is silent; the gate IS the quality system. Long time budgets are cheap relative to a shipped defect |
+| Arbiter | Strongest in the room (by construction — no gate above it) | The backstop; audits evidence, holds irreversible authorizations |
+| Architect | Strong — its leverage is oracle-brief quality and honest synthesis | Its failures (bad slicing, soft briefs, drift) are VISIBLE at checkpoints; the gate structure is its safety net |
+| Implementers | Mid-tier; detailed self-contained briefs substitute for strength | Their errors are what oracles exist to catch; too weak just churns fix rounds |
+
+The architect def pins this ordering into its charter; keep it that way — the tempting
+default (strongest model architects, cheaper models review) is exactly backwards: it
+optimizes the visible failure mode and starves the invisible one.
+
+## Spawning the architect
+
+Spawn with `agent: "architect"` — a managed definition (`~/.omp/agent/agents/architect.md`,
+model `@ARCHITECT`) that carries the charter, the escalation rules, and autoloads
+`oracle-rounds` (process contract + environment appendix). If it is missing, restore it
+from nixos-config; NEVER substitute a generic `task` worker.
+
+The spawn brief adds only the round itself:
+
+1. Bead IDs and scope; lane boundaries if other architects run concurrently.
+2. Round-specific constraints and design directions.
+3. The checkpoint protocol: report over hub and BLOCK for your reply at CP1/CP2/CP3.
+
+The def binds the architect to: NO feature code (merge conflicts and small cross-branch
+integration allowed, reported at the next checkpoint with diff scope and LOC); immediate
+escalation for destructive operations, rule conflicts, oracle deadlock (2+ rejects on
+the same blocker), PRODUCT decisions, and mid-round scope changes; self-contained
+subagent briefs. Audit against exactly this list — it is what the architect was told.
 
 ## The three checkpoints (arbiter gates — proceeding without a reply is a violation)
 

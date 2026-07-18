@@ -19,12 +19,13 @@ code; you scope, dispatch, arbitrate verdicts, integrate, and land.
    ("different lines") are ONE slice. Ordering decisions between two features in the same
    code path belong to one owner, never to merge-time resolution.
 3. **Branch + worktrees.** Feature branch off main; one worktree per slice under a
-   sibling dir (`../<repo>-wt/` or `../known-wt/`). Never touch the user's main checkout
+   sibling dir (`../<repo>-wt/`). Never touch the user's main checkout
    except `bd` commands run with cwd there. Mark beads in_progress.
-4. **Dispatch implementers in one parallel batch.** Briefs are self-contained (subagents
-   see no history): bead IDs + `bd show` first, file ownership + explicit non-goals,
-   `--design` recorded BEFORE implementation where the bead demands decisions, acceptance
-   criteria, "commit and reply with hash", no bead closing, no pushing, hermetic tests only.
+4. **Dispatch implementers in one parallel batch** — spawn with `agent: "implementer"`.
+   Briefs are self-contained (subagents see no history): bead IDs + `bd show` first,
+   file ownership + explicit non-goals, `--design` recorded BEFORE implementation where
+   the bead demands decisions, acceptance criteria, "commit and reply with hash", no
+   bead closing, no pushing, hermetic tests only.
 5. **Gate each finished slice with two oracles, differently tasked** (see below). Spawn
    them the moment a slice finishes; don't wait for the whole wave.
 6. **Drive fix loops.** REJECT → send the implementer ONE consolidated fix list (merge
@@ -33,9 +34,8 @@ code; you scope, dispatch, arbitrate verdicts, integrate, and land.
    fixed non-gating when cheap — batch them with an approval message.
 7. **Merge + integrate.** You merge slices into the feature branch and own cross-branch
    integration: signature conflicts, help tables, test callsites. Each branch green ≠
-   composition green — after merging, re-verify: `go build`, `go vet`,
-   `go test -race -count=1 ./...`, the bench harness against the merged binary, and a
-   hand smoke test of the changed surfaces composed together.
+   composition green — after merging, run the full project gate (see environment
+   appendix) plus a hand smoke test of the changed surfaces composed together.
 8. **PR and land.** PR body: per-slice summary, oracle verdict counts, fix rounds,
    verification evidence, follow-ups filed. Merge ONLY on fully green CI (squash; subject
    ends with the PR number). Then: ff-only the main checkout, close every bead with a
@@ -59,6 +59,36 @@ fix); nits listed separately and never gate; no style rejections; every finding 
 an executed probe. Oracles are read-only on the worktree but must build, run, and mutate
 scratch copies.
 
+## Capability allocation
+
+Assign model strength by **cost of silent failure**, not role seniority:
+
+1. **Oracles — strongest available, no exceptions.** A weak oracle's failure mode is a
+   false APPROVE, which is invisible; the gate is only as strong as its reviewer. The
+   catches that justify this process (equilibrium math errors, action-version
+   incompatibilities proven from upstream source, adversarial input kills, harness
+   falsification) all required top-tier reasoning. Give oracles generous time budgets —
+   a 40-minute oracle that finds one real defect is the cheapest agent in the round.
+   Spawn with `agent: "oracle"` — NEVER as generic `task` workers (those run the
+   mid-tier `task` model role). Same rule for re-reviews.
+2. **Implementers — mid-tier suffices; brief quality substitutes for model strength.**
+   Their errors are exactly what the gate catches. Too weak churns fix rounds (each
+   costs two oracle re-reviews), so not minimal — but a detailed, self-contained brief
+   moves more quality than a stronger model does.
+3. **Scouts/mechanical edits — fast cheap models.**
+
+Agent definitions (`oracle`, `implementer`, `architect`) live in `~/.omp/agent/agents/`,
+managed by nixos-config; each binds its model through a `@role` alias resolved via
+`modelRoles` (`~/.omp/agent/config.yml`). If one is missing, restore it from
+nixos-config (an unknown `agent:` value errors with the available roster) — NEVER
+downgrade to `task`.
+
+Pair DIVERSITY outranks duplication: two equally strong oracles with the same brief find
+the same defects; differently-tasked pairs routinely split verdicts (one APPROVE, one
+REJECT) because they attack disjoint failure classes. Never collapse the pair into one
+"very thorough" review. Roles never blur: implementers don't self-review, oracles never
+fix (read-only + scratch copies), the orchestrator never writes feature code.
+
 ## Rules the rounds earned (violations found in practice)
 
 - **Predicates observe real state.** A test/bench predicate asserting output the binary
@@ -79,8 +109,10 @@ scratch copies.
 - **Bead hygiene is part of done.** `--design` before code where decisions were required;
   close reasons say what was decided and cite the PR; refresh notes after fix rounds.
 
-## Environment appendix (this machine / this repo)
+## Environment appendix (this machine + the `known` repo)
 
+- Full merged-state gate: `go build ./...`, `go vet ./...`,
+  `go test -race -count=1 ./...`, and the bench harness against the merged binary.
 - Git identity unset in worktrees: `git -c user.name=Dustin -c user.email=poage.dustin@gmail.com`
   on every commit/merge you author.
 - `gh` needs a PTY (keyring token). Auto-merge is disabled and the ruleset demands an

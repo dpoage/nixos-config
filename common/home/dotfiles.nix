@@ -11,6 +11,14 @@
   home.file.".agents/skills/oracle-rounds/SKILL.md".source =
     ../dotfiles/agents/skills/oracle-rounds/SKILL.md;
 
+  # OMP agent definitions (~/.omp/agent/agents)
+  home.file.".omp/agent/agents/oracle.md".source =
+    ../dotfiles/omp/agents/oracle.md;
+  home.file.".omp/agent/agents/architect.md".source =
+    ../dotfiles/omp/agents/architect.md;
+  home.file.".omp/agent/agents/implementer.md".source =
+    ../dotfiles/omp/agents/implementer.md;
+
   # OpenCode config
   xdg.configFile = {
     "opencode/opencode.json".source = ../dotfiles/opencode/opencode.json;

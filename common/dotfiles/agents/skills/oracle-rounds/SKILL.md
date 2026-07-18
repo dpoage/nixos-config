@@ -1,13 +1,14 @@
 ---
 name: oracle-rounds
-description: Use when landing a multi-issue development round with parallel subagents — worktree-per-slice implementation gated by dual adversarial oracle reviews, merged to a feature branch, PR'd to main, and squash-merged on green CI. Trigger when the user asks to "drive issues to ground", land an epic, or run "the same process" of implementer + two-oracle review rounds.
+description: Use when driving a multi-issue development round with parallel subagents — worktree-per-slice implementation gated by dual adversarial oracle reviews. The round STOPS when every slice holds two APPROVE verdicts; integration and landing stay with the user. Trigger when the user asks to "drive issues to ground" or run "the same process" of implementer + two-oracle review rounds.
 ---
 
 # Oracle-Gated Rounds
 
-One round = a set of beads landed on main through parallel worktree slices, each gated by
-TWO differently-tasked adversarial reviews. The orchestrator (you) never writes feature
-code; you scope, dispatch, arbitrate verdicts, integrate, and land.
+One round = a set of beads driven to dual-APPROVE through parallel worktree slices, each
+gated by TWO differently-tasked adversarial reviews. The orchestrator (you) never writes
+feature code; you scope, dispatch, arbitrate verdicts, and report. You NEVER merge, PR,
+push, or land — the round ends when all oracles have returned.
 
 ## Round lifecycle
 
@@ -18,9 +19,9 @@ code; you scope, dispatch, arbitrate verdicts, integrate, and land.
    files-and-pipeline-stage, not intent: two slices editing the same function's stage
    ("different lines") are ONE slice. Ordering decisions between two features in the same
    code path belong to one owner, never to merge-time resolution.
-3. **Branch + worktrees.** Feature branch off main; one worktree per slice under a
-   sibling dir (`../<repo>-wt/`). Never touch the user's main checkout
-   except `bd` commands run with cwd there. Mark beads in_progress.
+3. **Branches + worktrees.** One branch per slice off main, one worktree per branch under
+   a sibling dir (`../<repo>-wt/`). Never touch the user's main checkout except `bd`
+   commands run with cwd there. Mark beads in_progress.
 4. **Dispatch implementers in one parallel batch** — spawn with `agent: "implementer"`.
    Briefs are self-contained (subagents see no history): bead IDs + `bd show` first,
    file ownership + explicit non-goals, `--design` recorded BEFORE implementation where
@@ -32,15 +33,12 @@ code; you scope, dispatch, arbitrate verdicts, integrate, and land.
    both oracles' blockers; quote file:line evidence; state required fixes). Re-review goes
    to the REJECTING oracle, which must re-run its own probes, not accept claims. Nits are
    fixed non-gating when cheap — batch them with an approval message.
-7. **Merge + integrate.** You merge slices into the feature branch and own cross-branch
-   integration: signature conflicts, help tables, test callsites. Each branch green ≠
-   composition green — after merging, run the full project gate (see environment
-   appendix) plus a hand smoke test of the changed surfaces composed together.
-8. **PR and land.** PR body: per-slice summary, oracle verdict counts, fix rounds,
-   verification evidence, follow-ups filed. Merge ONLY on fully green CI (squash; subject
-   ends with the PR number). Then: ff-only the main checkout, close every bead with a
-   decision-bearing `--reason` citing PR + commit, `bd dolt push`, remove worktrees and
-   local+remote branches, `git worktree prune` (oracles sometimes leave strays in /tmp).
+7. **Report and STOP.** The round is over when every slice holds APPROVE from both its
+   oracles. Do NOT merge, open a PR, push, or close beads — integration and landing
+   belong to the user. Leave every worktree and branch in place. Final report per slice:
+   branch + commit hash, both verdict lines quoted verbatim, fix-round count,
+   `history://` links to the raw oracle transcripts, follow-ups filed as beads. Record
+   outcomes on each bead as comments.
 
 ## Oracle tasking patterns
 
@@ -65,10 +63,10 @@ Assign model strength by **cost of silent failure**, not role seniority:
 
 1. **Oracles — strongest available, no exceptions.** A weak oracle's failure mode is a
    false APPROVE, which is invisible; the gate is only as strong as its reviewer. The
-   catches that justify this process (equilibrium math errors, action-version
-   incompatibilities proven from upstream source, adversarial input kills, harness
-   falsification) all required top-tier reasoning. Give oracles generous time budgets —
-   a 40-minute oracle that finds one real defect is the cheapest agent in the round.
+   catches that justify this process (math errors, version incompatibilities proven from
+   upstream source, adversarial input kills, harness falsification) all required
+   top-tier reasoning. Give oracles generous time budgets — a 40-minute oracle that
+   finds one real defect is the cheapest agent in the round.
    Spawn with `agent: "oracle"` — NEVER as generic `task` workers (those run the
    mid-tier `task` model role). Same rule for re-reviews.
 2. **Implementers — mid-tier suffices; brief quality substitutes for model strength.**
@@ -92,38 +90,19 @@ fix (read-only + scratch copies), the orchestrator never writes feature code.
 ## Rules the rounds earned (violations found in practice)
 
 - **Predicates observe real state.** A test/bench predicate asserting output the binary
-  never prints (an `Expires:` line, an `elaborates:` suggestion) is fiction; assert via
-  `show --json`, exit codes, DB state.
+  never prints is fiction; assert machine-readable output, exit codes, DB state.
 - **xfail counts in the denominator.** A before/after metric that excludes expected
   failures saturates at 100% and can never show improvement.
 - **Baseline must fail what the round fixes.** If the old binary passes a scenario the
   audit calls broken, the scenario is mis-specified — falsify with a bad stub.
 - **"Already fixed" claims get forensics.** Verify the broken state existed at filing,
   name the fixing commit, and prove the new regression test discriminates by mutation.
-- **"Documented" red CI is not green.** A knowingly-failing job blocks the merge; fix
-  hermetically (stub embedders/network) without shrinking coverage.
+- **A knowingly-failing check is not green.** "Documented" red gates approval; fix
+  hermetically (stub network and heavy dependencies) without shrinking coverage.
 - **Destructive paths get adversarial input.** Empty string, whitespace, unset-$VAR
   expansion — refusal must be proven with before/after state counts.
 - **Docs state binary truth.** Every published example runs verbatim against the built
   binary; every claimed default verified by probe. Doc-vs-binary lies are BLOCKING.
 - **Bead hygiene is part of done.** `--design` before code where decisions were required;
-  close reasons say what was decided and cite the PR; refresh notes after fix rounds.
-
-## Environment appendix (this machine + the `known` repo)
-
-- Full merged-state gate: `go build ./...`, `go vet ./...`,
-  `go test -race -count=1 ./...`, and the bench harness against the merged binary.
-- Git identity unset in worktrees: `git -c user.name=Dustin -c user.email=poage.dustin@gmail.com`
-  on every commit/merge you author.
-- `gh` needs a PTY (keyring token). Auto-merge is disabled and the ruleset demands an
-  impossible self-review: after green CI and user-granted authority, `gh pr merge --squash --admin`.
-- Postgres via podman: `systemctl --user start podman.socket`;
-  `DOCKER_HOST=unix://$XDG_RUNTIME_DIR/podman/podman.sock TESTCONTAINERS_RYUK_DISABLED=true KNOWN_INTEGRATION=1`.
-  Storage changes must keep `storage/contract_test.go` green on BOTH backends.
-- Real-embedding probes: temp HOME with `~/.cache/huggingface` symlinked in; never touch
-  `~/.known`; never `export HOME` into a persistent shell (poisons the Go module cache and
-  fills /tmp) — set env per command and clean temp dirs.
-- CI runs `-race` + golangci-lint v2: unit tests must never construct a real HugotEmbedder
-  (upstream gomlx race); use the stub-embedder patterns in `cmd/*_test.go`.
-- bench/capture conventions: scenario IDs cite their bead, `ExpectFailBaseline` for
-  unlanded contracts, paired `_Pass`/`_Fail` self-tests via the stubbed-binary pattern.
+  findings and fix-round outcomes recorded as comments; notes refreshed so the landing
+  session inherits full context.

@@ -16,7 +16,11 @@
   boot.initrd.luks.devices."cryptroot" = {
     # LUKS header UUID — `cryptsetup luksUUID <rootpart>` after migration.
     device = "/dev/disk/by-uuid/@LUKS_UUID@";
-    # Pass TRIM through dm-crypt; root sits on an NVMe SSD.
+    # Pass TRIM through dm-crypt; root sits on an NVMe SSD. Trade-off: TRIM
+    # reveals which sectors are unused (allocation patterns) to the disk
+    # firmware and to anyone reading the raw device. Accepted here — the
+    # SOC2 control is data-at-rest confidentiality, not pattern hiding —
+    # and applied consistently to swap below.
     allowDiscards = true;
   };
 
@@ -30,7 +34,12 @@
     {
       # `lsblk -no PARTUUID <swappart>` after migration.
       device = "/dev/disk/by-partuuid/@SWAP_PARTUUID@";
-      randomEncryption.enable = true;
+      randomEncryption = {
+        enable = true;
+        # Same TRIM policy (and the same allocation-pattern disclosure) as
+        # the root device above.
+        allowDiscards = true;
+      };
     }
   ];
 }

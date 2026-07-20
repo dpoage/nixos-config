@@ -4,13 +4,14 @@
   # Claude Code base config
   home.file.".claude/CLAUDE.md".source = ../dotfiles/CLAUDE.md;
   home.file.".claude/github-voice.md".source = ../dotfiles/github-voice.md;
-  home.file.".claude/doc-style.md".source = ../dotfiles/doc-style.md;
 
   # Agent skills (~/.agents/skills)
   home.file.".agents/skills/arbiter-architect/SKILL.md".source =
     ../dotfiles/agents/skills/arbiter-architect/SKILL.md;
   home.file.".agents/skills/oracle-rounds/SKILL.md".source =
     ../dotfiles/agents/skills/oracle-rounds/SKILL.md;
+  home.file.".agents/skills/doc-writer/SKILL.md".source =
+    ../dotfiles/agents/skills/doc-writer/SKILL.md;
 
   # OMP agent definitions (~/.omp/agent/agents)
   home.file.".omp/agent/agents/oracle.md".source =

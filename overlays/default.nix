@@ -49,25 +49,56 @@ in
     buildInputs = (old.buildInputs or [ ]) ++ [ unstable.icu ];
   });
 
-  # omp-flake wraps the omp binary with `--prefix LD_LIBRARY_PATH`, and the
-  # lib set it injects includes glibc. LD_LIBRARY_PATH is inherited by every
-  # child process omp spawns, so Go+cgo tools it shells out to (bd, dolt, gt)
-  # load the wrong libc and abort with "pthread_create failed: Invalid
-  # argument". Re-wrap without glibc — omp's patched interpreter resolves
-  # libc on its own, so glibc never needs to be on LD_LIBRARY_PATH.
-  omp = inputs.omp-flake.packages.${system}.default.overrideAttrs (old: {
-    postFixup = (old.postFixup or "") + ''
-      rm -f "$out/bin/omp"
-      makeWrapper "$out/libexec/omp" "$out/bin/omp" \
-        --prefix LD_LIBRARY_PATH : "${
-          unstable.lib.makeLibraryPath [
-            unstable.stdenv.cc.cc.lib
-            unstable.openssl
-            unstable.zlib
-          ]
-        }"
-    '';
-  });
+  # oh-my-pi is at v17.x, but omp-flake still hardcodes v16.1.19 in its own
+  # flake.nix (release URL + sha256 per platform). We already track omp-flake's
+  # HEAD, so `nix flake update omp-flake` is a no-op — the only way onto 17 is to
+  # pin the release binary ourselves. Drop the `version`/`src` override below
+  # (and re-run `nix flake update omp-flake`) once upstream bumps to >= 17.
+  #
+  # The postFixup re-wrap fixes a glibc-inheritance bug: omp-flake wraps the omp
+  # binary with `--prefix LD_LIBRARY_PATH`, and the lib set it injects includes
+  # glibc. LD_LIBRARY_PATH is inherited by every child process omp spawns, so
+  # Go+cgo tools it shells out to (bd, dolt, gt) load the wrong libc and abort
+  # with "pthread_create failed: Invalid argument". Re-wrap without glibc — omp's
+  # patched interpreter resolves libc on its own, so glibc never needs to be on
+  # LD_LIBRARY_PATH.
+  omp =
+    let
+      ompVersion = "17.0.6";
+      ompSources = {
+        x86_64-linux = {
+          url = "https://github.com/can1357/oh-my-pi/releases/download/v${ompVersion}/omp-linux-x64";
+          hash = "sha256-J/7BQ6pkbK5erps6BnfFTUNGX8SaebFhusc527okTIw=";
+        };
+        aarch64-linux = {
+          url = "https://github.com/can1357/oh-my-pi/releases/download/v${ompVersion}/omp-linux-arm64";
+          hash = "sha256-TS8+mUj4H0w4E7XInl7aS9zULvIihdQM9IQC6/oVQ20=";
+        };
+        x86_64-darwin = {
+          url = "https://github.com/can1357/oh-my-pi/releases/download/v${ompVersion}/omp-darwin-x64";
+          hash = "sha256-nltFYLYfxDc/YEy6nizDvasEVJ6DDz1ezYCx9/rMhrw=";
+        };
+        aarch64-darwin = {
+          url = "https://github.com/can1357/oh-my-pi/releases/download/v${ompVersion}/omp-darwin-arm64";
+          hash = "sha256-10dHC8/wQS5b3nhg9d6tfeFarWuXOktGw0+FJ9nWpLk=";
+        };
+      };
+    in
+    inputs.omp-flake.packages.${system}.default.overrideAttrs (old: {
+      version = ompVersion;
+      src = final.fetchurl ompSources.${system};
+      postFixup = (old.postFixup or "") + ''
+        rm -f "$out/bin/omp"
+        makeWrapper "$out/libexec/omp" "$out/bin/omp" \
+          --prefix LD_LIBRARY_PATH : "${
+            unstable.lib.makeLibraryPath [
+              unstable.stdenv.cc.cc.lib
+              unstable.openssl
+              unstable.zlib
+            ]
+          }"
+      '';
+    });
 
   gcx = unstable.buildGoModule rec {
     pname = "gcx";

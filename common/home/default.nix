@@ -4,6 +4,7 @@
   imports = [
     ./terminal.nix
     ./hyprland.nix
+    ./lock.nix
     ./waybar.nix
     ./dotfiles.nix
     ./dev.nix

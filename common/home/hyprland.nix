@@ -109,6 +109,10 @@ in
         "$mod, E, exec, nautilus"
         "$mod, B, exec, firefox"
 
+        # Session lock (SUPER+L is vim-directional focus; direct exec so
+        # the bind still locks even if hypridle is down — see lock.nix)
+        "$mod, Escape, exec, pidof hyprlock || hyprlock"
+
         # Window management
         "$mod, Q, killactive"
         "$mod SHIFT, Q, exit"

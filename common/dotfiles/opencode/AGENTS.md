@@ -7,6 +7,12 @@ Code correctness over speed. Benchmarks and tests are critical.
 When posting to GitHub (comments, issues, PR bodies, reviews), follow
 `~/.config/opencode/github-voice.md`. Terse, evidence-linked, no assistant-ese.
 
+## Documentation Style
+
+When writing documentation (READMEs, docs/, guides, doc comments), follow
+`~/.config/opencode/doc-style.md`: Simplified Technical English. GitHub voice
+wins for GitHub posts.
+
 ## Beads -- Cross-Session Memory
 
 `bd prime` gives you the commands. This section tells you how to think.

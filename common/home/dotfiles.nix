@@ -4,6 +4,7 @@
   # Claude Code base config
   home.file.".claude/CLAUDE.md".source = ../dotfiles/CLAUDE.md;
   home.file.".claude/github-voice.md".source = ../dotfiles/github-voice.md;
+  home.file.".claude/doc-style.md".source = ../dotfiles/doc-style.md;
 
   # Agent skills (~/.agents/skills)
   home.file.".agents/skills/arbiter-architect/SKILL.md".source =
@@ -25,6 +26,7 @@
     "opencode/AGENTS.md".source = ../dotfiles/opencode/AGENTS.md;
     "opencode/ensemble.json".source = ../dotfiles/opencode/ensemble.json;
     "opencode/github-voice.md".source = ../dotfiles/github-voice.md;
+    "opencode/doc-style.md".source = ../dotfiles/doc-style.md;
 
     "opencode/agent/review.md".source = ../dotfiles/opencode/agent/review.md;
     "opencode/agent/explore.md".source = ../dotfiles/opencode/agent/explore.md;

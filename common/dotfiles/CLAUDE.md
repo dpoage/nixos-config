@@ -11,6 +11,12 @@ and checking edge cases are all preferable to fast but wrong output.
 When posting to GitHub (comments, issues, PR bodies, reviews), follow
 `~/.claude/github-voice.md`. Terse, evidence-linked, no assistant-ese.
 
+## Documentation Style
+
+When writing documentation (READMEs, docs/, guides, doc comments), follow
+`~/.claude/doc-style.md`: Simplified Technical English. GitHub voice wins for
+GitHub posts.
+
 ## Coding Guidelines
 
 You MUST:

@@ -153,6 +153,11 @@ in
     subPackages = [ "cmd/gcx" ];
   };
 
+  # Local repackages: binaries with no nixpkgs derivation.
+  # Drata SOC2 agent (Pattern compliance requirement), repacked from the
+  # official Ubuntu deb — see ./drata-agent.nix for the asar surgery.
+  drata-agent = final.callPackage ./drata-agent.nix { };
+
   # Unstable overrides: pin these to unstable's newer builds flake-wide.
   claude-code = unstable.claude-code;
   dolt = unstable.dolt;

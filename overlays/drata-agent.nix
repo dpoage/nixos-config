@@ -22,6 +22,17 @@
 #   lock-enabled` (and friends) for its screen-lock checks, and that has to
 #   work from a bare systemd user unit under Hyprland — no GNOME session
 #   environment to inherit.
+# * Known gaps (documented, not bugs): the deb ships no augeas lenses, so the
+#   agent's firewall check (`SELECT ... FROM augeas WHERE path =
+#   '/etc/ufw/ufw.conf'`) reports passed=0 on every install regardless of the
+#   host firewall — networking.firewall is the real control, so firewall stays
+#   a manual-evidence item in Drata. Likewise hardware_serial and disk
+#   encryption read empty for the unprivileged agent (manual evidence).
+# * The app self-installs ~/.config/autostart/drata-agent.desktop pointing at
+#   the UNWRAPPED lib/drata-agent. It is inert here (no XDG-autostart executor
+#   in this compositor setup) and the supported autostart path is the systemd
+#   user unit in profiles/work.nix — but if an XDG autostart executor is ever
+#   added, that desktop file would bypass this wrapper's env.
 
 {
   lib,

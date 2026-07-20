@@ -7,11 +7,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1781506882,
-        "narHash": "sha256-Kx+kwIQlZoC/XYo33en4VLznep12nmCYpUcWH9IrWaY=",
+        "lastModified": 1784527387,
+        "narHash": "sha256-tEc0CDANbpX/9i8uUXbnFjCTEAn5fDALM/xRxgRMEy4=",
         "owner": "gastownhall",
         "repo": "beads",
-        "rev": "8e18581dc0dd1eb1edf175e13dcb4f5fd5021cd7",
+        "rev": "1823f47ae42c93cb753536dfc49fa2337ace8eb1",
         "type": "github"
       },
       "original": {
@@ -104,11 +104,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1781556002,
-        "narHash": "sha256-o29yrnxkMWPjbq+726PQcL0rlPmxf2ck5SC2NTWhheg=",
+        "lastModified": 1784564296,
+        "narHash": "sha256-mmtI+0FFsCWLiZmtrndut6rTZULu3z+YYNc6BC0ybNY=",
         "owner": "steveyegge",
         "repo": "gastown",
-        "rev": "5427dfb4acc0e3ca5315ffc2a4837520ec431edb",
+        "rev": "86fc560c6a5c4ee53895d1cda331ea0355f59be4",
         "type": "github"
       },
       "original": {
@@ -173,11 +173,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1781422160,
-        "narHash": "sha256-W7S8O86bVrw2gaomEwkHStOzmPpnFIHQ6lS4Q2HffJ0=",
+        "lastModified": 1784440659,
+        "narHash": "sha256-Q5kNLlWngt7TaIIZoxDKWMHjiSaNRVqr70FqWCRRfr4=",
         "owner": "nix-community",
         "repo": "nix-index-database",
-        "rev": "854d04e2368fb2e9c328a36b3c0a04cd713bfae1",
+        "rev": "4f8d52a3598b0dc7db7a5e7b419e3edd9d1ecfdb",
         "type": "github"
       },
       "original": {
@@ -191,11 +191,11 @@
         "nixpkgs": "nixpkgs_2"
       },
       "locked": {
-        "lastModified": 1781168557,
-        "narHash": "sha256-LOnLQ2tpYF9gqIDDr3+j3DbpJJr/QCH6zPRT2GzEUOE=",
+        "lastModified": 1784310968,
+        "narHash": "sha256-rkSPTePrKqs4dg+i7ZFCq93+HrClac6oSwXX927SVjA=",
         "owner": "nixos",
         "repo": "nixos-hardware",
-        "rev": "6358ff76821101c178e3ab4919a62799bfe3652e",
+        "rev": "779c32a00155994c86cde8213a8dd4df139d4355",
         "type": "github"
       },
       "original": {
@@ -223,11 +223,11 @@
     },
     "nixpkgs-unstable": {
       "locked": {
-        "lastModified": 1781074563,
-        "narHash": "sha256-md8WlXOlfnIeHeOScMTTHFyf2d6iaTwPl2apR5EQ3P4=",
+        "lastModified": 1784497964,
+        "narHash": "sha256-vlHUuqAcbcH2RKmHbPiuQzbv1pnzzavXnI62RD0bqCU=",
         "owner": "nixos",
         "repo": "nixpkgs",
-        "rev": "9ae611a455b90cf061d8f332b977e387bda8e1ca",
+        "rev": "241313f4e8e508cb9b13278c2b0fa25b9ca27163",
         "type": "github"
       },
       "original": {
@@ -252,11 +252,11 @@
     },
     "nixpkgs_3": {
       "locked": {
-        "lastModified": 1780952837,
-        "narHash": "sha256-Fwd1+spDtQ0hDyBwme6ufG3n4mY0UrjjFdYHv+G/Hds=",
+        "lastModified": 1782847189,
+        "narHash": "sha256-twXPFqFsrrY5r28Zh7Homgcp2gUMBgQ6WDS98Q/3xFI=",
         "owner": "nixos",
         "repo": "nixpkgs",
-        "rev": "e820eb4a444b46a19b2e03e8dfd2359439ff30fe",
+        "rev": "b6018f87da91d19d0ab4cf979885689b469cdd41",
         "type": "github"
       },
       "original": {
@@ -350,11 +350,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1781297934,
-        "narHash": "sha256-WNAoZNOqg60/kUn7xlhs3qFihMLUotj7CyL0dp8+uPs=",
+        "lastModified": 1782402532,
+        "narHash": "sha256-l6ij6KNtHEpTsMeSzay7cnmQ4ZShbsGGvzdjuLgje+w=",
         "owner": "cernoh",
         "repo": "omp-flake",
-        "rev": "12c6192f29fc866fe89d6cdb70c1efa1c5ef2c34",
+        "rev": "376ab5f445d4c8bc3f29c9b9971a159f4ebe3883",
         "type": "github"
       },
       "original": {
@@ -372,11 +372,11 @@
         "nixpkgs": "nixpkgs_5"
       },
       "locked": {
-        "lastModified": 1781034834,
-        "narHash": "sha256-9KwtK6/oqoNUyu4SO62Ib/vn85RMUMJ4HpyjAR9q+sI=",
+        "lastModified": 1784152184,
+        "narHash": "sha256-lsYMoS7pCezr6t9rrFLREQPKyFTxyPm2DBgbzcFDGvs=",
         "ref": "refs/heads/main",
-        "rev": "bc5b00a0e1f05359a251b03b65d1762412652637",
-        "revCount": 200,
+        "rev": "595d8013da89ceee80ed1faceffa78202d54de1f",
+        "revCount": 202,
         "type": "git",
         "url": "ssh://git@github.com/Pattern-Labs/pattern_cli"
       },

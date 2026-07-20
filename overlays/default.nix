@@ -41,7 +41,7 @@ in
 
   gastown = inputs.gastown.packages.${system}.default.overrideAttrs (old: {
     goModules = old.goModules.overrideAttrs {
-      outputHash = "sha256-DHZSRowj1thS/yARB0B5bWMfvegaEAhVB1AI9wfYEDk=";
+      outputHash = "sha256-ZUEQQ0br+5UQnk/XLM7NLDCd1qA93VOho1iQ3q3RUm8=";
     };
     # gastown vendors dolt, which pulls in dolthub/go-icu-regex. That package
     # uses cgo and includes <unicode/uregex.h>, linking against -licui18n

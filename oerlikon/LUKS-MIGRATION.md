@@ -101,7 +101,10 @@ destroys the last 32 MiB. Do not run step 2 before step 1 prints `SHRUNK-OK`.
    ```
 
    If the command does not print `SHRUNK-OK`, stop. The tail still holds
-   filesystem data. Return to section 2.
+   filesystem data. Return to section 2. The check assumes `$ROOT` is the
+   ext4 device from section 2: on a non-ext4 device `tune2fs` fails, the
+   arithmetic degenerates, and `SHRUNK-OK` prints spuriously — cryptsetup's
+   refusal to `--encrypt` an already-LUKS device is the only backstop.
 
 2. Encrypt. `cryptsetup reencrypt --encrypt` initializes in-place
    encryption; LUKS2 is the default format in cryptsetup 2.x. The command
@@ -203,7 +206,11 @@ destroys the last 32 MiB. Do not run step 2 before step 1 prints `SHRUNK-OK`.
    ```
 
    The output must show `TYPE="swap"`. If it shows `crypto_LUKS` or anything
-   else, `$SWAP` points at the wrong device — stop and redo step 1.
+   else, `$SWAP` points at the wrong device — stop and redo step 1. If you
+   re-enter this step after a partial wipe, the swap by-uuid derivation in
+   step 1 no longer resolves; find the partition with
+   `lsblk -o NAME,SIZE,FSTYPE,PARTUUID` instead (the small partition next to
+   the `crypto_LUKS` root).
 
    ```console
    # wipefs --all "$SWAP"
@@ -217,6 +224,9 @@ destroys the last 32 MiB. Do not run step 2 before step 1 prints `SHRUNK-OK`.
    ```console
    # dd if=/dev/urandom of="$SWAP" bs=1M status=progress
    ```
+
+   `dd` ends with `No space left on device` when the partition is full.
+   That error is the success condition here.
 
 6. Build the new boot generation from inside the mounted system:
 
@@ -305,11 +315,11 @@ encrypted disk is not a passing control.
 `--decrypt` as a rollback; treat the operation as one-way.
 
 WARNING: after section 3, every pre-migration generation in the systemd-boot
-menu is dead. Their initrds contain no cryptsetup and wait forever in
-stage 1 for the ext4 by-uuid device that no longer appears. The generation
-menu is NOT a rollback path. (A generation that does unlock the root but
-still references the old swap by-uuid also stalls ~90 s on the dead swap
-device unit before boot continues.)
+menu is dead. Their initrds contain no cryptsetup, wait ~20 s in stage 1 for
+the ext4 by-uuid device that no longer appears, then drop to the stage-1
+error menu. The generation menu is NOT a rollback path. (A generation that
+does unlock the root but still references the old swap by-uuid also stalls
+~90 s on the dead swap device unit before boot continues.)
 
 - Reencryption interrupted (Ctrl+C, crash, power loss): not a failure.
   Resume as described in section 3 step 2, including the fresh-shell

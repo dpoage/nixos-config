@@ -4,6 +4,9 @@
 #
 # Wired in flake.nix via `nixpkgs.overlays`. To expose a new tool flake-wide,
 # add it here — nothing else needs to change.
+#
+# Stale FOD hashes (goModules outputHash, release binaries, vendorHash)?
+# Run `tools/update-hashes.sh` — see its header for version-bump flags.
 { inputs, system }:
 
 final: prev:

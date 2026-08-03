@@ -12,6 +12,14 @@
     options = [ "nofail" "noatime" ];
   };
 
+  # 2026-08-05: the Innodisk 3TE6 (DRAM-less) failed to wake from D3cold on
+  # resume ("Unable to change power state from D3cold to D0"); the kernel
+  # disabled the controller and ext4 shut down until a power cycle. Keep the
+  # drive out of D3cold so suspend uses D3hot, which it handles fine.
+  services.udev.extraRules = ''
+    ACTION=="add", SUBSYSTEM=="pci", ATTR{vendor}=="0x1bc0", ATTR{device}=="0x1002", ATTR{d3cold_allowed}="0"
+  '';
+
   # Keep docker state on the big disk instead of /var/lib/docker.
   virtualisation.docker.daemon.settings."data-root" = "/data/docker";
 

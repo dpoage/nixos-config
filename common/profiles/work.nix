@@ -4,7 +4,10 @@
 { pkgs, ... }:
 
 {
-  imports = [ ../pattern.nix ];
+  imports = [
+    ../pattern.nix
+    ../react-native.nix
+  ];
 
   # Inject work-specific prompt badges and cloud context modules.
   # These merge into terminal.nix's myPrompt options via deferredModule.

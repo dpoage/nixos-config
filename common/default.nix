@@ -7,6 +7,7 @@
     ./bazel.nix
     ./cloud.nix
     ./kubernetes.nix
+    ./hashicorp.nix
     ./gastown.nix
     ./myUser.nix
     ./nvidia.nix

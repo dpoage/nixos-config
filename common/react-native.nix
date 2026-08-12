@@ -61,7 +61,9 @@ in
   # Electron app fetched via dotslash into ~/.cache/dotslash; it can't be
   # patchelf'd ahead of time, so run it through nix-ld (enabled in bazel.nix)
   # with the Chromium/Electron runtime closure. List = exact `not found` set
-  # from ldd on the binary; transitive deps resolve via each lib's rpath.
+  # from ldd on the binary plus libglvnd (libGL/libEGL dispatch — dlopened at
+  # runtime, so absent from ldd; vendor driver comes from /run/opengl-driver
+  # via hardware.graphics). Transitive deps resolve via each lib's rpath.
   programs.nix-ld.libraries = with pkgs; [
     alsa-lib
     at-spi2-atk
@@ -74,6 +76,7 @@ in
     glib
     gtk3
     libgbm
+    libglvnd
     libxkbcommon
     nspr
     nss

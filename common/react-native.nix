@@ -57,6 +57,37 @@ in
     GRADLE_OPTS = "-Dorg.gradle.project.android.aapt2FromMavenOverride=${sdkRoot}/build-tools/${buildToolsVersion}/aapt2";
   };
 
+  # React Native DevTools (`npx react-native start` debugger) is a prebuilt
+  # Electron app fetched via dotslash into ~/.cache/dotslash; it can't be
+  # patchelf'd ahead of time, so run it through nix-ld (enabled in bazel.nix)
+  # with the Chromium/Electron runtime closure. List = exact `not found` set
+  # from ldd on the binary; transitive deps resolve via each lib's rpath.
+  programs.nix-ld.libraries = with pkgs; [
+    alsa-lib
+    at-spi2-atk
+    at-spi2-core
+    atk
+    cairo
+    cups
+    dbus
+    expat
+    glib
+    gtk3
+    libgbm
+    libxkbcommon
+    nspr
+    nss
+    pango
+    systemd # libudev
+    xorg.libX11
+    xorg.libXcomposite
+    xorg.libXdamage
+    xorg.libXext
+    xorg.libXfixes
+    xorg.libXrandr
+    xorg.libxcb
+  ];
+
   # adb device access is handled by systemd's built-in uaccess rules for
   # seat-local users (nixpkgs removed android-udev-rules in favor of them).
   # /dev/kvm for the hardware-accelerated emulator still needs the group.

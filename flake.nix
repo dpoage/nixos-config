@@ -26,6 +26,9 @@
     };
     pattern-cli = {
       url = "git+ssh://git@github.com/Pattern-Labs/pattern_cli";
+      # pattern's go.mod requires Go >= 1.26.3; stable nixpkgs only has 1.25.x,
+      # so follow unstable for a new enough Go (same reasoning as gastown).
+      inputs.nixpkgs.follows = "nixpkgs-unstable";
       inputs.flake-utils.follows = "gastown/flake-utils";
     };
     omp-flake = {

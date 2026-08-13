@@ -26,16 +26,53 @@ in
   # pattern shells out to `bazel`. Instead of installing real bazel, put a
   # `bazel` symlink to bazelisk on pattern's PATH (scoped to its wrapper, not
   # system-wide), so bazelisk fetches and runs the workspace-pinned version.
+  #
+  # We build pattern ourselves instead of using pattern-cli's packaged output:
+  # upstream's flake hardcodes buildGo125Module while its go.mod requires
+  # Go >= 1.26.3, so the upstream package cannot build. Attrs below mirror
+  # upstream's flake.nix (vendorHash pinned here so update-hashes.sh manages
+  # it). Drop this once upstream moves to a new enough Go builder.
   pattern =
     let
       bazel-shim = prev.runCommand "bazel-shim" { } ''
         mkdir -p $out/bin
         ln -s ${prev.bazelisk}/bin/bazelisk $out/bin/bazel
       '';
+      version = builtins.substring 0 8 inputs.pattern-cli.rev;
+      pattern-unwrapped = unstable.buildGoModule {
+        pname = "pattern";
+        inherit version;
+        src = inputs.pattern-cli;
+        vendorHash = "sha256-ntovC2egRWnaoHcDGPqNQNeupwezyGgb+hMneAEyYws=";
+        proxyVendor = true;
+        # Private module access inside the goModules FOD (see upstream flake
+        # and common/pattern.nix for the sandbox netrc wiring).
+        overrideModAttrs = old: {
+          nativeBuildInputs = (old.nativeBuildInputs or [ ]) ++ [
+            prev.git
+            prev.cacert
+          ];
+          env.GOPRIVATE = "github.com/Pattern-Labs";
+          env.GONOSUMCHECK = "github.com/Pattern-Labs/*";
+          env.NETRC = "/etc/nix-private-netrc";
+        };
+        subPackages = [ "cmd/pattern" ];
+        env.CGO_ENABLED = "0";
+        ldflags = [
+          "-s"
+          "-w"
+          "-X"
+          "github.com/Pattern-Labs/pattern_cli/pkg/version.Version=${version}"
+        ];
+        meta = {
+          description = "Pattern Labs internal CLI";
+          mainProgram = "pattern";
+        };
+      };
     in
     prev.symlinkJoin {
       name = "pattern";
-      paths = [ inputs.pattern-cli.packages.${system}.default ];
+      paths = [ pattern-unwrapped ];
       nativeBuildInputs = [ prev.makeWrapper ];
       postBuild = ''
         wrapProgram $out/bin/pattern --prefix PATH : ${bazel-shim}/bin

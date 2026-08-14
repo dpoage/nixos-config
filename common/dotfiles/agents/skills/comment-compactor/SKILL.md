@@ -32,6 +32,9 @@ doubt between a shorter comment and no comment, prefer no comment.
 - **Safety notes**: concurrency, unsafe blocks, aliasing, failure modes.
 - **Public API doc comments**: they are the contract — compress, never delete. Preserve
   the toolchain's doc syntax (rustdoc, JSDoc, docstrings) and any executable doctests.
+  Compaction only: if a doc comment needs substantive rewriting or expansion, that is
+  writing, not compacting — load `skill://doc-writer` and handle it yourself, outside
+  the light-agent batch.
 - **Actionable TODO/FIXME**: keep only those naming a concrete defect or follow-up. If
   the repo has an issue tracker (e.g. beads), file durable ones there and drop the comment.
 

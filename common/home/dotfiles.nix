@@ -12,6 +12,8 @@
     ../dotfiles/agents/skills/oracle-rounds/SKILL.md;
   home.file.".agents/skills/doc-writer/SKILL.md".source =
     ../dotfiles/agents/skills/doc-writer/SKILL.md;
+  home.file.".agents/skills/comment-compactor/SKILL.md".source =
+    ../dotfiles/agents/skills/comment-compactor/SKILL.md;
 
   # OMP agent definitions (~/.omp/agent/agents)
   home.file.".omp/agent/agents/oracle.md".source =

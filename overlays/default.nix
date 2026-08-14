@@ -43,7 +43,7 @@ in
         pname = "pattern";
         inherit version;
         src = inputs.pattern-cli;
-        vendorHash = "sha256-ntovC2egRWnaoHcDGPqNQNeupwezyGgb+hMneAEyYws=";
+        vendorHash = "sha256-yc8TfGI2wXaSv6tfTsMGGH2BOJJXmnBqyY/DtNlMc2A=";
         proxyVendor = true;
         # Private module access inside the goModules FOD (see upstream flake
         # and common/pattern.nix for the sandbox netrc wiring).

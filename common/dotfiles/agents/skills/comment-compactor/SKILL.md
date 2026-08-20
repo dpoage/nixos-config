@@ -9,6 +9,11 @@ A comment earns its place by stating a fact about the code **as it is now** that
 the code cannot state itself. Everything else is deleted, not rewritten. When in
 doubt between a shorter comment and no comment, prefer no comment.
 
+**Code is read-only.** Every "delete" in this skill means a comment. A diff that
+touches any non-comment, non-blank line is a failed batch: restore the file from
+the baseline and redo it. Never keep a "mostly good" result, and never accept a
+code deletion because the surrounding comment work looks correct.
+
 ## Delete on sight
 
 - **Development narrative**: "First we tried X", "after refactoring", "I decided to",
@@ -49,15 +54,41 @@ doubt between a shorter comment and no comment, prefer no comment.
 
 1. **Scope.** Default to files touched in the working diff or branch; otherwise the
    paths the user names. Never sweep the whole repo unasked.
-2. **Dispatch.** Batch files and send each batch to a light, low-reasoning agent
+2. **Baseline.** Snapshot before dispatch, always — the default scope is a dirty
+   worktree, so without this there is nothing to revert to. `git stash create`
+   records the tree without touching it (note the hash), or copy the target files
+   aside. Do not dispatch until the snapshot exists.
+3. **Dispatch.** Batch files and send each batch to a light, low-reasoning agent
    (`quick_task` / `sonic` class). Inline these rules in the task — the agent starts
-   blank. State the comments-only mandate explicitly. Run batches in parallel.
-3. **Constrain.** Agents touch only comment lines and blank lines they leave behind.
-   No code edits, no reformatting, no import shuffling — even to "fix" something a
-   deleted comment described.
-4. **Verify.** Read the combined diff: every changed line is a comment or blank line.
-   Then typecheck or build the touched files if the repo has a cheap way to do so
-   (docstrings and doc-tests are load-bearing in some toolchains).
+   blank — and paste the guardrail block below **verbatim** at the top of every task.
+   Run batches in parallel.
+4. **Verify (mechanical gate).** Walk `git diff -U0` per touched file. Every `-` line
+   must be a whole-line comment, a blank line, or a code line whose `+` counterpart
+   keeps the code before the comment marker byte-identical. Every `+` line must be a
+   comment or blank. Any violation → restore that file from the baseline snapshot and
+   redo it yourself; never hand-patch around a bad agent diff, and never let a code
+   change through because it "looks harmless".
+5. **Build.** Typecheck or build the touched files if the repo has a cheap way to do
+   so (docstrings and doc-tests are load-bearing in some toolchains).
+
+### Guardrail block (paste verbatim into every agent task)
+
+```
+CODE IS READ-ONLY. You edit comments only. Rules, in order of precedence:
+1. Never delete, rewrite, reorder, or reformat a code line — not code a removed
+   comment described, not commented-out code, not code you believe is dead or wrong.
+2. You may delete a whole line only if it contains nothing but a comment and
+   indentation.
+3. Trailing comment on a code line: change only the text from the comment marker
+   onward; the code before the marker stays byte-identical.
+4. Delete comment lines by exact line numbers you have just read. Never use
+   block/structural delete or replace operations — they can swallow adjacent code.
+5. Unsure whether a line is code, a directive, or a comment? Leave it untouched
+   and mention it in your report.
+6. If you notice a bug, dead code, or a missing fix, report it; do not touch it.
+A diff from you containing any non-comment change is a failed task, even if every
+comment edit in it is correct.
+```
 
 ## Never touch
 

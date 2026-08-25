@@ -22,6 +22,8 @@
     ../dotfiles/omp/agents/architect.md;
   home.file.".omp/agent/agents/implementer.md".source =
     ../dotfiles/omp/agents/implementer.md;
+  home.file.".omp/agent/agents/implementer-max.md".source =
+    ../dotfiles/omp/agents/implementer-max.md;
 
   # OpenCode config
   xdg.configFile = {

@@ -32,9 +32,27 @@ explicit instruction.
 5. **Gate each finished slice with two oracles, differently tasked** (see below). Spawn
    them the moment a slice finishes; don't wait for the whole wave.
 6. **Drive fix loops.** REJECT → send the implementer ONE consolidated fix list (merge
-   both oracles' blockers; quote file:line evidence; state required fixes). Re-review goes
+   both oracles' blockers; quote file:line evidence; state required fixes) and state
+   whether the blockers indicate a design gap — a brief that never pinned the rejected
+   requirement is YOUR defect to fix, not the implementer's. Re-review goes
    to the REJECTING oracle, which must re-run its own probes, not accept claims. Nits are
    fixed non-gating when cheap — batch them with an approval message.
+   **Loop escalation:** after 2 consecutive fix rounds with no blocker progress on a
+   slice (blocker list static or growing — diff it against the prior round), stop
+   retrying and triage:
+   - *Thrash* — blockers hit requirements the brief never pinned down, or the two
+     oracles pull in opposite directions. Orchestrator failure: record the missing
+     decision as `--design`, tighten the brief, re-slice if needed. A stronger model
+     given the same ambiguous brief loops identically.
+   - *Churn* — the same blocker class recurs, or fixes spawn new blockers of that
+     class. Capability shortfall: re-dispatch with `agent: "implementer-max"`, giving
+     it ALL oracle verdicts verbatim, the failed branch, and explicit license to
+     discard the prior approach. Escalation never weakens the gate — the same
+     rejecting oracles re-review with their own re-probes.
+   If implementer-max also fails 2 no-progress rounds, the slice is mis-scoped or its
+   acceptance criteria are wrong: pull it from the round, file the evidence on the
+   bead, escalate to the user. Every fix round costs two oracle re-reviews; unbounded
+   loops at any tier are PROHIBITED.
 7. **Merge + integrate.** Once a slice holds APPROVE from both its oracles, merge it
    into the feature branch. You own cross-branch integration: signature conflicts, help
    tables, test callsites. Each branch green ≠ composition green — after the last merge,
@@ -81,10 +99,15 @@ Assign model strength by **cost of silent failure**, not role seniority:
 2. **Implementers — mid-tier suffices; brief quality substitutes for model strength.**
    Their errors are exactly what the gate catches. Too weak churns fix rounds (each
    costs two oracle re-reviews), so not minimal — but a detailed, self-contained brief
-   moves more quality than a stronger model does.
+   moves more quality than a stronger model does. Do NOT pre-assign strong models to
+   "hard" slices: hardness prediction is unreliable, and implementer failure is the
+   VISIBLE failure mode — it arrives as itemized REJECT evidence. Escalate reactively
+   instead: `implementer-max` (oracle-tier model, same charter) exists ONLY for the
+   no-progress loop protocol in step 6, never for the initial dispatch batch.
 3. **Scouts/mechanical edits — fast cheap models.**
 
-Agent definitions (`oracle`, `implementer`, `architect`) live in `~/.omp/agent/agents/`,
+Agent definitions (`oracle`, `implementer`, `implementer-max`, `architect`) live in
+`~/.omp/agent/agents/`,
 managed by nixos-config; each binds its model through a `@role` alias resolved via
 `modelRoles` (`~/.omp/agent/config.yml`). If one is missing, restore it from
 nixos-config (an unknown `agent:` value errors with the available roster) — NEVER

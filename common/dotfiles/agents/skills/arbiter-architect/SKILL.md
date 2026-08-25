@@ -32,6 +32,7 @@ Rank by **cost of silent failure** — spend model strength where failure is inv
 | Arbiter | Strongest in the room (by construction — no gate above it) | The backstop; audits evidence, holds merge authorization and final acceptance |
 | Architect | Strong — its leverage is oracle-brief quality and honest synthesis | Its failures (bad slicing, soft briefs, drift) are VISIBLE at checkpoints; the gate structure is its safety net |
 | Implementers | Mid-tier; detailed self-contained briefs substitute for strength | Their errors are what oracles exist to catch; too weak just churns fix rounds |
+| implementer-max | Oracle-tier — escalation only, never in the initial dispatch | Deployed on a no-progress REJECT loop after triage rules out a brief defect; faces the identical oracle gate |
 
 The architect def pins this ordering into its charter; keep it that way — the tempting
 default (strongest model architects, cheaper models review) is exactly backwards: it
@@ -53,9 +54,11 @@ The spawn brief adds only the round itself:
 The def binds the architect to: NO feature code (merge conflicts and small cross-branch
 integration allowed, reported with diff scope and LOC); stop at PR-ready — no PR, no
 main, no bead closing; immediate escalation for destructive operations, rule conflicts,
-oracle deadlock (2+ rejects on the same blocker), PRODUCT decisions, and mid-round scope
-changes; self-contained subagent briefs. Audit against exactly this list — it is what
-the architect was told.
+oracle deadlock (2+ no-progress rejects on the same blocker — escalation carries the
+triage verdict per `oracle-rounds` step 6: thrash → brief defect, churn → dispatch
+`implementer-max`; the arbiter rules on the remedy before re-dispatch), PRODUCT
+decisions, and mid-round scope changes; self-contained subagent briefs. Audit against
+exactly this list — it is what the architect was told.
 
 ## The three checkpoints (arbiter gates — proceeding without a reply is a violation)
 

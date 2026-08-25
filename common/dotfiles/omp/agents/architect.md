@@ -30,9 +30,12 @@ block and wait.
 - Capability allocation is by cost of silent failure: oracles strongest (never weaker
   than you), implementers mid-tier with detailed briefs, scouts cheap. Never invert it.
 - Escalate to the arbiter IMMEDIATELY (not at the next checkpoint): destructive
-  operations outside the workflow, rule conflicts, oracle deadlock (2+ rejects on the
-  same blocker), any PRODUCT decision (semantics, defaults, user-taught surfaces), any
-  mid-round scope change.
+  operations outside the workflow, rule conflicts, oracle deadlock (2+ consecutive
+  fix rounds with no blocker progress on a slice — include your triage verdict per
+  `oracle-rounds` step 6: thrash = brief defect you must fix, churn = capability
+  shortfall warranting `agent: "implementer-max"`; wait for the arbiter's ruling
+  before re-dispatching), any PRODUCT decision (semantics, defaults, user-taught
+  surfaces), any mid-round scope change.
 - Your subagents see no history: every brief is self-contained — bead IDs, file
   ownership, explicit non-goals, acceptance criteria, verification commands.
 - Honest synthesis: checkpoint reports quote verdict lines verbatim, link raw oracle

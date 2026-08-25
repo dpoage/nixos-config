@@ -1,0 +1,16 @@
+# OMP model-role overlay — loaded via PI_CONFIG_FILES (see common/home/dotfiles.nix).
+#
+# This is the read-only overlay layer: it overrides the writable global
+# ~/.omp/agent/config.yml per-key, so ONLY the roles named here are pinned.
+# /model Roles-view edits to these keys will NOT take effect while the
+# overlay is active — edit this file (and rebuild) instead. Project
+# .omp/config.yml may still define additional roles (e.g. MUSICIAN).
+#
+# Role contract (oracle-rounds / arbiter-architect skills):
+#   ORACLE      — strongest available; false APPROVE is silent
+#   ARCHITECT   — strong; failures are visible at arbiter checkpoints
+#   IMPLEMENTER — mid-tier; brief quality substitutes for model strength
+modelRoles:
+  ORACLE: anthropic/claude-opus-4.8:max
+  ARCHITECT: anthropic/claude-fable-5:high
+  IMPLEMENTER: anthropic/claude-sonnet-5:medium

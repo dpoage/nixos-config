@@ -107,11 +107,13 @@ Assign model strength by **cost of silent failure**, not role seniority:
 3. **Scouts/mechanical edits — fast cheap models.**
 
 Agent definitions (`oracle`, `implementer`, `implementer-max`, `architect`) live in
-`~/.omp/agent/agents/`,
-managed by nixos-config; each binds its model through a `@role` alias resolved via
-`modelRoles` (`~/.omp/agent/config.yml`). If one is missing, restore it from
-nixos-config (an unknown `agent:` value errors with the available roster) — NEVER
-downgrade to `task`.
+`~/.omp/agent/agents/`, managed by nixos-config; each binds its model through a
+`@role` alias resolved via `modelRoles` — on nix-managed machines the
+`ORACLE`/`ARCHITECT`/`IMPLEMENTER` roles are pinned by the read-only
+`~/.omp/agent/roles-overlay.yml` (loaded via `PI_CONFIG_FILES`), which overrides
+the writable `~/.omp/agent/config.yml` per-key. If a def or role is missing,
+restore it from nixos-config (an unknown `agent:` value errors with the available
+roster) — NEVER downgrade to `task`.
 
 Pair DIVERSITY outranks duplication: two equally strong oracles with the same brief find
 the same defects; differently-tasked pairs routinely split verdicts (one APPROVE, one

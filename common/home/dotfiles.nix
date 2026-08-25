@@ -25,6 +25,12 @@
   home.file.".omp/agent/agents/implementer-max.md".source =
     ../dotfiles/omp/agents/implementer-max.md;
 
+  # OMP model-role overlay: read-only layer over ~/.omp/agent/config.yml.
+  # PI_CONFIG_FILES makes omp load it; per-key override, strict parse.
+  home.file.".omp/agent/roles-overlay.yml".source =
+    ../dotfiles/omp/roles-overlay.yml;
+  home.sessionVariables.PI_CONFIG_FILES = "$HOME/.omp/agent/roles-overlay.yml";
+
   # OpenCode config
   xdg.configFile = {
     "opencode/opencode.json".source = ../dotfiles/opencode/opencode.json;

@@ -334,11 +334,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1786056855,
-        "narHash": "sha256-w3v0umnaJStUMwd7H7rCz2ok1PLs7hpW3s+QaG2jn5Q=",
+        "lastModified": 1788017443,
+        "narHash": "sha256-Qo63rbx6Tfc6kxfIaCaT0amD7CVieh28/psOwcnp0sg=",
         "owner": "cernoh",
         "repo": "omp-flake",
-        "rev": "c25a82acd38bf87c94c40c84de2e586ea5cf2c8e",
+        "rev": "5e111d1bdf279c31775d451f6e5db20edd5c96fe",
         "type": "github"
       },
       "original": {

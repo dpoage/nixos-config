@@ -89,11 +89,11 @@ in
     buildInputs = (old.buildInputs or [ ]) ++ [ unstable.icu ];
   });
 
-  # oh-my-pi is at v17.x, but omp-flake still hardcodes v16.1.19 in its own
-  # flake.nix (release URL + sha256 per platform). We already track omp-flake's
-  # HEAD, so `nix flake update omp-flake` is a no-op — the only way onto 17 is to
-  # pin the release binary ourselves. Drop the `version`/`src` override below
-  # (and re-run `nix flake update omp-flake`) once upstream bumps to >= 17.
+  # omp-flake hardcodes an oh-my-pi release (URL + sha256 per platform) in its
+  # own flake.nix and lags behind releases. We already track omp-flake's HEAD,
+  # so `nix flake update omp-flake` is a no-op when upstream hasn't bumped —
+  # instead we pin the release binary ourselves. Bump with:
+  #   tools/update-hashes.sh --omp-version <ver>
   #
   # The postFixup re-wrap fixes a glibc-inheritance bug: omp-flake wraps the omp
   # binary with `--prefix LD_LIBRARY_PATH`, and the lib set it injects includes
@@ -104,23 +104,23 @@ in
   # LD_LIBRARY_PATH.
   omp =
     let
-      ompVersion = "17.0.6";
+      ompVersion = "18.0.11";
       ompSources = {
         x86_64-linux = {
           url = "https://github.com/can1357/oh-my-pi/releases/download/v${ompVersion}/omp-linux-x64";
-          hash = "sha256-J/7BQ6pkbK5erps6BnfFTUNGX8SaebFhusc527okTIw=";
+          hash = "sha256-YFRGCynputXrp4M28pHhl5wvoKXNlvwtkq/WZsxoHSY=";
         };
         aarch64-linux = {
           url = "https://github.com/can1357/oh-my-pi/releases/download/v${ompVersion}/omp-linux-arm64";
-          hash = "sha256-TS8+mUj4H0w4E7XInl7aS9zULvIihdQM9IQC6/oVQ20=";
+          hash = "sha256-5fd8tlqi3Hd6ilkyvjsuakQnHI3y6yCc6m8E8hLz8BA=";
         };
         x86_64-darwin = {
           url = "https://github.com/can1357/oh-my-pi/releases/download/v${ompVersion}/omp-darwin-x64";
-          hash = "sha256-nltFYLYfxDc/YEy6nizDvasEVJ6DDz1ezYCx9/rMhrw=";
+          hash = "sha256-gPfcV5uI0OVbXOTrTQ6UBxGvaTKPT/ssKTuOFJf/ei0=";
         };
         aarch64-darwin = {
           url = "https://github.com/can1357/oh-my-pi/releases/download/v${ompVersion}/omp-darwin-arm64";
-          hash = "sha256-10dHC8/wQS5b3nhg9d6tfeFarWuXOktGw0+FJ9nWpLk=";
+          hash = "sha256-iLSj5o4ZkEuPzBuksxnvaHlfT+BqbRAdVk/EgssMwlI=";
         };
       };
     in

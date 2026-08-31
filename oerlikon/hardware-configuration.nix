@@ -5,18 +5,31 @@
 
 {
   imports =
-    [ (modulesPath + "/hardware/cpu/intel-npu.nix")
-      (modulesPath + "/installer/scan/not-detected.nix")
+    [ (modulesPath + "/installer/scan/not-detected.nix")
     ];
 
-  boot.initrd.availableKernelModules = [ "xhci_pci" "thunderbolt" "nvme" "usbhid" "usb_storage" "sd_mod" "rtsx_pci_sdmmc" ];
+  boot.initrd.availableKernelModules = [ "xhci_pci" "thunderbolt" "nvme" "usb_storage" "usbhid" "sd_mod" "rtsx_pci_sdmmc" ];
   boot.initrd.kernelModules = [ ];
   boot.kernelModules = [ "kvm-intel" ];
   boot.extraModulePackages = [ ];
 
   fileSystems."/" =
-    { device = "/dev/disk/by-uuid/1b18e291-a3f4-4664-bb25-98c327ab0dd3";
-      fsType = "ext4";
+    { device = "/dev/mapper/luks-93c4934a-b273-4295-aaec-1896b8c12b9b";
+      fsType = "btrfs";
+    };
+
+  boot.initrd.luks.devices."luks-93c4934a-b273-4295-aaec-1896b8c12b9b".device = "/dev/disk/by-uuid/93c4934a-b273-4295-aaec-1896b8c12b9b";
+
+  fileSystems."/home" =
+    { device = "/dev/mapper/luks-93c4934a-b273-4295-aaec-1896b8c12b9b";
+      fsType = "btrfs";
+      options = [ "subvol=home" ];
+    };
+
+  fileSystems."/nix" =
+    { device = "/dev/mapper/luks-93c4934a-b273-4295-aaec-1896b8c12b9b";
+      fsType = "btrfs";
+      options = [ "subvol=nix" ];
     };
 
   fileSystems."/boot" =
@@ -25,8 +38,10 @@
       options = [ "fmask=0077" "dmask=0077" ];
     };
 
+  # nixos-generate-config emitted `swapDevices = [ ]` (it ran before swapon
+  # during the LUKS reinstall); nvme1n1p2 is a real 103G swap partition.
   swapDevices =
-    [ { device = "/dev/disk/by-uuid/b70b0ab7-2e29-4420-bb29-16068ed1a790"; }
+    [ { device = "/dev/disk/by-uuid/a6f67c76-04be-4769-b201-de2a48ec110b"; }
     ];
 
   nixpkgs.hostPlatform = lib.mkDefault "x86_64-linux";

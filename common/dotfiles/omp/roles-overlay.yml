@@ -13,4 +13,4 @@
 modelRoles:
   ORACLE: anthropic/claude-opus-4.8:max
   ARCHITECT: anthropic/claude-fable-5:high
-  IMPLEMENTER: anthropic/claude-sonnet-5:medium
+  IMPLEMENTER: zai/glm-5.3-flash

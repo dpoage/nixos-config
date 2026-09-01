@@ -166,6 +166,8 @@ in
   # Stable heroic 2.20.1 bundles electron 39, now EOL and refused as insecure.
   # Unstable's 2.22.0 moved to electron 41.7.1 (non-EOL); pin until stable bumps.
   heroic = unstable.heroic;
+  # Same electron-EOL story: stable bitwarden-desktop bundles electron 39.
+  bitwarden-desktop = unstable.bitwarden-desktop;
 
   # NVIDIA developer tooling — pulled from unstable for newer Nsight versions
   # (stable currently ships nsight-systems 2024.6; unstable has 2025.1).

@@ -42,6 +42,9 @@
     networkmanagerapplet
     pavucontrol
 
+    # Approved password manager (SOC2 control; Pattern policy: Bitwarden)
+    bitwarden-desktop
+
     # Compliance
     drata-agent
   ];

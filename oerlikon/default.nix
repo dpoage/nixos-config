@@ -3,6 +3,7 @@
 {
   imports = [
     ./hardware-configuration.nix
+    ./luks.nix
     ./configuration.nix
     ./storage.nix
     ./nvidia.nix

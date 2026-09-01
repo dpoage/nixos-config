@@ -199,6 +199,18 @@ in
       options = [ "--cmd cd" ];
     };
 
+    # Yazi (terminal file browser). enableZshIntegration provides the `yy`
+    # wrapper function, which cd's the shell to yazi's last directory on
+    # quit — the reason to prefer it over invoking `yazi` directly.
+    programs.yazi = {
+      enable = true;
+      enableZshIntegration = true;
+      settings = {
+        mgr.show_hidden = true;
+        preview.wrap = "yes";
+      };
+    };
+
     # Tmux
     programs.tmux = {
       enable = true;

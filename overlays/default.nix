@@ -153,6 +153,11 @@ in
     subPackages = [ "cmd/gcx" ];
   };
 
+  # Local repackages: binaries with no nixpkgs derivation.
+  # Drata SOC2 agent (Pattern compliance requirement), repacked from the
+  # official Ubuntu deb — see ./drata-agent.nix for the asar surgery.
+  drata-agent = final.callPackage ./drata-agent.nix { };
+
   # Unstable overrides: pin these to unstable's newer builds flake-wide.
   claude-code = unstable.claude-code;
   dolt = unstable.dolt;
@@ -161,6 +166,8 @@ in
   # Stable heroic 2.20.1 bundles electron 39, now EOL and refused as insecure.
   # Unstable's 2.22.0 moved to electron 41.7.1 (non-EOL); pin until stable bumps.
   heroic = unstable.heroic;
+  # Same electron-EOL story: stable bitwarden-desktop bundles electron 39.
+  bitwarden-desktop = unstable.bitwarden-desktop;
 
   # NVIDIA developer tooling — pulled from unstable for newer Nsight versions
   # (stable currently ships nsight-systems 2024.6; unstable has 2025.1).

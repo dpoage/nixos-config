@@ -42,4 +42,9 @@
     networkmanagerapplet
     pavucontrol
   ];
+
+  # SOC2 compliance stack (Drata agent, ClamAV, Bitwarden) — defined in
+  # ../compliance.nix behind myCompliance flags so non-work hosts never
+  # carry it.
+  myCompliance.enable = true;
 }

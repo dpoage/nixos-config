@@ -39,7 +39,9 @@
     };
 
   # nixos-generate-config emitted `swapDevices = [ ]` (it ran before swapon
-  # during the LUKS reinstall); nvme1n1p2 is a real 103G swap partition.
+  # during the LUKS reinstall); nvme0n1p2 is a real 103G swap partition.
+  # NOTE: mkForce-overridden by ./luks.nix (randomEncryption, by-partuuid) —
+  # the plain by-uuid entry below is inert.
   swapDevices =
     [ { device = "/dev/disk/by-uuid/a6f67c76-04be-4769-b201-de2a48ec110b"; }
     ];

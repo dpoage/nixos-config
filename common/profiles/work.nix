@@ -63,4 +63,24 @@
       RestartSec = 5;
     };
   };
+
+  # SOC2 anti-malware control: clamd resident (~1.2G RAM for the signature
+  # DB), freshclam timer for definition updates, and a scheduled clamdscan
+  # sweep. On-access scanning (clamonacc) deliberately omitted — the control
+  # requires AV presence and periodic scans, not real-time interception.
+  # NOTE: like the firewall check, Drata's Linux agent may not auto-detect
+  # clamd; if the AV field stays empty after a sync, submit manual evidence
+  # (`systemctl status clamav-daemon` + `freshclam --version` screenshot).
+  services.clamav = {
+    daemon.enable = true;
+    updater.enable = true;
+    scanner = {
+      enable = true;
+      # No /tmp,/var/tmp: clamdscan.service runs with PrivateTmp=yes, so
+      # those paths resolve to its own empty tmpfs — scanning them is a
+      # silent no-op. (Daemon-side sandboxing is irrelevant: the unit uses
+      # --fdpass, the scanner opens files and hands clamd the fds.)
+      scanDirectories = [ "/home" "/etc" "/var/lib" ];
+    };
+  };
 }

@@ -11,6 +11,7 @@
     ./gastown.nix
     ./myUser.nix
     ./nvidia.nix
+    ./compliance.nix
     # Profiles in ./profiles/ are imported directly by each host
     # (laptop + work, workstation + personal, etc.) — not from here.
   ];

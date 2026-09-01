@@ -54,7 +54,8 @@ in
           ];
           env.GOPRIVATE = "github.com/Pattern-Labs";
           env.GONOSUMCHECK = "github.com/Pattern-Labs/*";
-          env.NETRC = "/etc/nix-private-netrc";
+          # Must match the path common/pattern.nix sandbox-mounts.
+          env.NETRC = "/etc/nix/netrc";
         };
         subPackages = [ "cmd/pattern" ];
         env.CGO_ENABLED = "0";

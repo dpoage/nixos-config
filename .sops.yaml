@@ -1,0 +1,15 @@
+# sops recipient config. Host keys are `ssh-to-age < /etc/ssh/ssh_host_ed25519_key.pub`;
+# the dpoage key lives at ~/.config/sops/age/keys.txt (sops's default key path) and is
+# what lets you `sops edit` secrets from a checkout. Re-encrypt after adding a
+# recipient: `sops updatekeys secrets/<file>`.
+#
+# TODO(nc-49s): add tunguska's host key once the machine is reachable.
+keys:
+  - &dpoage age1ke4pn4d80njjjx66ny3xjhtuhuxemua9ftzz7a663rwrlfhh5pesdv0w7s
+  - &oerlikon age1tkv8kluj23x5w964jep4fx3wspz5j4ff67sewmgjprej5s6guausg9u9qh
+creation_rules:
+  - path_regex: secrets/.*
+    key_groups:
+      - age:
+          - *dpoage
+          - *oerlikon

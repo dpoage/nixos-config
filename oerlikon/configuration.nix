@@ -11,6 +11,10 @@
 
   networking.hostName = "oerlikon";
 
+  # Pattern CLI + netrc wiring (see common/pattern.nix for the bootstrap
+  # dance the first rebuild after a reinstall needs).
+  pattern.enable = true;
+
   myUser = {
     name = "dpoage";
     fullName = "Dustin";

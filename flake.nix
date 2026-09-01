@@ -14,6 +14,10 @@
       url = "github:nix-community/nix-index-database";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    sops-nix = {
+      url = "github:Mic92/sops-nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
     beads = {
       url = "github:gastownhall/beads";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -56,6 +60,7 @@
       sharedModules = [
         nixvim.nixosModules.nixvim
         home-manager.nixosModules.home-manager
+        inputs.sops-nix.nixosModules.sops
         { home-manager.sharedModules = [ nix-index-database.homeModules.nix-index ]; }
         { nixpkgs.overlays = [ overlay ]; }
         ./common

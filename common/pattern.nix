@@ -2,9 +2,10 @@
 
 let
   cfg = config.pattern;
-  userNetrc = "/home/${cfg.primaryUser}/.netrc";
-  # Nix daemon and sandbox need a path outside the user's home directory,
-  # which is typically mode 700 and inaccessible to nixbld users.
+  # Nix daemon and sandbox need a real file at a path outside any home
+  # directory: homes are mode 700 (invisible to nixbld sandbox users) and
+  # sandbox-mounting a symlink into /run/secrets.d is not reliable, so the
+  # decrypted secret is copied here at activation time.
   daemonNetrc = "/etc/nix/netrc";
 in
 {
@@ -18,23 +19,27 @@ in
     description = ''
       Install the Pattern Labs CLI and wire netrc-based private repo access.
 
-      Needs two credentials that do not survive a reinstall:
+      Credentials, both encoded in the repo or recoverable:
         - an ssh key that can read Pattern-Labs/pattern_cli (the flake input
           is git+ssh, so eval itself fails without it), and
-        - ~/.netrc with a GitHub token, for the goModules FOD to fetch
-          github.com/Pattern-Labs/* under GOPRIVATE.
+        - a netrc with a GitHub token, for the goModules FOD to fetch
+          github.com/Pattern-Labs/* under GOPRIVATE. Encrypted at
+          secrets/netrc (sops, age recipients in .sops.yaml); decrypted by
+          sops-nix via this host's ssh ed25519 key.
 
-      Off since the 2026-08-31 LUKS reinstall wiped /home. Flip to true once
-      ~/.netrc is back and `sudo install -m600 ~/.netrc /etc/nix/netrc` has
-      run — the activation script below only copies it on *later* rebuilds,
-      after the pattern build has already needed it.
+      Bootstrap on a host enabling this for the first time (the pattern build
+      needs ${daemonNetrc} *before* the first rebuild with this enabled, and
+      after a reinstall the new host key must be added to .sops.yaml first):
+        sops decrypt --input-type binary secrets/netrc \
+          | sudo install -o root -g nixbld -m 0440 /dev/stdin ${daemonNetrc}
+      Later rebuilds refresh it from the secret automatically.
     '';
   };
 
   options.pattern.primaryUser = lib.mkOption {
     type = lib.types.str;
     default = config.myUser.name;
-    description = "Username whose ~/.netrc is used for private repo access in Nix sandbox";
+    description = "User who gets ~/.netrc (for bazel and other Pattern tooling outside the sandbox)";
   };
 
   config = lib.mkMerge [
@@ -54,16 +59,32 @@ in
     (lib.mkIf cfg.enable {
       environment.systemPackages = [ pkgs.pattern ];
 
-      # Copy the user's .netrc to a daemon-accessible location so nixbld users
-      # can reach it (user home dirs are typically mode 700).
-      system.activationScripts.nix-netrc = ''
-        src="${userNetrc}"
-        dst="${daemonNetrc}"
-        if [ -f "$src" ]; then
-          cp "$src" "$dst"
-          chmod 600 "$dst"
-        fi
-      '';
+      # Daemon-side netrc, decrypted from the repo by sops-nix (keyed to this
+      # host's ssh ed25519 key — see .sops.yaml).
+      sops.secrets."pattern-netrc" = {
+        sopsFile = ../secrets/netrc;
+        format = "binary";
+      };
+
+      # Pattern dev tooling (bazel et al.) reads ~/.netrc directly; expose the
+      # same secret to the primary user.
+      sops.secrets."pattern-netrc-user" = {
+        sopsFile = ../secrets/netrc;
+        format = "binary";
+        owner = cfg.primaryUser;
+        mode = "0400";
+        path = "/home/${cfg.primaryUser}/.netrc";
+      };
+
+      # Copy (not symlink) into place for the daemon and sandbox: group nixbld
+      # 0440 so FOD builders can read it, no one else can.
+      system.activationScripts.nix-netrc = {
+        deps = [ "setupSecrets" ];
+        text = ''
+          install -o root -g nixbld -m 0440 \
+            ${config.sops.secrets."pattern-netrc".path} ${daemonNetrc}
+        '';
+      };
 
       # Private repo access: netrc-file lets the Nix daemon authenticate HTTPS
       # fetches (flake inputs, go mod download FODs). extra-sandbox-paths makes
@@ -71,7 +92,7 @@ in
       #
       # Gated: a non-optional sandbox path that does not exist is a hard error
       # for *every* build, so this must not be set on a machine without the
-      # netrc in place.
+      # netrc in place (see bootstrap note in the enable option).
       nix.settings.netrc-file = daemonNetrc;
       nix.settings.extra-sandbox-paths = [ daemonNetrc ];
     })

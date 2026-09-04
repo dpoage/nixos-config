@@ -14,6 +14,12 @@
     ../dotfiles/agents/skills/doc-writer/SKILL.md;
   home.file.".agents/skills/comment-compactor/SKILL.md".source =
     ../dotfiles/agents/skills/comment-compactor/SKILL.md;
+  home.file.".agents/skills/module-design/SKILL.md".source =
+    ../dotfiles/agents/skills/module-design/SKILL.md;
+  home.file.".agents/skills/interface-contract/SKILL.md".source =
+    ../dotfiles/agents/skills/interface-contract/SKILL.md;
+  home.file.".agents/skills/design-review/SKILL.md".source =
+    ../dotfiles/agents/skills/design-review/SKILL.md;
 
   # OMP agent definitions (~/.omp/agent/agents)
   home.file.".omp/agent/agents/oracle.md".source =

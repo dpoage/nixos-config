@@ -26,9 +26,10 @@ explicit instruction.
    `bd` commands run with cwd there. Mark beads in_progress.
 4. **Dispatch implementers in one parallel batch** — spawn with `agent: "implementer"`.
    Briefs are self-contained (subagents see no history): bead IDs + `bd show` first,
-   file ownership + explicit non-goals, `--design` recorded BEFORE implementation where
-   the bead demands decisions, acceptance criteria, "commit and reply with hash", no
-   bead closing, no pushing, hermetic tests only.
+   file ownership + explicit non-goals, `--design` recorded BEFORE implementation in the
+   five-part form of `skill://module-design` where the bead demands decisions,
+   acceptance criteria, "commit and reply with hash", no bead closing, no pushing,
+   hermetic tests only.
 5. **Gate each finished slice with two oracles, differently tasked** (see below). Spawn
    them the moment a slice finishes; don't wait for the whole wave.
 6. **Drive fix loops.** REJECT → send the implementer ONE consolidated fix list (merge
@@ -73,7 +74,7 @@ Always two per slice, tasked to fail for different reasons:
 
 | Slice type | Oracle A | Oracle B |
 |---|---|---|
-| Feature/bug code | Adversarial correctness: edge cases, mutation of scratch copies, forced failures, regression diff of existing tests | Behavior/UX replay: build the binary, replay the motivating incident/transcript live, judge against acceptance + design principles |
+| Feature/bug code | Adversarial correctness: edge cases, mutation of scratch copies, forced failures, regression diff of existing tests | Behavior/UX replay: build the binary, replay the motivating incident/transcript live, judge against acceptance criteria, then run the `skill://design-review` probes against the diff |
 | Research/audit doc | Evidence integrity: re-derive counts, grep quoted excerpts in primary sources, reproduce claims | Actionability: acceptance fidelity, coverage of the promised space, internal consistency, downstream utility |
 | Benchmark/harness | Discrimination: falsify with an audit-faithful bad stub; every claimed-fixed mode must fail on baseline | Engineering: isolation, reproducibility, provenance, self-test quality, doc-command verbatim runs |
 | CI/workflow | Greenness: per-job green/red prediction proven locally; version compat of pinned actions | Coverage honesty: what is actually tested vs excluded; disabled-linter audits; deliberate-break bites |
@@ -137,6 +138,7 @@ fix (read-only + scratch copies), the orchestrator never writes feature code.
   expansion — refusal must be proven with before/after state counts.
 - **Docs state binary truth.** Every published example runs verbatim against the built
   binary; every claimed default verified by probe. Doc-vs-binary lies are BLOCKING.
-- **Bead hygiene is part of done.** `--design` before code where decisions were required;
-  findings and fix-round outcomes recorded as comments; notes refreshed so the landing
-  session inherits full context.
+- **Bead hygiene is part of done.** `--design` before code where decisions were required,
+  in `skill://module-design`'s five-part form (a record that lies about rewrite or
+  deletion cost is itself a blocker); findings and fix-round outcomes recorded as
+  comments; notes refreshed so the landing session inherits full context.

@@ -11,6 +11,6 @@
 #   ARCHITECT   — strong; failures are visible at arbiter checkpoints
 #   IMPLEMENTER — mid-tier; brief quality substitutes for model strength
 modelRoles:
-  ORACLE: anthropic/claude-opus-4.8:max
+  ORACLE: anthropic/claude-opus-5:max
   ARCHITECT: anthropic/claude-fable-5:high
   IMPLEMENTER: zai/glm-5.3-flash

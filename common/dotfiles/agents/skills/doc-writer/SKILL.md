@@ -1,6 +1,6 @@
 ---
 name: doc-writer
-description: Use when writing or revising prose documentation — READMEs, docs/ pages, guides, tutorials, man pages, changelogs, and module- or package-level doc comments. Load before drafting or editing any of these. Does NOT govern GitHub comments/issues/PRs (use github-voice) or inline code comments (follow the surrounding codebase).
+description: Use when writing or revising prose documentation — READMEs, docs/ pages, guides, tutorials, man pages, changelogs, and module- or package-level doc comments. Load before drafting or editing any of these. Does NOT govern GitHub comments/issues/PRs (use `skill://github-voice`) or inline code comments (follow the surrounding codebase).
 ---
 
 # Documentation Writer
@@ -20,8 +20,8 @@ govern every choice. When they conflict, clarity wins.
 
 ## Scope
 
-Prose documentation only. GitHub posts (comments, issues, PRs, reviews) follow the
-`github-voice` guidance. Inline code comments follow the surrounding codebase's
+Prose documentation only. GitHub posts (comments, issues, PRs, reviews) follow
+`skill://github-voice`. Inline code comments follow the surrounding codebase's
 conventions.
 
 ## Structure before sentences

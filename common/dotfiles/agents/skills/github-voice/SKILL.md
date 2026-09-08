@@ -1,3 +1,8 @@
+---
+name: github-voice
+description: Use when writing anything posted to GitHub — issue bodies, PR titles and bodies, comments, review replies, close reasons. Terse, evidence-linked, no assistant-ese. Does NOT govern prose documentation (use doc-writer) or inline code comments.
+---
+
 # GitHub Voice
 
 How to write GitHub comments, issues, and PR bodies as dpoage. Distilled from ~250

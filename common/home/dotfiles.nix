@@ -3,7 +3,8 @@
 {
   # Claude Code base config
   home.file.".claude/CLAUDE.md".source = ../dotfiles/CLAUDE.md;
-  home.file.".claude/github-voice.md".source = ../dotfiles/github-voice.md;
+  home.file.".claude/github-voice.md".source =
+    ../dotfiles/agents/skills/github-voice/SKILL.md;
 
   # Agent skills (~/.agents/skills)
   home.file.".agents/skills/arbiter-architect/SKILL.md".source =
@@ -20,6 +21,8 @@
     ../dotfiles/agents/skills/interface-contract/SKILL.md;
   home.file.".agents/skills/design-review/SKILL.md".source =
     ../dotfiles/agents/skills/design-review/SKILL.md;
+  home.file.".agents/skills/github-voice/SKILL.md".source =
+    ../dotfiles/agents/skills/github-voice/SKILL.md;
 
   # OMP agent definitions (~/.omp/agent/agents)
   home.file.".omp/agent/agents/oracle.md".source =
@@ -42,8 +45,8 @@
     "opencode/opencode.json".source = ../dotfiles/opencode/opencode.json;
     "opencode/AGENTS.md".source = ../dotfiles/opencode/AGENTS.md;
     "opencode/ensemble.json".source = ../dotfiles/opencode/ensemble.json;
-    "opencode/github-voice.md".source = ../dotfiles/github-voice.md;
-    "opencode/doc-style.md".source = ../dotfiles/doc-style.md;
+    "opencode/github-voice.md".source = ../dotfiles/agents/skills/github-voice/SKILL.md;
+    "opencode/doc-style.md".source = ../dotfiles/agents/skills/doc-writer/SKILL.md;
 
     "opencode/agent/review.md".source = ../dotfiles/opencode/agent/review.md;
     "opencode/agent/explore.md".source = ../dotfiles/opencode/agent/explore.md;

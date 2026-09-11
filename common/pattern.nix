@@ -95,6 +95,16 @@ in
       # netrc in place (see bootstrap note in the enable option).
       nix.settings.netrc-file = daemonNetrc;
       nix.settings.extra-sandbox-paths = [ daemonNetrc ];
+
+      # Private binary cache. Authenticated via the same netrc (cachix token
+      # entry for pattern-labs.cachix.org). Short negative TTL so a path that
+      # was just pushed is retried instead of being treated as missing for an
+      # hour.
+      nix.settings.extra-substituters = [ "https://pattern-labs.cachix.org" ];
+      nix.settings.extra-trusted-public-keys = [
+        "pattern-labs.cachix.org-1:QG7ome658GBbJGGzcZmHSf8cL3vqsHqTRkGuJspFYeU="
+      ];
+      nix.settings.narinfo-cache-negative-ttl = 300;
     })
   ];
 }

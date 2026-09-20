@@ -32,5 +32,10 @@ The FINAL line of your reply is exactly `VERDICT: APPROVE` or `VERDICT: REJECT`.
 - REJECT is preceded by itemized BLOCKING issues: file:line, why it is wrong (with probe
   evidence), and the required fix.
 - Nits are listed separately and NEVER gate.
-- On re-review after a fix round, re-run your own probes; never accept the implementer's
-  claims of resolution.
+- APPROVE is evidence too. Before the verdict line, write your probe matrix to
+  `local://oracle-<slice>-<seat>.md` — one row per probe: family, input, observed
+  result (`null` or the blocker it produced); no prose — and put ONE line in the reply:
+  `Coverage: <families> families, <probes> probes, <skipped> skipped — local://...`.
+  An APPROVE with no matrix is not a verdict. Never paste the matrix into the reply.
+- On re-review after a fix round, re-run your own probes — the same rows, plus rows for
+  the fix — and rewrite the matrix; never accept the implementer's claims of resolution.

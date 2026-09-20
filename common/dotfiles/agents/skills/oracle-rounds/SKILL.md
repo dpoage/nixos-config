@@ -46,9 +46,12 @@ touch main — the PR is opened only on explicit user instruction.
    decisions, acceptance criteria, "commit and reply with hash", no bead closing, no
    pushing, hermetic tests only.
 6. **Gate each finished slice with two oracles, differently tasked** (table below;
-   `agent: "oracle"`). Spawn them the moment a slice finishes. Never collapse the pair
-   into one review; roles never blur — implementers don't self-review, oracles never
-   fix, the orchestrator never writes feature code.
+   `agent: "oracle"`). Spawn them the moment a slice finishes. Each verdict arrives
+   with a one-line `Coverage:` summary and a `local://oracle-<slice>-<seat>.md` probe
+   matrix; an APPROVE without one is not a verdict — send it back. Do not read the
+   matrix unless reconciling a split verdict; it is the arbiter's audit artifact.
+   Never collapse the pair into one review; roles never blur — implementers don't
+   self-review, oracles never fix, the orchestrator never writes feature code.
 7. **Drive fix loops.** REJECT → ONE consolidated fix list to the implementer (both
    oracles' blockers, file:line evidence, required fixes), stating whether the blockers
    expose a brief gap — a requirement the brief never pinned is YOUR defect. Re-review

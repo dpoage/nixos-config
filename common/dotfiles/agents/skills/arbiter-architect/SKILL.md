@@ -80,10 +80,14 @@ rejected alternative for each, oracle strategy. Arbiter audits:
   creates silent data loss or doc-vs-binary drift.
 
 **CP2 — merge authorization, when all slice oracles have returned.** Architect sends:
-per-slice verdict lines quoted, fix-round history, every seam-contract revision made
-mid-round (who escalated, what changed, which slices were re-issued), `history://`
-links to the RAW oracle transcripts (summaries are not evidence), and its integration
-plan. Arbiter audits:
+per-slice verdict lines quoted with each oracle's `Coverage:` line, fix-round history,
+every seam-contract revision made mid-round (who escalated, what changed, which slices
+were re-issued), `history://` links to the RAW oracle transcripts (summaries are not
+evidence), and its integration plan. Arbiter audits:
+- Every APPROVE has a coverage line and a probe matrix behind it (`local://oracle-*`).
+  Open at least one matrix per slice: rows are executed probes with observed results,
+  not family names; an APPROVE whose matrix is thin for the slice's unit shape (an
+  adapter with no sibling rows, a guard with no input matrix) is bounced for re-probe.
 - Every REJECT was re-approved by the rejecting oracle after its own re-probes — read
   that re-review transcript to its final `VERDICT:` line.
 - Sample at least one raw transcript per slice; challenge evidence gaps (a scenario that

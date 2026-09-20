@@ -6,10 +6,10 @@ description: Use when delegating an entire oracle-gated development round to a s
 # Arbiter / Architect Rounds
 
 A meta-topology over the `oracle-rounds` skill: one Architect subagent runs the whole
-round (scope → worktrees → implementers → dual-oracle gates → merge → polish →
-PR-ready report); the arbiter (you) supervises at three mandatory checkpoints, holds
-merge authorization, and audits the result independently. You are responsible for
-the architect's actions.
+round (module map → slices → worktrees → implementers → dual-oracle gates → merge →
+composition oracle → polish → PR-ready report); the arbiter (you) supervises at three
+mandatory checkpoints, holds merge authorization, and audits the result independently.
+You are responsible for the architect's actions.
 Neither of you opens the PR or touches main — the round ends with a PR-ready feature
 branch, and the PR is opened only on explicit user instruction.
 
@@ -52,42 +52,58 @@ The spawn brief adds only the round itself:
 2. Round-specific constraints and design directions.
 3. The checkpoint protocol: report over hub and BLOCK for your reply at CP1/CP2/CP3.
 
-The def binds the architect to: NO feature code (merge conflicts and small cross-branch
-integration allowed, reported with diff scope and LOC); stop at PR-ready — no PR, no
-main, no bead closing; immediate escalation for destructive operations, rule conflicts,
-oracle deadlock (2+ no-progress rejects on the same blocker — escalation carries the
-triage verdict per `oracle-rounds` step 6: thrash → brief defect, churn → dispatch
-`implementer-max`; the arbiter rules on the remedy before re-dispatch), PRODUCT
-decisions, and mid-round scope changes; self-contained subagent briefs. Audit against
-exactly this list — it is what the architect was told.
+The def binds the architect to the full `oracle-rounds` contract (autoloaded) plus:
+the three checkpoints; immediate escalation for destructive operations, rule
+conflicts, oracle deadlock (with its step 7 triage verdict — the arbiter rules on the
+remedy before re-dispatch), PRODUCT decisions, and mid-round scope changes; NO feature
+code beyond merge conflicts and small integration glue, reported with scope + LOC and
+gated by the composition oracle. Audit against exactly this — it is what the architect
+was told.
 
 ## The three checkpoints (arbiter gates — proceeding without a reply is a violation)
 
-**CP1 — plan approval, before any branch or dispatch.** Architect sends: slices, beads
-per slice, file-ownership map, inter-slice contracts, oracle strategy. Arbiter audits:
+**CP1 — plan approval, before any branch or dispatch.** Architect sends: the module
+map (what exists after the round, what each module hides, which beads land where),
+slices, beads per slice, file-ownership map, waves, inter-slice contracts with the
+rejected alternative for each, oracle strategy. Arbiter audits:
+- The slicing is the module map, not the bead list: one slice per module (or coherent
+  set with one owner); slice count ≤ modules the map says should exist. A round sliced
+  one-per-bead with no map is bounced — that is architecture by ticket.
 - Disjointness is real (same file + same pipeline stage = one slice; "different lines" is
-  not disjointness).
-- Dependency chains folded correctly; no slice depends on another's unfinished output.
+  not disjointness) — and a disjointness failure was fixed by changing the map, not by
+  splitting a file between slices.
+- Shared substrate is wave 0, not a prose contract. Every remaining seam has ONE owning
+  slice and an `interface-contract` record naming the alternative it rejected.
+- Dependency chains folded correctly; no slice depends on another's unfinished output
+  within a wave.
 - Design directions defensible against project principles — redirect anything that
   creates silent data loss or doc-vs-binary drift.
 
-**CP2 — merge authorization, when all oracles have returned.** Architect sends:
-per-slice verdict lines quoted, fix-round history, `history://` links to the RAW oracle
-transcripts (summaries are not evidence), and its integration plan. Arbiter audits:
+**CP2 — merge authorization, when all slice oracles have returned.** Architect sends:
+per-slice verdict lines quoted, fix-round history, every seam-contract revision made
+mid-round (who escalated, what changed, which slices were re-issued), `history://`
+links to the RAW oracle transcripts (summaries are not evidence), and its integration
+plan. Arbiter audits:
 - Every REJECT was re-approved by the rejecting oracle after its own re-probes — read
   that re-review transcript to its final `VERDICT:` line.
 - Sample at least one raw transcript per slice; challenge evidence gaps (a scenario that
   baseline already passes demonstrates nothing — demand the discriminating test by name,
   proven failing against main).
+- Contract revisions were ruled by the architect and re-issued to BOTH sides, not
+  absorbed by one implementer; a slice whose transcript shows adapter code at a seam
+  with no matching revision is bounced to the composition oracle's attention.
 - Rule on any reported deviation explicitly: accepted-with-rationale or bounced.
-Authorization covers merging slices into the feature branch and integration — nothing
-beyond.
+Authorization covers merging slices into the feature branch, integration glue, and the
+composition oracle + any integration fix round it triggers — nothing beyond.
 
 **CP3 — PR-ready report.** Architect sends: feature branch + tip hash, merged-state
-verification evidence, any self-authored integration diffs, the polish evidence
-(pre-polish hash, `comment-compactor` gate result per file, docs `doc-writer` revised
-and the commands re-run), gate result on the polished tip, cleanup done, and a draft
-PR title + body. Arbiter then verifies INDEPENDENTLY — never accept the report alone:
+verification evidence, any self-authored integration diffs, the composition oracle's
+verdict line quoted with its `history://` link and any integration fix rounds it
+triggered, where the landed branch deviates from the CP1 module map, the polish
+evidence (pre-polish hash, `comment-compactor` gate result per file, docs `doc-writer`
+revised and the commands re-run), gate result on the polished tip, cleanup done, and a
+draft PR title + body. Arbiter then verifies INDEPENDENTLY — never accept the report
+alone:
 
 ```bash
 git -C <repo> log --oneline <branch> -10   # slice merges present at the claimed tip
@@ -98,7 +114,9 @@ bd show <bead>                             # design + findings recorded; beads l
 ```
 
 A code hunk in the polish diff bounces CP3: the architect reverts it and, if the change
-was needed, routes it through the slice's rejecting oracle as a fix round.
+was needed, routes it through the slice's rejecting oracle as a fix round. A missing
+composition verdict bounces CP3 outright — "each slice was reviewed" is not evidence
+about the composition, and the architect's own glue has been reviewed by nobody.
 
 The round is complete when your audit reconciles with the report point-for-point. Hand
 the user the PR-ready branch and the draft PR text; the PR is opened only on their

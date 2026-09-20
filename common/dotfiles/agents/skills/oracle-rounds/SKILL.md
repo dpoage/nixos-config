@@ -1,98 +1,102 @@
 ---
 name: oracle-rounds
-description: Use when driving a multi-issue development round with parallel subagents — worktree-per-slice implementation gated by dual adversarial oracle reviews, merged into a feature branch, then polished (comment-compactor, doc-writer) so it lands fully PR-ready. The PR itself is opened only on explicit user instruction. Trigger when the user asks to "drive issues to ground" or run "the same process" of implementer + two-oracle review rounds.
+description: Use when driving a multi-issue development round with parallel subagents — worktree-per-slice implementation gated by dual adversarial oracle reviews, merged into a feature branch, composition-reviewed, then polished (comment-compactor, doc-writer) so it lands fully PR-ready. The PR itself is opened only on explicit user instruction. Trigger when the user asks to "drive issues to ground" or run "the same process" of implementer + two-oracle review rounds.
 ---
 
 # Oracle-Gated Rounds
 
-One round = a set of beads driven to dual-APPROVE and merged into a PR-ready feature
-branch through parallel worktree slices, each gated by TWO differently-tasked
-adversarial reviews. PR-ready means more than merged-and-green: the branch has been
-through one polish pass — `skill://comment-compactor` on touched source, then
-`skill://doc-writer` on touched or stale prose — and the gate is green again on the
-polished tip. The orchestrator (you) never writes feature code; you scope, dispatch,
-arbitrate verdicts, integrate, polish, and report. You NEVER open the PR or touch
-main — the round ends with the feature branch ready and the PR unopened, awaiting
-explicit instruction.
+One round = a set of beads driven to dual-APPROVE through parallel worktree slices,
+merged into a feature branch, composition-reviewed, polished, and left PR-ready. The
+orchestrator (you) never writes feature code: you design the module map, scope,
+dispatch, arbitrate verdicts, integrate, polish, and report. You NEVER open the PR or
+touch main — the PR is opened only on explicit user instruction.
 
 ## Round lifecycle
 
 1. **Scope.** `bd ready` from the main checkout. Fold dependency chains into their
    blocker's slice (a blocked bug rides with the bead that unblocks it). Read every
    candidate with `bd show` before slicing.
-2. **Slice by real disjointness.** Write a file-ownership map per slice. The test is
-   files-and-pipeline-stage, not intent: two slices editing the same function's stage
-   ("different lines") are ONE slice. Ordering decisions between two features in the same
-   code path belong to one owner, never to merge-time resolution.
-3. **Branch + worktrees.** Feature branch off main; one branch + worktree per slice
-   under a sibling dir (`../<repo>-wt/`). Never touch the user's main checkout except
-   `bd` commands run with cwd there. Mark beads in_progress.
-4. **Dispatch implementers in one parallel batch** — spawn with `agent: "implementer"`.
-   Briefs are self-contained (subagents see no history): bead IDs + `bd show` first,
-   file ownership + explicit non-goals, `--design` recorded BEFORE implementation in the
-   five-part form of `skill://module-design` where the bead demands decisions,
-   acceptance criteria, "commit and reply with hash", no bead closing, no pushing,
-   hermetic tests only.
-5. **Gate each finished slice with two oracles, differently tasked** (see below). Spawn
-   them the moment a slice finishes; don't wait for the whole wave.
-6. **Drive fix loops.** REJECT → send the implementer ONE consolidated fix list (merge
-   both oracles' blockers; quote file:line evidence; state required fixes) and state
-   whether the blockers indicate a design gap — a brief that never pinned the rejected
-   requirement is YOUR defect to fix, not the implementer's. Re-review goes
-   to the REJECTING oracle, which must re-run its own probes, not accept claims. Nits are
-   fixed non-gating when cheap — batch them with an approval message.
-   **Loop escalation:** after 2 consecutive fix rounds with no blocker progress on a
-   slice (blocker list static or growing — diff it against the prior round), stop
-   retrying and triage:
-   - *Thrash* — blockers hit requirements the brief never pinned down, or the two
-     oracles pull in opposite directions. Orchestrator failure: record the missing
-     decision as `--design`, tighten the brief, re-slice if needed. A stronger model
-     given the same ambiguous brief loops identically.
-   - *Churn* — the same blocker class recurs, or fixes spawn new blockers of that
-     class. Capability shortfall: re-dispatch with `agent: "implementer-max"`, giving
-     it ALL oracle verdicts verbatim, the failed branch, and explicit license to
-     discard the prior approach. Escalation never weakens the gate — the same
-     rejecting oracles re-review with their own re-probes.
-   If implementer-max also fails 2 no-progress rounds, the slice is mis-scoped or its
-   acceptance criteria are wrong: pull it from the round, file the evidence on the
-   bead, escalate to the user. Every fix round costs two oracle re-reviews; unbounded
-   loops at any tier are PROHIBITED.
-7. **Merge + integrate.** Once a slice holds APPROVE from both its oracles, merge it
-   into the feature branch. You own cross-branch integration: signature conflicts, help
-   tables, test callsites. Each branch green ≠ composition green — after the last merge,
-   run the project's full gate (build, lint/vet, complete test suite) plus a hand smoke
-   test of the changed surfaces composed together.
-8. **Polish the merged branch (comments + docs).** Runs once on the feature branch,
-   after step 7's gate is green and before the branch is called PR-ready. Two passes,
-   in this order, both scoped to `git diff --name-only main...<feature>`:
-   - **`skill://comment-compactor`** over every touched source file. Snapshot the
-     branch tip first (`git stash create` or note the hash), dispatch light agents
-     with the skill's guardrail block verbatim, then run its mechanical gate on
-     `git diff -U0`: any non-comment change restores the file and redoes it.
-   - **`skill://doc-writer`** over every touched prose file (README, docs/, changelog,
-     man pages) and module/package-level doc comment, plus any prose the change made
-     stale — a flag renamed in a slice is stale in every page that names it, touched
-     or not. Re-run each published command and example against the built binary; a
-     default you cannot confirm by probe does not go in.
-   Polish is comment- and prose-only. A code defect found during polish (dead code,
-   a wrong default a doc would have to lie about) goes back to its slice's REJECTING
-   oracle as a new fix round — never patched during polish. Doc-tests and docstrings
-   are load-bearing in some toolchains, so re-run the step 7 gate after polish; the
-   PR-ready tip is the post-polish, post-gate commit.
-9. **Stop at PR-ready.** The round ends with the feature branch fully ready to PR: all
-   slices merged, polish pass done, gate green on the polished tip, slice worktrees
-   and branches removed (`git worktree prune`), feature branch pushed. Do NOT open the
-   PR, merge to main, or close beads — that happens only on explicit user instruction.
-   Final report: feature branch + tip hash, per-slice verdict lines quoted verbatim,
-   fix-round counts, `history://` links to the raw oracle transcripts, merged-state
-   verification evidence, the polish evidence (pre-polish hash, compactor gate result
-   per file, docs revised and the commands re-run), follow-ups filed as beads, and a
-   draft PR title + body so opening it is one instruction away. Record outcomes on
-   each bead as comments.
+2. **Design the module map** (`skill://module-design`). Record what modules exist after
+   the round, what each hides, its interface, and which beads land in which module.
+   Where the round adds or moves a boundary: the five-part form as `--design` on the
+   bead owning that boundary. Where it adds none: one paragraph ("no new boundaries;
+   beads X,Y land in M") on the round's parent bead. Step 3 slices by this record;
+   step 9 judges the merged branch against it.
+3. **Slice by module ownership.** Slice boundaries ship as module boundaries (Conway):
+   one slice = one module from the map (or a coherent set with one owner), never one
+   slice per bead; slice count ≤ modules in the map; beads inside a slice are done
+   serially by one implementer. Then write the file-ownership map and check
+   disjointness — the test is files-and-pipeline-stage, not intent: two slices editing
+   the same function's stage ("different lines") are ONE slice, and ordering between
+   two features in one code path belongs to one owner, never merge-time resolution. A
+   disjointness failure means the map is wrong; fix the map, don't split files.
+   - **Shared substrate is wave 0.** A helper, type, or interface more than one slice
+     needs is its own slice: implement, gate, merge, then fan out the feature wave.
+   - **Seams that can't be a wave** (both sides genuinely concurrent) get a
+     `skill://interface-contract` record before dispatch — including the rejected
+     alternative — and one owning slice; consumers may not widen it.
+4. **Branch + worktrees.** Feature branch off main; one branch + worktree per slice
+   under `../<repo>-wt/`. Never touch the user's main checkout except `bd` commands run
+   with cwd there. Mark beads in_progress.
+5. **Dispatch implementers, one parallel batch per wave** (`agent: "implementer"`).
+   Wave 0 runs alone to merge; later waves branch from the feature branch containing
+   it. Briefs are self-contained (subagents see no history): bead IDs + `bd show`
+   first, file ownership + explicit non-goals, the module-map entry and any seam
+   contract the slice owns or consumes, `--design` before code where the bead demands
+   decisions, acceptance criteria, "commit and reply with hash", no bead closing, no
+   pushing, hermetic tests only.
+6. **Gate each finished slice with two oracles, differently tasked** (table below;
+   `agent: "oracle"`). Spawn them the moment a slice finishes. Never collapse the pair
+   into one review; roles never blur — implementers don't self-review, oracles never
+   fix, the orchestrator never writes feature code.
+7. **Drive fix loops.** REJECT → ONE consolidated fix list to the implementer (both
+   oracles' blockers, file:line evidence, required fixes), stating whether the blockers
+   expose a brief gap — a requirement the brief never pinned is YOUR defect. Re-review
+   goes to the REJECTING oracle, which re-runs its own probes. Cheap nits batch with
+   the approval message, non-gating.
+   **Contract escalation:** an implementer reporting a seam contract as wrong (cannot
+   express needed state, forces an adapter, leaks an internal) is your defect: revise
+   the `interface-contract` record, re-issue it to every slice that owns or consumes
+   the seam, note the revision on the owning bead. Never let one side adapt around it.
+   **Loop escalation:** after 2 consecutive fix rounds with no blocker progress (diff
+   the blocker list against the prior round), stop and triage:
+   - *Thrash* — blockers hit requirements the brief never pinned, or the two oracles
+     pull opposite ways. Orchestrator failure: record the decision as `--design`,
+     tighten the brief, re-slice if needed. A stronger model loops identically.
+   - *Churn* — the same blocker class recurs or fixes spawn new blockers of that class.
+     Re-dispatch `agent: "implementer-max"` with ALL verdicts verbatim, the failed
+     branch, and license to discard the approach. The same rejecting oracles re-review.
+   If implementer-max also fails 2 no-progress rounds: pull the slice, file the evidence
+   on the bead, escalate to the user. Unbounded loops at any tier are PROHIBITED.
+8. **Merge + integrate.** Both APPROVEs → merge into the feature branch. You own
+   cross-branch integration (signature conflicts, help tables, test callsites); keep it
+   minimal and record diff scope + LOC — no slice oracle has seen it. After the last
+   merge run the full gate (build, lint/vet, complete suite) plus a hand smoke test of
+   the composed surfaces. Each branch green ≠ composition green.
+9. **Gate the composition** with one oracle (brief below). REJECT routing: a blocker
+   inside one slice's files → that slice's implementer (worktree still live), re-merge;
+   a blocker across slices or in your glue → one integration implementer owning exactly
+   the seam files, dispatched from the feature branch. The composition oracle re-probes;
+   then re-run the step 8 gate.
+10. **Polish.** After step 9 APPROVE: `skill://comment-compactor` over touched source,
+    then `skill://doc-writer` over touched prose and any prose the change made stale,
+    both scoped from `git diff --name-only main...<feature>`. Polish is comment- and
+    prose-only; a code defect found here goes to its slice's REJECTING oracle as a fix
+    round. Re-run the gate after polish; the PR-ready tip is the post-polish commit.
+11. **Stop at PR-ready.** Slices merged, composition APPROVE held, polish done, gate
+    green on the polished tip, slice worktrees and branches removed (`git worktree
+    prune`), feature branch pushed. Do NOT open the PR, merge to main, or close beads.
+    Final report: branch + tip hash; module map and deviations from it; per-slice and
+    composition verdict lines verbatim; fix-round counts; `history://` links to raw
+    oracle transcripts; integration glue (scope, LOC); merged-state verification;
+    polish evidence (pre-polish hash, compactor gate per file, docs revised, commands
+    re-run); follow-up beads; draft PR title + body. Record outcomes on each bead.
 
-## Oracle tasking patterns
+## Oracle tasking
 
-Always two per slice, tasked to fail for different reasons:
+Two per slice, tasked to fail for different reasons — same-brief pairs find the same
+defects; differently-tasked pairs split verdicts because they attack disjoint failure
+classes:
 
 | Slice type | Oracle A | Oracle B |
 |---|---|---|
@@ -101,48 +105,33 @@ Always two per slice, tasked to fail for different reasons:
 | Benchmark/harness | Discrimination: falsify with an audit-faithful bad stub; every claimed-fixed mode must fail on baseline | Engineering: isolation, reproducibility, provenance, self-test quality, doc-command verbatim runs |
 | CI/workflow | Greenness: per-job green/red prediction proven locally; version compat of pinned actions | Coverage honesty: what is actually tested vs excluded; disabled-linter audits; deliberate-break bites |
 
-**Verdict contract (put in every oracle brief):** final line exactly `VERDICT: APPROVE`
-or `VERDICT: REJECT`; REJECT preceded by itemized BLOCKING issues (file:line, why, required
-fix); nits listed separately and never gate; no style rejections; every finding grounded in
-an executed probe. Oracles are read-only on the worktree but must build, run, and mutate
-scratch copies.
+The verdict contract (`VERDICT: APPROVE|REJECT` final line, itemized BLOCKING with
+file:line + probe evidence, nits never gate) is in the `oracle` def; briefs add only
+the slice-specific probes and acceptance criteria.
+
+**Composition oracle (one, step 9).** Subject: `git diff main...<feature>` plus your
+integration glue, judged against the step 2 module map. Brief carries the map, the
+file-ownership map, every seam record, and the glue diff. Task: the `skill://design-review`
+probes on the composed diff (not per slice — that is where duplicate helpers, shallow
+seams, and adapters at contracts surface), plus two: **boundary fidelity** — name every
+boundary in the branch not in the map and every map boundary that didn't land; **glue
+gating** — the integration diff reviewed as feature code. A boundary the map or a
+design record says should not exist is BLOCKING.
 
 ## Capability allocation
 
-Assign model strength by **cost of silent failure**, not role seniority:
+By cost of silent failure, not seniority:
 
-1. **Oracles — strongest available, no exceptions.** A weak oracle's failure mode is a
-   false APPROVE, which is invisible; the gate is only as strong as its reviewer. The
-   catches that justify this process (math errors, version incompatibilities proven from
-   upstream source, adversarial input kills, harness falsification) all required
-   top-tier reasoning. Give oracles generous time budgets — a 40-minute oracle that
-   finds one real defect is the cheapest agent in the round.
-   Spawn with `agent: "oracle"` — NEVER as generic `task` workers (those run the
-   mid-tier `task` model role). Same rule for re-reviews.
-2. **Implementers — mid-tier suffices; brief quality substitutes for model strength.**
-   Their errors are exactly what the gate catches. Too weak churns fix rounds (each
-   costs two oracle re-reviews), so not minimal — but a detailed, self-contained brief
-   moves more quality than a stronger model does. Do NOT pre-assign strong models to
-   "hard" slices: hardness prediction is unreliable, and implementer failure is the
-   VISIBLE failure mode — it arrives as itemized REJECT evidence. Escalate reactively
-   instead: `implementer-max` (oracle-tier model, same charter) exists ONLY for the
-   no-progress loop protocol in step 6, never for the initial dispatch batch.
+1. **Oracles — strongest available.** A false APPROVE is invisible. Spawn
+   `agent: "oracle"`, never generic `task`; same for re-reviews; generous time budgets.
+2. **Implementers — mid-tier.** Brief quality substitutes for model strength; their
+   failures arrive as visible REJECT evidence. Never pre-assign strong models to "hard"
+   slices — `implementer-max` exists only for step 7's churn path.
 3. **Scouts/mechanical edits — fast cheap models.**
 
-Agent definitions (`oracle`, `implementer`, `implementer-max`, `architect`) live in
-`~/.omp/agent/agents/`, managed by nixos-config; each binds its model through a
-`@role` alias resolved via `modelRoles` — on nix-managed machines the
-`ORACLE`/`ARCHITECT`/`IMPLEMENTER` roles are pinned by the read-only
-`~/.omp/agent/roles-overlay.yml` (loaded via `PI_CONFIG_FILES`), which overrides
-the writable `~/.omp/agent/config.yml` per-key. If a def or role is missing,
-restore it from nixos-config (an unknown `agent:` value errors with the available
-roster) — NEVER downgrade to `task`.
-
-Pair DIVERSITY outranks duplication: two equally strong oracles with the same brief find
-the same defects; differently-tasked pairs routinely split verdicts (one APPROVE, one
-REJECT) because they attack disjoint failure classes. Never collapse the pair into one
-"very thorough" review. Roles never blur: implementers don't self-review, oracles never
-fix (read-only + scratch copies), the orchestrator never writes feature code.
+Agent defs (`oracle`, `implementer`, `implementer-max`, `architect`) live in
+`~/.omp/agent/agents/`, managed by nixos-config. If a def or role is missing, restore
+it from there — NEVER downgrade to `task`.
 
 ## Rules the rounds earned (violations found in practice)
 
@@ -164,7 +153,3 @@ fix (read-only + scratch copies), the orchestrator never writes feature code.
   in `skill://module-design`'s five-part form (a record that lies about rewrite or
   deletion cost is itself a blocker); findings and fix-round outcomes recorded as
   comments; notes refreshed so the landing session inherits full context.
-- **Polish never touches code.** The post-merge comment/doc pass is comment- and
-  prose-only, gated mechanically on `git diff -U0`; a code change it "needed" is a
-  defect for the slice's rejecting oracle. Polish also never re-opens oracle verdicts:
-  a comment rewrite that changes what a doc-test asserts fails the re-run gate.

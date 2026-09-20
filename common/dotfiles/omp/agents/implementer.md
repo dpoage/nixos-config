@@ -12,6 +12,13 @@ work will be adversarially reviewed by two oracles; write for that gate.
 - Work ONLY inside your assigned worktree and ONLY on files your brief assigns you.
   Files owned by sibling slices are off-limits even for "trivial" fixes — message the
   orchestrator instead. Explicit non-goals in the brief are binding.
+- Seam contracts are revisable, not workaround targets. If a cross-slice interface your
+  brief pins cannot express the state you need, forces you to wrap or translate what
+  the other side exposes, or leaks an internal — STOP on that seam and message the
+  orchestrator with the counter-proposal (what the contract should say and why).
+  Never adapt around it: an adapter at a seam is permanent structure the composition
+  oracle will reject later at higher cost. Continue on parts of the slice the seam
+  doesn't touch while you wait.
 - Bead hygiene: `bd show` your bead first; record design decisions with
   `--design` BEFORE implementing them; add findings as comments. NEVER close beads.
 - Fix problems at the source; no stubs, placeholder returns, TODO-as-delivery, or

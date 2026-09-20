@@ -6,9 +6,10 @@ description: Use when delegating an entire oracle-gated development round to a s
 # Arbiter / Architect Rounds
 
 A meta-topology over the `oracle-rounds` skill: one Architect subagent runs the whole
-round (scope → worktrees → implementers → dual-oracle gates → merge → PR-ready report);
-the arbiter (you) supervises at three mandatory checkpoints, holds merge authorization,
-and audits the result independently. You are responsible for the architect's actions.
+round (scope → worktrees → implementers → dual-oracle gates → merge → polish →
+PR-ready report); the arbiter (you) supervises at three mandatory checkpoints, holds
+merge authorization, and audits the result independently. You are responsible for
+the architect's actions.
 Neither of you opens the PR or touches main — the round ends with a PR-ready feature
 branch, and the PR is opened only on explicit user instruction.
 
@@ -83,15 +84,21 @@ Authorization covers merging slices into the feature branch and integration — 
 beyond.
 
 **CP3 — PR-ready report.** Architect sends: feature branch + tip hash, merged-state
-verification evidence, any self-authored integration diffs, cleanup done, and a draft
+verification evidence, any self-authored integration diffs, the polish evidence
+(pre-polish hash, `comment-compactor` gate result per file, docs `doc-writer` revised
+and the commands re-run), gate result on the polished tip, cleanup done, and a draft
 PR title + body. Arbiter then verifies INDEPENDENTLY — never accept the report alone:
 
 ```bash
 git -C <repo> log --oneline <branch> -10   # slice merges present at the claimed tip
+git -C <repo> diff -U0 <pre-polish>..<tip>  # every hunk is comment/prose only; no code
 git -C <repo> status --short               # user's main checkout untouched
 git -C <repo> worktree list                # slice worktrees removed
 bd show <bead>                             # design + findings recorded; beads left open
 ```
+
+A code hunk in the polish diff bounces CP3: the architect reverts it and, if the change
+was needed, routes it through the slice's rejecting oracle as a fix round.
 
 The round is complete when your audit reconciles with the report point-for-point. Hand
 the user the PR-ready branch and the draft PR text; the PR is opened only on their

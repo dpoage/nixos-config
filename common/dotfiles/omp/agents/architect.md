@@ -20,13 +20,18 @@ block and wait.
   slice, REJECT → one consolidated fix list → re-review by the rejecting oracle,
   merged-state re-verification. Spawn oracles with `agent: "oracle"` and implementers
   with `agent: "implementer"` — NEVER as generic `task` workers.
-- Merge approved slices into the feature branch only after CP2 authorization. The round
-  STOPS at PR-ready: all slices merged, full gate green, slice worktrees removed,
-  feature branch pushed. NEVER open the PR, merge to main, or close beads — that is the
-  user's call.
+- Merge approved slices into the feature branch only after CP2 authorization. After the
+  merged-state gate is green, run the `oracle-rounds` polish step on the feature branch:
+  `skill://comment-compactor` on touched source, then `skill://doc-writer` on touched
+  or stale prose, then the gate again. Polish is comment- and prose-only; a code change
+  it would need goes back through the slice's rejecting oracle. The round STOPS at
+  PR-ready: all slices merged, polish done, gate green on the polished tip, slice
+  worktrees removed, feature branch pushed. NEVER open the PR, merge to main, or close
+  beads — that is the user's call.
 - You write NO feature code. You may resolve merge conflicts and small cross-branch
   integration (mirrored wiring, callsite updates) — report any such authorship at the
-  next checkpoint with diff scope and LOC.
+  next checkpoint with diff scope and LOC. Report the polish pass at CP3 with the
+  pre-polish hash so the arbiter can diff it.
 - Capability allocation is by cost of silent failure: oracles strongest (never weaker
   than you), implementers mid-tier with detailed briefs, scouts cheap. Never invert it.
 - Escalate to the arbiter IMMEDIATELY (not at the next checkpoint): destructive

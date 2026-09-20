@@ -1,14 +1,17 @@
 ---
 name: oracle-rounds
-description: Use when driving a multi-issue development round with parallel subagents — worktree-per-slice implementation gated by dual adversarial oracle reviews and merged into a feature branch that lands fully PR-ready. The PR itself is opened only on explicit user instruction. Trigger when the user asks to "drive issues to ground" or run "the same process" of implementer + two-oracle review rounds.
+description: Use when driving a multi-issue development round with parallel subagents — worktree-per-slice implementation gated by dual adversarial oracle reviews, merged into a feature branch, then polished (comment-compactor, doc-writer) so it lands fully PR-ready. The PR itself is opened only on explicit user instruction. Trigger when the user asks to "drive issues to ground" or run "the same process" of implementer + two-oracle review rounds.
 ---
 
 # Oracle-Gated Rounds
 
 One round = a set of beads driven to dual-APPROVE and merged into a PR-ready feature
 branch through parallel worktree slices, each gated by TWO differently-tasked
-adversarial reviews. The orchestrator (you) never writes feature code; you scope,
-dispatch, arbitrate verdicts, integrate, and report. You NEVER open the PR or touch
+adversarial reviews. PR-ready means more than merged-and-green: the branch has been
+through one polish pass — `skill://comment-compactor` on touched source, then
+`skill://doc-writer` on touched or stale prose — and the gate is green again on the
+polished tip. The orchestrator (you) never writes feature code; you scope, dispatch,
+arbitrate verdicts, integrate, polish, and report. You NEVER open the PR or touch
 main — the round ends with the feature branch ready and the PR unopened, awaiting
 explicit instruction.
 
@@ -59,14 +62,33 @@ explicit instruction.
    tables, test callsites. Each branch green ≠ composition green — after the last merge,
    run the project's full gate (build, lint/vet, complete test suite) plus a hand smoke
    test of the changed surfaces composed together.
-8. **Stop at PR-ready.** The round ends with the feature branch fully ready to PR: all
-   slices merged, gate green, slice worktrees and branches removed (`git worktree prune`),
-   feature branch pushed. Do NOT open the PR, merge to main, or close beads — that
-   happens only on explicit user instruction. Final report: feature branch + tip hash,
-   per-slice verdict lines quoted verbatim, fix-round counts, `history://` links to the
-   raw oracle transcripts, merged-state verification evidence, follow-ups filed as
-   beads, and a draft PR title + body so opening it is one instruction away. Record
-   outcomes on each bead as comments.
+8. **Polish the merged branch (comments + docs).** Runs once on the feature branch,
+   after step 7's gate is green and before the branch is called PR-ready. Two passes,
+   in this order, both scoped to `git diff --name-only main...<feature>`:
+   - **`skill://comment-compactor`** over every touched source file. Snapshot the
+     branch tip first (`git stash create` or note the hash), dispatch light agents
+     with the skill's guardrail block verbatim, then run its mechanical gate on
+     `git diff -U0`: any non-comment change restores the file and redoes it.
+   - **`skill://doc-writer`** over every touched prose file (README, docs/, changelog,
+     man pages) and module/package-level doc comment, plus any prose the change made
+     stale — a flag renamed in a slice is stale in every page that names it, touched
+     or not. Re-run each published command and example against the built binary; a
+     default you cannot confirm by probe does not go in.
+   Polish is comment- and prose-only. A code defect found during polish (dead code,
+   a wrong default a doc would have to lie about) goes back to its slice's REJECTING
+   oracle as a new fix round — never patched during polish. Doc-tests and docstrings
+   are load-bearing in some toolchains, so re-run the step 7 gate after polish; the
+   PR-ready tip is the post-polish, post-gate commit.
+9. **Stop at PR-ready.** The round ends with the feature branch fully ready to PR: all
+   slices merged, polish pass done, gate green on the polished tip, slice worktrees
+   and branches removed (`git worktree prune`), feature branch pushed. Do NOT open the
+   PR, merge to main, or close beads — that happens only on explicit user instruction.
+   Final report: feature branch + tip hash, per-slice verdict lines quoted verbatim,
+   fix-round counts, `history://` links to the raw oracle transcripts, merged-state
+   verification evidence, the polish evidence (pre-polish hash, compactor gate result
+   per file, docs revised and the commands re-run), follow-ups filed as beads, and a
+   draft PR title + body so opening it is one instruction away. Record outcomes on
+   each bead as comments.
 
 ## Oracle tasking patterns
 
@@ -142,3 +164,7 @@ fix (read-only + scratch copies), the orchestrator never writes feature code.
   in `skill://module-design`'s five-part form (a record that lies about rewrite or
   deletion cost is itself a blocker); findings and fix-round outcomes recorded as
   comments; notes refreshed so the landing session inherits full context.
+- **Polish never touches code.** The post-merge comment/doc pass is comment- and
+  prose-only, gated mechanically on `git diff -U0`; a code change it "needed" is a
+  defect for the slice's rejecting oracle. Polish also never re-opens oracle verdicts:
+  a comment rewrite that changes what a doc-test asserts fails the re-run gate.

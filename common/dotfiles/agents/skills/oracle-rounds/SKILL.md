@@ -103,14 +103,15 @@ classes:
 
 | Slice type | Oracle A | Oracle B |
 |---|---|---|
-| Feature/bug code | Adversarial correctness: edge cases, mutation of scratch copies, forced failures, regression diff of existing tests | Behavior/UX replay: build the binary, replay the motivating incident/transcript live, judge against acceptance criteria, then run the `skill://design-review` probes against the diff |
+| Feature/bug code | `skill://bug-hunt`: the families for the slice's unit shape, run on the diff and its siblings | `skill://acceptance-replay`: base and reviewed builds, motivating case replayed, every criterion probed, then `skill://design-review` |
 | Research/audit doc | Evidence integrity: re-derive counts, grep quoted excerpts in primary sources, reproduce claims | Actionability: acceptance fidelity, coverage of the promised space, internal consistency, downstream utility |
 | Benchmark/harness | Discrimination: falsify with an audit-faithful bad stub; every claimed-fixed mode must fail on baseline | Engineering: isolation, reproducibility, provenance, self-test quality, doc-command verbatim runs |
 | CI/workflow | Greenness: per-job green/red prediction proven locally; version compat of pinned actions | Coverage honesty: what is actually tested vs excluded; disabled-linter audits; deliberate-break bites |
 
 The verdict contract (`VERDICT: APPROVE|REJECT` final line, itemized BLOCKING with
-file:line + probe evidence, nits never gate) is in the `oracle` def; briefs add only
-the slice-specific probes and acceptance criteria.
+file:line + probe evidence, nits never gate, probe matrix out of band) is in the
+`oracle` def; briefs add only the slice's bead IDs, acceptance criteria, motivating
+incident, and unit shape.
 
 **Composition oracle (one, step 9).** Subject: `git diff main...<feature>` plus your
 integration glue, judged against the step 2 module map. Brief carries the map, the
@@ -138,20 +139,8 @@ it from there — NEVER downgrade to `task`.
 
 ## Rules the rounds earned (violations found in practice)
 
-- **Predicates observe real state.** A test/bench predicate asserting output the binary
-  never prints is fiction; assert machine-readable output, exit codes, DB state.
 - **xfail counts in the denominator.** A before/after metric that excludes expected
   failures saturates at 100% and can never show improvement.
-- **Baseline must fail what the round fixes.** If the old binary passes a scenario the
-  audit calls broken, the scenario is mis-specified — falsify with a bad stub.
-- **"Already fixed" claims get forensics.** Verify the broken state existed at filing,
-  name the fixing commit, and prove the new regression test discriminates by mutation.
-- **A knowingly-failing check is not green.** "Documented" red gates approval; fix
-  hermetically (stub network and heavy dependencies) without shrinking coverage.
-- **Destructive paths get adversarial input.** Empty string, whitespace, unset-$VAR
-  expansion — refusal must be proven with before/after state counts.
-- **Docs state binary truth.** Every published example runs verbatim against the built
-  binary; every claimed default verified by probe. Doc-vs-binary lies are BLOCKING.
 - **Bead hygiene is part of done.** `--design` before code where decisions were required,
   in `skill://module-design`'s five-part form (a record that lies about rewrite or
   deletion cost is itself a blocker); findings and fix-round outcomes recorded as

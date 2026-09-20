@@ -23,6 +23,10 @@
     ../dotfiles/agents/skills/design-review/SKILL.md;
   home.file.".agents/skills/github-voice/SKILL.md".source =
     ../dotfiles/agents/skills/github-voice/SKILL.md;
+  home.file.".agents/skills/bug-hunt/SKILL.md".source =
+    ../dotfiles/agents/skills/bug-hunt/SKILL.md;
+  home.file.".agents/skills/acceptance-replay/SKILL.md".source =
+    ../dotfiles/agents/skills/acceptance-replay/SKILL.md;
 
   # OMP agent definitions (~/.omp/agent/agents)
   home.file.".omp/agent/agents/oracle.md".source =

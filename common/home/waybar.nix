@@ -25,7 +25,9 @@ let
   };
 in
 {
-  programs.waybar = {
+  # Only the themed Waybar when `myRice.bar = "waybar"` (the default);
+  # other bar choices activate their own module instead.
+  programs.waybar = lib.mkIf (rice.bar == "waybar") {
     enable = true;
     settings = {
       mainBar = {

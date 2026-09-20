@@ -17,6 +17,10 @@ let
   cfg = config.myRice;
   c   = cfg.colors;
   isNiri = cfg.enable && cfg.compositor == "niri";
+
+  # Autostart line for the selected bar; empty when `myRice.bar = "none"`.
+  barSpawn = lib.optionalString (cfg.barCommand != null)
+    ''spawn-at-startup "${cfg.barCommand}"'';
 in
 {
   config = lib.mkIf isNiri {
@@ -137,9 +141,9 @@ in
           default-window-height { fixed 270; }
       }
 
-      // Per-host autostart: waybar + wallpaper restore + notifications.
+      // Per-host autostart: selected bar + wallpaper restore + notifications.
       // Hosts can override these via config.d/ overrides.
-      spawn-at-startup "waybar"
+      ${barSpawn}
       spawn-sh-at-startup "set-wallpaper restore"
       spawn-at-startup "mako"
 

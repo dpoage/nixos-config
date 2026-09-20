@@ -3,6 +3,14 @@
 let
   c = config.myRice.colors; # resolved palette (default catppuccin)
   wallpaper = "${pkgs.nixos-artwork.wallpapers.nineish-catppuccin-mocha-alt}/share/backgrounds/nixos/nix-wallpaper-nineish-catppuccin-mocha-alt.png";
+
+  # Autostart for the selected bar. Only waybar needs the monitor-hotplug
+  # restart shim; quickshell-based bars (noctalia, custom) handle hotplug
+  # internally. `barCommand` is null when `myRice.bar = "none"`.
+  barExec =
+    lib.optional (config.myRice.barCommand != null) config.myRice.barCommand
+    ++ lib.optional (config.myRice.bar == "waybar")
+      "socat -U - UNIX-CONNECT:$XDG_RUNTIME_DIR/hypr/$HYPRLAND_INSTANCE_SIGNATURE/.socket2.sock | while read -r line; do case $line in monitoradded*|monitorremoved*) pkill waybar; sleep 0.5; waybar & ;; esac; done";
 in
 {
   # Wallpaper via hyprpaper. Disabled when myRice owns the wallpaper —
@@ -93,11 +101,8 @@ in
 
       # Autostart
       exec-once = [
-        "waybar"
         "dunst"
-        # Restart waybar on monitor hotplug to avoid duplicate bars
-        "socat -U - UNIX-CONNECT:$XDG_RUNTIME_DIR/hypr/$HYPRLAND_INSTANCE_SIGNATURE/.socket2.sock | while read -r line; do case $line in monitoradded*|monitorremoved*) pkill waybar; sleep 0.5; waybar & ;; esac; done"
-      ];
+      ] ++ barExec;
 
       # Key bindings
       "$mod" = "SUPER";

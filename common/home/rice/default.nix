@@ -145,6 +145,41 @@ in
       '';
     };
 
+    bar = lib.mkOption {
+      type = lib.types.enum [ "waybar" "noctalia" "quickshell" "none" ];
+      default = "waybar";
+      description = ''
+        Which status bar / desktop shell to run in the Wayland session.
+
+          - "waybar"    : the themed Waybar config (common/home/waybar.nix).
+          - "noctalia"  : the Noctalia Quickshell shell (noctalia-shell).
+          - "quickshell": a custom Quickshell config from `quickshellConfig`.
+          - "none"      : no bar is autostarted (the host wires its own).
+
+        Exactly one bar module activates on this value; the compositor
+        autostart launches `myRice.barCommand` accordingly.
+      '';
+    };
+
+    quickshellConfig = lib.mkOption {
+      type = lib.types.nullOr lib.types.path;
+      default = null;
+      description = ''
+        Path to a custom Quickshell config directory (containing a
+        `shell.qml`). Required when `bar = "quickshell"`; symlinked to
+        `~/.config/quickshell` so the `quickshell` binary picks it up.
+      '';
+    };
+
+    barCommand = lib.mkOption {
+      type = lib.types.nullOr lib.types.str;
+      readOnly = true;
+      description = ''
+        Resolved autostart command for the selected bar, consumed by the
+        compositor modules. `null` when `bar = "none"`.
+      '';
+    };
+
     wallpaperDir = lib.mkOption {
       type = lib.types.str;
       default = "${config.home.homeDirectory}/Pictures/Wallpapers";
@@ -165,5 +200,14 @@ in
     # mkDefault so hosts can override fonts/terminal without fighting
     myRice.fonts    = lib.mkDefault p.fonts;
     myRice.terminal = lib.mkDefault p.terminal;
+
+    # Resolved autostart command per bar choice. `quickshell` reads its
+    # config from ~/.config/quickshell (linked by the quickshell module).
+    myRice.barCommand = {
+      waybar     = "waybar";
+      noctalia   = "noctalia-shell";
+      quickshell = "quickshell";
+      none       = null;
+    }.${cfg.bar};
   };
 }

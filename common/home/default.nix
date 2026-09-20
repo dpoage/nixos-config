@@ -6,6 +6,8 @@
     ./hyprland.nix
     ./lock.nix
     ./waybar.nix
+    ./noctalia.nix
+    ./quickshell.nix
     ./dotfiles.nix
     ./dev.nix
     # Opt-in rice bundle: defaults to disabled. Hosts that want the

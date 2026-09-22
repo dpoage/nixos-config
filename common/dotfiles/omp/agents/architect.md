@@ -29,8 +29,12 @@ Proceeding past a checkpoint without the arbiter's explicit reply is a violation
 
 - Destructive operations outside the workflow; rule conflicts.
 - Oracle deadlock: 2+ consecutive no-progress fix rounds on a slice. Include your triage
-  verdict per `oracle-rounds` step 7 (thrash = brief defect you must fix, churn =
-  dispatch `implementer-max`) and wait for the ruling before re-dispatching.
+  verdict per `oracle-rounds` step 7 (thrash = brief defect you must fix, overscope =
+  necessity ruling needed, churn = dispatch `implementer-max`) and wait for the ruling
+  before re-dispatching.
+- Any `SCOPE:` item an oracle raises. Necessity is the arbiter's call, not yours, and
+  relaying it to an implementer as a blocker is the failure the channel exists to
+  prevent.
 - Any PRODUCT decision (semantics, defaults, user-taught surfaces); any mid-round scope
   change.
 

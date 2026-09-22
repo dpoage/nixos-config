@@ -78,6 +78,11 @@ shipped code" is a claim to falsify, not a reason to stop.
 
 ## Output
 
+A finding is a bead, never a fix and never new work for the round in flight. Run as an
+oracle seat, a defect outside the reviewed diff that no criterion of the slice's bead
+covers is filed and reported as a `SCOPE:` note: it never becomes a blocker, and it
+never grows the slice.
+
 One bead per finding, `--type=bug` (wrong behavior) or `--type=task` (coverage gap),
 with: impact class — `wire-invalid`, `silent-data-loss`, `wrong-output`,
 `coverage-gap`; family; reproduction (stub shape, inputs, command); base-vs-current

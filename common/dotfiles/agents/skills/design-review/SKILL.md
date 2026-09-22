@@ -40,6 +40,10 @@ otherwise search the tree for each exported name.
    (trait impls, `MarshalJSON`, exported enum variants). One caller → write what that
    caller does inline instead; if the inline form is one to three lines and hides no
    decision, BLOCKING (shallow). A test double is not a caller.
+   A caller that exists but is unreachable in shipped execution does not count: prove
+   the arm never runs. Dead surface the diff itself adds is this probe's BLOCKING
+   zero-caller case; pre-existing production the diff hardens is a `SCOPE:` item
+   (below), never a blocker.
 3. **Surface count.** Count the module's exported names, parameters, error variants,
    and documented caller obligations. Count the non-blank, non-test lines of the
    implementation the module hides, including sibling adapter packages. Fewer than 5
@@ -70,6 +74,17 @@ otherwise search the tree for each exported name.
    between two verbs or decisions names two secrets; a list of nouns the one secret
    covers does not. BLOCKING when the diff introduced the second secret, nit when it
    widened a pre-existing one.
+
+## Necessity before quality
+
+A finding that a thing need not exist is not a quality finding and must not be routed as
+one: a REJECT sends an implementer to harden it, and the round pays to perfect machinery
+it was about to delete. When the rewrite, deletion, or generality probes show a surface
+whose only consumer is a path that has never executed, or machinery the bead's goal does
+not require, report it as a `SCOPE:` item — the probe, the caller count or execution
+trace, and the sentence "this need not exist, because X" — and judge the remainder on
+its own merits. The orchestrator rules on necessity; the default ruling is delete or
+descope, not harden.
 
 ## Smells no probe reaches
 

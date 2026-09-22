@@ -78,6 +78,15 @@ rejected alternative for each, oracle strategy. Arbiter audits:
   within a wave.
 - Design directions defensible against project principles — redirect anything that
   creates silent data loss or doc-vs-binary drift.
+- Necessity was ruled before quality: for every mechanism the plan adds, the architect
+  can say what breaks if it does not exist. A plan that hardens a path with no shipped
+  consumer, or that accommodates B when changing A was never priced, is bounced.
+- Scope is the bead list. Work discovered during scoping becomes a new bead, never a
+  bigger slice; the architect states the round's bead set and what it excludes.
+- Acceptance criteria are properties with their mutants, not checklists of sites (the
+  `oracle-rounds` brief contract). Apply the falsifier to each: if an implementer closed
+  exactly the cited lines and nothing else, could the property still be violated? Then
+  it is list-shaped, and you are approving the fix rounds that follow.
 
 **CP2 — merge authorization, when all slice oracles have returned.** Architect sends:
 per-slice verdict lines quoted with each oracle's `Coverage:` line, fix-round history,
@@ -97,6 +106,15 @@ evidence), and its integration plan. Arbiter audits:
   absorbed by one implementer; a slice whose transcript shows adapter code at a seam
   with no matching revision is bounced to the composition oracle's attention.
 - Rule on any reported deviation explicitly: accepted-with-rationale or bounced.
+- Every new test arrived with its mutant: three raw legs — mutant without the test,
+  green; mutant with it, only that leg red; mutant reverted, all green — each invoked
+  the way CI invokes the suite. A mutant claim in prose has not been shown to
+  discriminate.
+- Measure, do not accept. For any claim that an edit landed, run `git show
+  <hash>:<path> | md5sum` yourself across the lineage before spending a re-review on it.
+- Every `SCOPE:` item the oracles raised carries a recorded ruling. An unruled necessity
+  finding means an implementer may have spent rounds hardening what the round should
+  have cut.
 Authorization covers merging slices into the feature branch, integration glue, and the
 composition oracle + any integration fix round it triggers — nothing beyond.
 
@@ -133,6 +151,9 @@ instruction.
   reverted to direct mode — decide that explicitly instead.
 - Record every deviation and its ruling in the round summary; self-reported deviations
   that survive oracle re-review are normally accepted (honesty is the load-bearing part).
+- Your rulings are claims. Declining to act ("the other gate already covers that class")
+  is a testable hypothesis: probe it, or state it as unprobed. The evidence rule that
+  binds implementers binds hardest at the top, where no gate sits above it.
 - Known failure modes to watch: information loss (curated summaries hide process
   softness — hence raw transcripts at CP2), late failure detection (outcome audits catch
   botched rounds only after the fact — hence hard gates at plan, merge, and report), and

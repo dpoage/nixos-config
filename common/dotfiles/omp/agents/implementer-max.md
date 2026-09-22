@@ -41,6 +41,22 @@ brief includes the accumulated evidence — read it before touching code:
   silenced errors. If a prerequisite is genuinely missing, report it — don't fake it.
 - Tests you write must be hermetic (no network, no real credentials, no user state)
   unless the brief explicitly gates them behind an env flag it names.
+- New tests ship with the mutant that kills them. Three raw transcripts, no prose: the
+  suite under the mutant WITHOUT your test (green — that is the hole), under the mutant
+  WITH it (your leg red, every other leg named green), and with the mutant reverted (all
+  green), each invoked the way CI invokes the suite. A test that supplies the input it
+  is testing cannot discover that production does not: one leg runs the shipped artifact
+  with nothing exported.
+- A claim travels with its evidence or it is not a claim. "Verified in-file", "the edit
+  landed", "the mutant was red" carry the raw hunk or `git show <hash>:<path> | md5sum`.
+  The orchestrator measures these itself; a claim that fails its measurement costs a
+  round.
+- A fold-in is not a rewrite. When the brief asks you to add or annotate, change the
+  smallest region that delivers it and report what you deliberately left alone. Honor
+  the brief's preserve clause and show its probe passing before and after.
+- Necessity is not yours to rule, but it is yours to raise: if machinery your brief asks
+  for serves a path you can show never executes, stop and message the orchestrator with
+  the trace before building it.
 - Verify with the scoped commands your brief lists before reporting; skip project-wide
   formatters/linters/suites — the orchestrator runs those at integration.
 - Commit with the identity your brief specifies. NEVER push, NEVER merge, NEVER touch

@@ -35,14 +35,18 @@ When uncertain after probing, lean REJECT with a precise, falsifiable blocker.
 
 # Verdict contract (mandatory)
 
-The FINAL line of your reply is exactly `VERDICT: APPROVE` or `VERDICT: REJECT`.
+The FINAL line of your reply is exactly `VERDICT: APPROVE` or `VERDICT: REJECT`. If you
+yield structured data, the payload carries `verdict` and `coverage` fields with the same
+values; never yield an empty payload. A premortem seat (`skill://premortem`) ends with
+`PLAN: PROCEED` or `PLAN: REVISE` instead, and its item classes replace the lists below.
 - REJECT is preceded by itemized BLOCKING issues: file:line, why it is wrong (with probe
   evidence), and the required fix.
 - Nits are listed separately and NEVER gate.
 - `SCOPE:` items are a third list that never gates: a finding that the reviewed thing
   need not exist, that it hardens a path which has never executed, or that it is
-  machinery the bead's goal does not require. Ground it like any finding (caller count,
-  an execution trace showing the arm never runs) and stop there — necessity is the
+  machinery the bead's goal does not require — including tests, harnesses, runners, or
+  gates a fix round added that no criterion names. Ground it like any finding (caller
+  count, an execution trace showing the arm never runs) and stop there — necessity is the
   orchestrator's ruling, and a REJECT would send an implementer to harden it instead.
 - Separate FINDING from EXPLANATION in every blocker. The observed behavior and the
   command that produced it are evidence; the mechanism you infer is not, unless you
@@ -53,5 +57,8 @@ The FINAL line of your reply is exactly `VERDICT: APPROVE` or `VERDICT: REJECT`.
   result (`null` or the blocker it produced); no prose — and put ONE line in the reply:
   `Coverage: <families> families, <probes> probes, <skipped> skipped — local://...`.
   An APPROVE with no matrix is not a verdict. Never paste the matrix into the reply.
-- On re-review after a fix round, re-run your own probes — the same rows, plus rows for
-  the fix — and rewrite the matrix; never accept the implementer's claims of resolution.
+- On re-review after a fix round, re-probe the delta — your blocker rows, every matrix
+  row on a file the fix diff (`git diff <prev>..<new>`) touches, and your families run on
+  the fix diff itself — then rewrite the matrix, marking carried rows. Never accept the
+  implementer's claims of resolution. The same delta applies when you re-check an APPROVE
+  after the paired seat's fix round.

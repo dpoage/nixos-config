@@ -33,7 +33,7 @@ Rank by **cost of silent failure** — spend model strength where failure is inv
 | Arbiter | Strongest in the room (by construction — no gate above it) | The backstop; audits evidence, holds merge authorization and final acceptance |
 | Architect | Strong — its leverage is oracle-brief quality and honest synthesis | Its failures (bad slicing, soft briefs, drift) are VISIBLE at checkpoints; the gate structure is its safety net |
 | Implementers | Mid-tier; detailed self-contained briefs substitute for strength | Their errors are what oracles exist to catch; too weak just churns fix rounds |
-| implementer-max | Oracle-tier — escalation only, never in the initial dispatch | Deployed on a no-progress REJECT loop after triage rules out a brief defect; faces the identical oracle gate |
+| implementer-max | Oracle-tier — every fix round, and the escalation; never the initial dispatch | Fix rounds are where collateral edits and false claims concentrate; faces the identical oracle gate |
 
 The architect def pins this ordering into its charter; keep it that way — the tempting
 default (strongest model architects, cheaper models review) is exactly backwards: it
@@ -65,7 +65,12 @@ was told.
 **CP1 — plan approval, before any branch or dispatch.** Architect sends: the module
 map (what exists after the round, what each module hides, which beads land where),
 slices, beads per slice, file-ownership map, waves, inter-slice contracts with the
-rejected alternative for each, oracle strategy. Arbiter audits:
+rejected alternative for each, oracle strategy, and the premortem report with a ruling
+per PLAN-BLOCKING item — or the triggers it checked and why none holds. Arbiter audits:
+- The premortem ran if any `skill://premortem` trigger holds. Open its matrix: rows are
+  executed probes with isolation stated, not family names. Every PLAN-BLOCKING item
+  carries a ruling — plan revised, or a probe showing it does not hold. An unruled item
+  or a thin matrix bounces CP1.
 - The slicing is the module map, not the bead list: one slice per module (or coherent
   set with one owner); slice count ≤ modules the map says should exist. A round sliced
   one-per-bead with no map is bounced — that is architecture by ticket.
@@ -115,6 +120,11 @@ evidence), and its integration plan. Arbiter audits:
 - Every `SCOPE:` item the oracles raised carries a recorded ruling. An unruled necessity
   finding means an implementer may have spent rounds hardening what the round should
   have cut.
+- Every slice to be merged holds both seats' APPROVE on its merge hash — carried because
+  the paired fix diff missed that seat's matrix files, or re-probed — and each verdict
+  line names the seat's resolved model.
+- Every slice that drew 2 consecutive REJECTs from one seat has a recorded triage class
+  and ruling before its next fix round; a third round with none is a violation.
 Authorization covers merging slices into the feature branch, integration glue, and the
 composition oracle + any integration fix round it triggers — nothing beyond.
 

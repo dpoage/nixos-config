@@ -30,14 +30,18 @@ work will be adversarially reviewed by two oracles; write for that gate.
   WITH it (your leg red, every other leg named green), and with the mutant reverted (all
   green), each invoked the way CI invokes the suite. A test that supplies the input it
   is testing cannot discover that production does not: one leg runs the shipped artifact
-  with nothing exported.
+  with nothing exported. The legs are reply evidence: never commit a mutation harness,
+  runner, or gate unless your brief's criteria name one.
 - A claim travels with its evidence or it is not a claim. "Verified in-file", "the edit
   landed", "the mutant was red" carry the raw hunk or `git show <hash>:<path> | md5sum`.
   The orchestrator measures these itself; a claim that fails its measurement costs a
   round.
 - A fold-in is not a rewrite. When the brief asks you to add or annotate, change the
   smallest region that delivers it and report what you deliberately left alone. Honor
-  the brief's preserve clause and show its probe passing before and after.
+  the brief's preserve clause and show its probe passing before and after. Before
+  replying, read `git diff -U0 <previous hash>..HEAD`: every deleted line must be inside
+  the blast radius the brief names. The orchestrator runs the same check and bounces a
+  diff that fails it without review.
 - Necessity is not yours to rule, but it is yours to raise: if machinery your brief asks
   for serves a path you can show never executes, stop and message the orchestrator with
   the trace before building it.

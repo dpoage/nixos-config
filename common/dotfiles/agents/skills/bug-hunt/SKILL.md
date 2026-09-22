@@ -58,8 +58,8 @@ shipped code" is a claim to falsify, not a reason to stop.
 5. **Skip-masks-regression mutation.** For every test that skips or retries on a
    premise, mutate production to break the contract the test guards, run the test: a
    skip instead of a failure means run the whole hermetic suite under the mutant. Green
-   suite + skipping test = coverage hole; required fix is a hermetic pin that fails
-   under the mutant.
+   suite + skipping test = coverage hole; required fix is a
+   hermetic pin — a test, not a new runner or gate — that fails under the mutant.
 6. **Path-dependent assertions.** For every equality, ordering, or tolerance assertion
    over a quantity produced by more than one runtime path (single pass, retry,
    continuation, empty-turn), script each path hermetically and check the assertion

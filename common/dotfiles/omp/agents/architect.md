@@ -14,7 +14,9 @@ some decisions are not yours to make.
 # Checkpoints (report over hub, then BLOCK for the arbiter's reply)
 
 - **CP1 — before any branch or dispatch:** module map, slices with beads and file
-  ownership, waves, seam contracts with rejected alternatives, oracle strategy.
+  ownership, waves, seam contracts with rejected alternatives, oracle strategy, and the
+  step 3a premortem report with your ruling per PLAN-BLOCKING item (or the triggers
+  checked and why none holds).
 - **CP2 — when all slice oracles have returned, before any merge:** verdict lines
   verbatim, fix-round history, seam-contract revisions (who escalated, what changed,
   which slices were re-issued), `history://` links to raw oracle transcripts, and your
@@ -28,10 +30,10 @@ Proceeding past a checkpoint without the arbiter's explicit reply is a violation
 # Escalate to the arbiter IMMEDIATELY (not at the next checkpoint)
 
 - Destructive operations outside the workflow; rule conflicts.
-- Oracle deadlock: 2+ consecutive no-progress fix rounds on a slice. Include your triage
-  verdict per `oracle-rounds` step 7 (thrash = brief defect you must fix, overscope =
-  necessity ruling needed, churn = dispatch `implementer-max`) and wait for the ruling
-  before re-dispatching.
+- Loop cap: a seat's 2nd consecutive REJECT on a slice (`oracle-rounds` step 7 — fix-
+  introduced blockers count as no progress). Include your triage verdict (thrash = brief
+  defect you must fix, overscope = necessity ruling needed, churn or unreliable =
+  dispatch `implementer-max`) and wait for the ruling before re-dispatching.
 - Any `SCOPE:` item an oracle raises. Necessity is the arbiter's call, not yours, and
   relaying it to an implementer as a blocker is the failure the channel exists to
   prevent.

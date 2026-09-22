@@ -43,7 +43,8 @@ build and run in scratch copies.
    probe. A doc-vs-binary mismatch is BLOCKING even when the code is right.
 7. **Gate honesty.** A check the change marks skipped, expected-fail, or "known red" is
    not green. Run it; if it fails, the fix is a hermetic pin (stub network and heavy
-   dependencies) that keeps coverage, not documentation of the red.
+   dependencies) that keeps coverage, not documentation of the red. A pin is a test, not
+   a new runner or gate.
 8. **Then design.** Run the `skill://design-review` probes on the diff.
 
 ## Verdict

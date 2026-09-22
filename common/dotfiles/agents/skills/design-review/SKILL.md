@@ -41,9 +41,10 @@ otherwise search the tree for each exported name.
    caller does inline instead; if the inline form is one to three lines and hides no
    decision, BLOCKING (shallow). A test double is not a caller.
    A caller that exists but is unreachable in shipped execution does not count: prove
-   the arm never runs. Dead surface the diff itself adds is this probe's BLOCKING
-   zero-caller case; pre-existing production the diff hardens is a `SCOPE:` item
-   (below), never a blocker.
+   the arm never runs. A symbol the diff adds with zero callers is this probe's BLOCKING
+   case. Machinery the diff adds whose only caller is a never-executed arm, and
+   pre-existing production the diff hardens, are `SCOPE:` items (below), never blockers:
+   whether it should exist is the orchestrator's ruling.
 3. **Surface count.** Count the module's exported names, parameters, error variants,
    and documented caller obligations. Count the non-blank, non-test lines of the
    implementation the module hides, including sibling adapter packages. Fewer than 5

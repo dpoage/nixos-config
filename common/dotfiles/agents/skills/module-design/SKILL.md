@@ -1,6 +1,6 @@
 ---
 name: module-design
-description: Use BEFORE writing code that adds, splits, or restructures a module — a package, crate, service, subsystem, or a class that owns a decision — and whenever a brief demands a design record (e.g. `bd update --design`). Produces a five-part design record (what the module hides, its interface, its callers, its rewrite cost, its deletion cost) and gates it against deep-module, information-hiding, and YAGNI rules. Trigger on "design", "architect", "structure", "refactor", "simplify", "extract", "reduce coupling", "how should I split this", or any change that introduces a new boundary. For signature-level API decisions load `interface-contract`; for reviewing an existing design load `design-review`.
+description: Use before writing code that creates, splits, merges, or moves a module boundary — a package, crate, service, subsystem, or class that owns a decision — or when a brief asks for a `--design` record. Produces a five-part design record and gates it against deep-module, information-hiding, and YAGNI rules. Not for edits inside an existing module that keep its boundary. For signatures load `interface-contract`; for reviewing a design load `design-review`.
 ---
 
 # Module Design

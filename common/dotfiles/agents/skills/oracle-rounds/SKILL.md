@@ -198,11 +198,13 @@ restore it — NEVER substitute `task`.
 
 ## Judge lints
 
-Run through the eval `judge()` / `judge_batch()` helpers, one paragraph or bullet per
-state. Lints flag for you; they never skip an oracle or block a dispatch.
+Run through the eval `judge()` / `judge_batch()` helpers. State is one paragraph or
+bullet, except skill routing, which judges the whole brief. Lints flag for you; they
+never skip an oracle or block a dispatch.
 
 | Where | Question (verbatim) | Flag at | Action |
 |---|---|---|---|
+| Every brief, before dispatch | For each installed skill: "A coding agent received this message. Should it load the skill '<name>' before acting? The skill's trigger: <its description>" | ≥ 0.8 | Name `skill://<name>` in the brief unless it already does; subagents start blank |
 | Every brief and fix list, before dispatch | "This text is one unit of instructions sent to a coding implementer. Does it assert why something happens or how a system behaves internally (a mechanism, cause, or factual claim about system behaviour) as established fact, without quoting in this same text the command or probe output that establishes it?" | ≥ 0.85 | Probe it and quote the output, or cut to the observed behaviour (brief rule 6) |
 | Every implementer reply, before measuring | "This text is one unit of a status report a coding implementer sent its orchestrator. Does it claim an edit landed, a test or mutant passed or failed, or something was verified, WITHOUT including raw evidence for that claim in this text — no command with its output, no diff hunk, no checksum, no quoted test output?" | ≥ 0.7 | Measure these claims first (brief rule 5); each that fails counts toward *Unreliable* |
 | Every REJECT, per blocker | choice over PRODUCT / TEST_MACHINERY / PROSE: "What does the BLOCKER UNDER JUDGMENT concern?" | confidence ≥ 0.8, else classify yourself | Track the share per round; a rising non-product share is the *Overscope* signal |

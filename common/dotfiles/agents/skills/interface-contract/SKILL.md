@@ -1,6 +1,6 @@
 ---
 name: interface-contract
-description: Use when adding or changing anything a caller depends on — a function signature, exported type, trait/interface, CLI flag, config key, wire format, or error. Governs how narrow the surface is, which states are representable, how errors are classified, and what the caller must know. Trigger on "API", "signature", "public", "export", "contract", or when a review flags a boolean parameter, an ordering requirement, an untyped bag, or a leaked internal type. For module boundaries load `module-design`; for reviewing existing surfaces load `design-review`.
+description: Use when adding or changing something other code or users depend on — a public function signature, exported type, trait or interface, CLI flag, config key, wire format, or error variant. Governs how narrow the surface is, which states are representable, how errors are classified, and what callers must know. Not for internal changes that leave every caller-visible surface unchanged. For module boundaries load `module-design`; for reviewing existing surfaces load `design-review`.
 ---
 
 # Interface Contract

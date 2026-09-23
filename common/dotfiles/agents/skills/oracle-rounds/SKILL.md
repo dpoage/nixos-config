@@ -11,6 +11,9 @@ and left PR-ready. You orchestrate: map, scope, dispatch, arbitrate, integrate, 
 report. Roles never blur: you write no feature code, implementers never self-review,
 oracles never fix. You NEVER open the PR, merge to main, or close beads.
 
+If the work spans several rounds (an epic), load `skill://arbiter-architect` first: an
+epic run directly exhausts this session's context within a few rounds.
+
 ## Round lifecycle
 
 1. **Scope.** `bd ready` from the main checkout; `bd show` every candidate. Fold each

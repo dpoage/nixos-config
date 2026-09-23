@@ -1,6 +1,6 @@
 ---
 name: arbiter-architect
-description: Use when delegating an entire oracle-gated development round to a single architect subagent while acting as arbiter — approving scope, authorizing merges at checkpoints, and independently auditing the PR-ready result. No PR is opened without explicit user instruction. Trigger when the user asks to run a round through an architect, to arbitrate rather than orchestrate, or to scale to multiple concurrent rounds.
+description: Use when a session will drive an epic of many oracle-gated development rounds. Each round goes to an architect subagent that holds all its detail (briefs, oracle transcripts, fix loops, diffs), so the session keeps only scope, rulings, and checkpoint summaries and lasts across the whole epic. The session acts as arbiter — approving scope, authorizing merges at checkpoints, and independently auditing each PR-ready result. No PR is opened without explicit user instruction. Trigger when the user asks to work through an epic, drive all of these issues, run a round through an architect, arbitrate rather than orchestrate, or run multiple concurrent rounds; also when a direct session heads into another round with its context already heavy.
 ---
 
 # Arbiter / Architect Rounds
@@ -13,17 +13,32 @@ You are responsible for the architect's actions.
 Neither of you opens the PR or touches main — the round ends with a PR-ready feature
 branch, and the PR is opened only on explicit user instruction.
 
+## Why the architect exists
+
+Each round leaves hundreds of thousands of tokens of detail behind: module-map drafts,
+implementer briefs, oracle transcripts and matrices, fix lists, diffs, merge conflicts.
+One round fits in a session; five do not, and by round three the session has lost the
+user's intent and your earlier rulings under old transcripts. The architect holds each
+round's detail and drops it when the round ends; you keep only what has to last across
+rounds: intent, scope, rulings, and the outcome ledger. Your context is what this
+topology protects.
+
 ## When to use which topology
 
 | Round character | Topology | Why |
 |---|---|---|
-| An epic of several rounds in proven-process lanes: bug clusters, release plumbing, perf, robustness | Arbiter + architect | The arbiter's context spans the rounds; checkpoints catch slicing errors; judgment stays with the arbiter |
+| An epic of several rounds in proven-process lanes: bug clusters, release plumbing, perf, robustness | Arbiter + architect | Each round's detail stays with its architect, so the session survives the epic; checkpoints catch slicing errors; judgment stays with the arbiter |
 | A single round, or design-heavy and taste-bearing work: product semantics (defaults, verb taxonomy, taught surfaces), evidence interpretation (audits) | Direct `oracle-rounds` | One round gains nothing from a second orchestration layer; taste-bearing value comes from reading raw oracle evidence and redirecting mid-flight |
 
 Every layer is a handoff that loses context, and the arbiter's review of oracle evidence
 is a third look by the same model family at the same probes. The arbiter earns its
 place by ruling — scope, necessity, product questions, tiers — not by re-deriving what
 the oracles executed.
+
+**Switching mid-epic.** A session that started direct and is heading into another round
+with its context already heavy hands the remaining rounds to an architect. Record the
+rulings and scope that must carry over in the first spawn brief; do not start another
+round directly.
 
 Multiple architects may run concurrently only on fully disjoint lanes (different
 subsystems, different beads, no shared files).
@@ -156,6 +171,10 @@ instruction.
   rulings, gates, and escalations. If you find yourself dispatching implementers or
   re-running probes an oracle already ran, you have silently reverted to direct mode —
   decide that explicitly instead.
+- Context discipline: while the architect runs, do not read worktrees, diffs, or
+  transcripts. Wait on the hub; answer escalations with rulings. Per round you read the
+  three checkpoint summaries, one CP2 sample, and the CP3 command block. When a ruling
+  needs more, ask the architect over the hub rather than pulling raw material in.
 - Record every deviation and its ruling in the round summary; self-reported deviations
   that survive oracle re-review are normally accepted (honesty is the load-bearing part).
 - Your rulings are claims. Declining to act ("the other gate already covers that class")

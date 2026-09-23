@@ -37,7 +37,15 @@ target and what it replaces there.
 
 ## Families
 
-Run all seven. Each matrix row is an executed probe with its observed result.
+Run all seven. Each matrix row is an executed probe with its observed result. A family
+with nothing in the plan to attack gets one row naming why ("no pinned inputs change:
+`git diff --stat <base> -- flake.lock` empty") and stops there; a family ends when
+every plan element it applies to has a row.
+
+**Seats.** The families are independent; run them as three parallel `agent: "oracle"`
+seats, each with its own scratch path: shipped state (1, 2, 5), plan logic (3, 4), and
+evidence (6, 7). Each seat writes its own matrix and lists; the orchestrator merges
+them into one report under one `PLAN:` line.
 
 1. **Direction of shipped state.** Build or evaluate what the plan ships and what runs
    now, and diff the values that matter per target: versions, enabled services, pinned
@@ -48,7 +56,10 @@ Run all seven. Each matrix row is an executed probe with its observed result.
    status, lint — run it the way CI runs it, record the executed-test count, and break
    something on purpose to confirm the required check goes red. A gate that executes
    nothing or cannot fail gates nothing: every criterion resting on it is PLAN-BLOCKING
-   until it names a gate that bites.
+   until it names a gate that bites. A prior premortem's gate row carries when the
+   runner, CI workflow, and suite config are byte-identical to its commit (`git diff
+   --stat <prior>..<base> -- <those paths>` empty); cite the row and that diff instead
+   of re-running.
 3. **Necessity trace.** For every mechanism the map adds or hardens, trace its consumer
    in shipped execution: caller count, and evidence the path runs (config, logs, a dry
    run). A mechanism whose only consumer never runs is PLAN-BLOCKING; the ruling is
@@ -76,8 +87,9 @@ Run all seven. Each matrix row is an executed probe with its observed result.
 
 ## Output
 
-Write the matrix to `local://premortem-<round>.md` — family, probe, command, isolation,
-observed result; no prose. The reply carries three lists and two closing lines:
+Each seat writes its matrix to `local://premortem-<round>-<seat>.md` — family, probe,
+command, isolation, observed result; no prose. Each reply carries three lists and two
+closing lines; the merged report takes the union and the worst `PLAN:` line:
 
 - **PLAN-BLOCKING** — changes the module map, scope, a seam, or a criterion. Each item:
   the premise it falsifies, the probe and its output, the plan element it hits, and a
@@ -87,7 +99,7 @@ observed result; no prose. The reply carries three lists and two closing lines:
   owner. Accepted risks go into the rollout notes and the draft PR body.
 - **NEW-BEAD** — a pre-existing defect the probes found, filed per the `bug-hunt` output
   rules. Never round work unless it blocks a criterion a round bead already carries.
-- `Coverage: 7 families, <probes> probes, <skipped> skipped — local://premortem-<round>.md`
+- `Coverage: <families> families, <probes> probes, <skipped> skipped — local://premortem-<round>-<seat>.md`
 - Final line: `PLAN: PROCEED` when no PLAN-BLOCKING item stands, else `PLAN: REVISE`.
 
 Propose no redesign beyond the one-sentence remedy. The plan is the orchestrator's

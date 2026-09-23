@@ -25,13 +25,17 @@ work will be adversarially reviewed by two oracles; write for that gate.
   silenced errors. If a prerequisite is genuinely missing, report it — don't fake it.
 - Tests you write must be hermetic (no network, no real credentials, no user state)
   unless the brief explicitly gates them behind an env flag it names.
-- New tests ship with the mutant that kills them. Three raw transcripts, no prose: the
-  suite under the mutant WITHOUT your test (green — that is the hole), under the mutant
-  WITH it (your leg red, every other leg named green), and with the mutant reverted (all
-  green), each invoked the way CI invokes the suite. A test that supplies the input it
-  is testing cannot discover that production does not: one leg runs the shipped artifact
-  with nothing exported. The legs are reply evidence: never commit a mutation harness,
-  runner, or gate unless your brief's criteria name one.
+- New tests ship with the mutant that kills them. Three raw transcripts, no prose:
+  (a) the full suite under the mutant WITHOUT your test, invoked the way CI invokes it
+  (green — that is the hole); (b) your test module alone under the mutant WITH your
+  test (your test red); (c) one full-suite run per reply with every mutant reverted,
+  invoked the way CI invokes it (all green, and its executed-test count includes your
+  tests — proof CI collects them). Leg (c) is shared by every criterion in the reply. A
+  test that supplies the input it is testing cannot discover that production does not:
+  one leg runs the shipped artifact with nothing exported. Deletion and type-shape
+  criteria take no legs: `grep -c` and a green build are their evidence. The legs are
+  reply evidence: never commit a mutation harness, runner, or gate unless your brief's
+  criteria name one.
 - A claim travels with its evidence or it is not a claim. "Verified in-file", "the edit
   landed", "the mutant was red" carry the raw hunk or `git show <hash>:<path> | md5sum`.
   The orchestrator measures these itself; a claim that fails its measurement costs a
@@ -46,7 +50,7 @@ work will be adversarially reviewed by two oracles; write for that gate.
   for serves a path you can show never executes, stop and message the orchestrator with
   the trace before building it.
 - Verify with the scoped commands your brief lists before reporting; skip project-wide
-  formatters/linters/suites — the orchestrator runs those at integration.
+  formatters and linters. The full suite runs only for legs (a) and (c).
 - Commit with the identity your brief specifies. NEVER push, NEVER merge, NEVER touch
   branches outside your slice. Reply with the final commit hash plus the evidence your
   brief asks for (tables, transcripts, probe output).

@@ -5,11 +5,11 @@ description: Use when driving a multi-issue development round with parallel suba
 
 # Oracle-Gated Rounds
 
-One round = a set of beads driven to dual-APPROVE through parallel worktree slices,
-merged into a feature branch, composition-reviewed, polished, and left PR-ready. You
-orchestrate: map, scope, dispatch, arbitrate, integrate, polish, report. Roles never
-blur: you write no feature code, implementers never self-review, oracles never fix. You
-NEVER open the PR, merge to main, or close beads.
+One round = a set of beads driven to APPROVE by every seat their tier names, through
+parallel worktree slices, merged into a feature branch, composition-reviewed, polished,
+and left PR-ready. You orchestrate: map, scope, dispatch, arbitrate, integrate, polish,
+report. Roles never blur: you write no feature code, implementers never self-review,
+oracles never fix. You NEVER open the PR, merge to main, or close beads.
 
 ## Round lifecycle
 
@@ -30,9 +30,11 @@ NEVER open the PR, merge to main, or close beads.
    - **Shared substrate is wave 0**: implement, gate, merge, then fan out.
    - **Concurrent seams** get a `skill://interface-contract` record with its rejected
      alternative and one owning slice; consumers may not widen it.
-3a. **Premortem** (`skill://premortem`, one `agent: "oracle"` seat) when a trigger in
-    that skill holds; otherwise record the triggers checked. Rule every PLAN-BLOCKING
-    item before step 4.
+   - **Tier every slice** (Light / Standard / Heavy, table under Oracle tasking) by its
+     mechanical trigger. The tier sets the slice's gates; record it in the slice map.
+3a. **Premortem** (`skill://premortem`) when a trigger in that skill holds; otherwise
+    record the triggers checked. Its families run as parallel `agent: "oracle"` seats
+    per that skill. Rule every PLAN-BLOCKING item before step 4.
 4. **Branch + worktrees.** Feature branch off main; one branch + worktree per slice
    under `../<repo>-wt/`. The user's main checkout is touched only by `bd`. Mark beads
    in_progress.
@@ -41,13 +43,13 @@ NEVER open the PR, merge to main, or close beads.
    and follow the brief contract: bead IDs, file ownership and non-goals, worktree +
    scratch path + kernel, the module-map entry and seam contracts, criteria as
    properties with their mutants.
-6. **Gate each finished slice with two differently tasked oracles** (`agent: "oracle"`,
-   table below), spawned the moment it finishes; never one review for both. The verdict
-   contract — `Coverage:` line, out-of-band matrix, `SCOPE:` list — lives in the
+6. **Gate each finished slice with the seats its tier names** (`agent: "oracle"`,
+   tables below), spawned the moment it finishes; two seats are never one review. The
+   verdict contract — `Coverage:` line, out-of-band matrix, `SCOPE:` list — lives in the
    `oracle` def; an APPROVE without its matrix goes back. Read a matrix only to reconcile
    a split verdict. Record each seat's resolved model with its verdict line.
 7. **Drive fix loops.** REJECT → ONE consolidated fix list in brief-contract form,
-   carrying both seats' blockers with their probe evidence and stating whether they
+   carrying every seat's blockers with their probe evidence and stating whether they
    expose a brief gap (your defect). Rule every `SCOPE:` item first. Nits batch with the
    approval, non-gating. Fix lists go to `agent: "implementer-max"` in the slice's
    worktree. Run the judge lints (below) on every fix list before sending it and on
@@ -60,8 +62,8 @@ NEVER open the PR, merge to main, or close beads.
      matrix rows on touched files, and its families on the fix diff. Full re-review only
      when the fix rewrites the slice.
    - **An APPROVE binds a hash.** It carries past the paired seat's fix iff that diff
-     misses its matrix files; otherwise the seat delta re-probes. Merge needs both
-     APPROVEs on the merged hash.
+     misses its matrix files; otherwise the seat delta re-probes. Merge needs every
+     tier seat's APPROVE on the merged hash.
    - **Contract escalation.** An implementer reporting a seam contract as wrong is your
      defect: revise the record, re-issue it to owner and consumers, note it on the
      owning bead. Never let one side adapt around it.
@@ -83,10 +85,10 @@ NEVER open the PR, merge to main, or close beads.
      Each ruling buys one fix round. implementer-max drawing 2 consecutive REJECTs →
      pull the slice, file the evidence on the bead, escalate to the user. "One more
      round" without a recorded triage is a violation.
-8. **Merge + integrate.** Both APPROVEs → merge. Cross-branch integration is yours:
-   minimal, with diff scope + LOC recorded, since no slice oracle saw it. After the last
-   merge: full gate (build, lint, complete suite) plus a hand smoke test of the composed
-   surfaces.
+8. **Merge + integrate.** Every tier seat APPROVEs → merge. Cross-branch integration is
+   yours: minimal, with diff scope + LOC recorded, since no slice oracle saw it. After
+   the last merge: full gate (build, lint, complete suite) plus a hand smoke test of the
+   composed surfaces.
 9. **Gate the composition** with one oracle (brief below). A blocker in one slice's
    files → that slice's implementer, re-merge; across slices or in your glue → one
    integration implementer owning exactly the seam files. Re-probe, then re-run the step
@@ -98,12 +100,22 @@ NEVER open the PR, merge to main, or close beads.
     PR-ready tip is the post-polish commit.
 11. **Stop at PR-ready**: gate green on the polished tip, slice worktrees and branches
     removed, feature branch pushed. Report: branch + tip; module map and deviations;
-    premortem verdict and rulings (or triggers checked); every verdict line verbatim
-    with its seat's model; fix-round counts and triage rulings; `history://` links to
-    raw oracle transcripts; glue scope + LOC; merged-state verification; polish evidence
-    (pre-polish hash, compactor gate per file, docs revised, commands re-run); follow-up
-    beads; draft PR title + body. Record outcomes and findings on each bead and refresh
-    its notes for the landing session.
+    premortem verdict and rulings (or triggers checked); slice tiers; every verdict line
+    verbatim with its seat's model; fix-round counts and triage rulings; `history://`
+    links to raw oracle transcripts; glue scope + LOC; merged-state verification; polish
+    evidence (pre-polish hash, compactor gate per file, docs revised, commands re-run);
+    wall time per phase (premortem, each slice's first commit, first verdicts, each fix
+    round, composition, polish); follow-up beads; draft PR title + body. Record outcomes
+    and findings on each bead and refresh its notes for the landing session.
+
+## Outcome ledger
+
+Pre-merge gates are proxies; what escapes them is the only measure of which gates pay.
+Label every round bead `round:<round-id>`. When a defect is later filed against code a
+round shipped, label the new bead `escaped-from:<round-id>` and name in its body the
+gate that should have caught it (brief, premortem, seat A, seat B, composition, polish)
+or "none could have". Change a gate's cost only with this ledger and the step 11
+wall-time line as evidence.
 
 ## Brief contract
 
@@ -121,8 +133,11 @@ you will misattribute to the implementer.
    mechanism, name the observation the old one made that the new one must keep.
 3. **Every defended property names its mutant**, one per property — default: delete the
    line the fix adds; for defaults and unset variables: run the shipped artifact with
-   nothing exported. The implementer returns the three raw legs its def specifies,
-   invoked as CI invokes the suite. The legs are reply evidence; a harness, runner, or
+   nothing exported. The implementer returns the three raw legs its def specifies: (a)
+   full suite under the mutant without the test, (b) the test's module alone with it,
+   (c) one shared full suite with every mutant reverted, both full runs invoked as CI
+   invokes the suite. Deletion and type-shape criteria take `grep -c` plus a green build
+   instead of legs. The legs are reply evidence; a harness, runner, or
    gate ships only when a criterion names it. Leg (a) already red means the test is
    redundant. A mutant green in the suite while the shipped artifact dies means the
    suite supplies an input production does not: require a leg that runs the artifact
@@ -165,8 +180,17 @@ nothing becomes round work unless it blocks a criterion a round bead already car
 
 ## Oracle tasking
 
-Two seats per slice, tasked to fail for different reasons: same-brief pairs find the
-same defects.
+Seats are tasked to fail for different reasons: same-brief pairs find the same defects.
+
+| Tier | Mechanical trigger (touched paths and state, not judgment) | Seats |
+|---|---|---|
+| Light | Rename, dead-code deletion, dedup, docs, refactor whose behavior existing tests already pin | One: seat B |
+| Standard | Any behavior change not Heavy | Seat A + seat B |
+| Heavy | Persistent state, auth or money, activation ordering, rollout or migration, irreversible steps, cross-repo | Seat A + seat B; premortem runs |
+
+Any seat whose probe hits a higher tier's trigger REJECTs with `re-tier` as its blocker;
+the slice restarts at step 6 under the new tier. Misfiling down is silent, so the
+arbiter or user audits tiers with the plan.
 
 | Slice type | Seat A | Seat B |
 |---|---|---|
@@ -191,10 +215,12 @@ premise that no longer holds, is BLOCKING.
 
 By cost of silent failure: oracles strongest available, with generous time budgets — a
 false APPROVE is invisible; implementers mid-tier for first implementation — their
-failures surface as REJECTs; fix rounds on `implementer-max` (step 7); scouts and
-mechanical edits cheap. The defs (`oracle`, `implementer`, `implementer-max`,
-`architect`) live in `~/.omp/agent/agents/`, managed by nixos-config. If one is missing,
-restore it — NEVER substitute `task`.
+failures surface as REJECTs; fix rounds on `implementer-max`, bound to `@AUGUR`: an
+oracle-class model from a different family than `@ORACLE`, so the fixer and its
+re-reviewer never share blind spots; scouts and mechanical edits cheap. The defs
+(`oracle`, `implementer`, `implementer-max`, `architect`) live in
+`~/.omp/agent/agents/`, managed by nixos-config. If one is missing, restore it — NEVER
+substitute `task`.
 
 ## Judge lints
 

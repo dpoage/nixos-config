@@ -17,8 +17,13 @@ branch, and the PR is opened only on explicit user instruction.
 
 | Round character | Topology | Why |
 |---|---|---|
-| Mechanical, proven-process lanes: bug clusters, release plumbing, perf, robustness | Arbiter + architect | Process is codified; checkpoints catch slicing errors; arbiter context stays reserved for judgment |
-| Design-heavy or taste-bearing: epics, product semantics (defaults, verb taxonomy, taught surfaces), evidence interpretation (audits) | Direct `oracle-rounds` | Value comes from reading raw oracle evidence and redirecting mid-flight; an architect either escalates constantly or decides alone |
+| An epic of several rounds in proven-process lanes: bug clusters, release plumbing, perf, robustness | Arbiter + architect | The arbiter's context spans the rounds; checkpoints catch slicing errors; judgment stays with the arbiter |
+| A single round, or design-heavy and taste-bearing work: product semantics (defaults, verb taxonomy, taught surfaces), evidence interpretation (audits) | Direct `oracle-rounds` | One round gains nothing from a second orchestration layer; taste-bearing value comes from reading raw oracle evidence and redirecting mid-flight |
+
+Every layer is a handoff that loses context, and the arbiter's review of oracle evidence
+is a third look by the same model family at the same probes. The arbiter earns its
+place by ruling — scope, necessity, product questions, tiers — not by re-deriving what
+the oracles executed.
 
 Multiple architects may run concurrently only on fully disjoint lanes (different
 subsystems, different beads, no shared files).
@@ -71,6 +76,9 @@ per PLAN-BLOCKING item — or the triggers it checked and why none holds. Arbite
   executed probes with isolation stated, not family names. Every PLAN-BLOCKING item
   carries a ruling — plan revised, or a probe showing it does not hold. An unruled item
   or a thin matrix bounces CP1.
+- Every slice carries a tier (`oracle-rounds` Oracle tasking) whose trigger matches its
+  file-ownership map by path and state. A slice touching persistent state, auth, money,
+  activation, or an irreversible step filed below Heavy bounces CP1.
 - The slicing is the module map, not the bead list: one slice per module (or coherent
   set with one owner); slice count ≤ modules the map says should exist. A round sliced
   one-per-bead with no map is bounced — that is architecture by ticket.
@@ -96,35 +104,23 @@ per PLAN-BLOCKING item — or the triggers it checked and why none holds. Arbite
 **CP2 — merge authorization, when all slice oracles have returned.** Architect sends:
 per-slice verdict lines quoted with each oracle's `Coverage:` line, fix-round history,
 every seam-contract revision made mid-round (who escalated, what changed, which slices
-were re-issued), `history://` links to the RAW oracle transcripts (summaries are not
-evidence), and its integration plan. Arbiter audits:
-- Every APPROVE has a coverage line and a probe matrix behind it (`local://oracle-*`).
-  Open at least one matrix per slice: rows are executed probes with observed results,
-  not family names; an APPROVE whose matrix is thin for the slice's unit shape (an
-  adapter with no sibling rows, a guard with no input matrix) is bounced for re-probe.
-- Every REJECT was re-approved by the rejecting oracle after its own re-probes — read
-  that re-review transcript to its final `VERDICT:` line.
-- Sample at least one raw transcript per slice; challenge evidence gaps (a scenario that
-  baseline already passes demonstrates nothing — demand the discriminating test by name,
-  proven failing against main).
-- Contract revisions were ruled by the architect and re-issued to BOTH sides, not
-  absorbed by one implementer; a slice whose transcript shows adapter code at a seam
-  with no matching revision is bounced to the composition oracle's attention.
-- Rule on any reported deviation explicitly: accepted-with-rationale or bounced.
-- Every new test arrived with its mutant: three raw legs — mutant without the test,
-  green; mutant with it, only that leg red; mutant reverted, all green — each invoked
-  the way CI invokes the suite. A mutant claim in prose has not been shown to
-  discriminate.
-- Measure, do not accept. For any claim that an edit landed, run `git show
-  <hash>:<path> | md5sum` yourself across the lineage before spending a re-review on it.
-- Every `SCOPE:` item the oracles raised carries a recorded ruling. An unruled necessity
-  finding means an implementer may have spent rounds hardening what the round should
-  have cut.
-- Every slice to be merged holds both seats' APPROVE on its merge hash — carried because
-  the paired fix diff missed that seat's matrix files, or re-probed — and each verdict
-  line names the seat's resolved model.
-- Every slice that drew 2 consecutive REJECTs from one seat has a recorded triage class
-  and ruling before its next fix round; a third round with none is a violation.
+were re-issued), `history://` links to the RAW oracle transcripts, and its integration
+plan. CP2 is a ledger check, not a re-review: the oracles executed the probes, and your
+re-reading them adds a correlated look, not evidence. Arbiter audits:
+- Every slice to be merged holds an APPROVE from each seat its tier names, bound to its
+  merge hash (carried because the paired fix diff missed that seat's matrix files, or
+  re-probed), each with a `Coverage:` line, a matrix file, and the seat's resolved
+  model.
+- Every REJECT ends in an APPROVE from the same seat: its re-review transcript's final
+  line is `VERDICT: APPROVE`.
+- Every `SCOPE:` item carries a recorded ruling; every slice with 2 consecutive REJECTs
+  from one seat has a recorded triage class and ruling before its next fix round.
+- Every contract revision was re-issued to BOTH sides.
+- Every reported deviation has your explicit ruling: accepted-with-rationale or bounced.
+- One sample per round, slice chosen at random: open its matrices and its raw
+  transcript. Rows must be executed probes with observed results, not family names; the
+  motivating scenario must fail on base; each new test's legs are raw transcripts. A
+  failed sample bounces that slice for re-probe and opens a second sample.
 Authorization covers merging slices into the feature branch, integration glue, and the
 composition oracle + any integration fix round it triggers — nothing beyond.
 
@@ -157,16 +153,18 @@ instruction.
 ## Arbiter conduct
 
 - Default to acting on evidence, not re-doing the work: your interventions belong at
-  gates and escalations. If you find yourself dispatching implementers, you have silently
-  reverted to direct mode — decide that explicitly instead.
+  rulings, gates, and escalations. If you find yourself dispatching implementers or
+  re-running probes an oracle already ran, you have silently reverted to direct mode —
+  decide that explicitly instead.
 - Record every deviation and its ruling in the round summary; self-reported deviations
   that survive oracle re-review are normally accepted (honesty is the load-bearing part).
 - Your rulings are claims. Declining to act ("the other gate already covers that class")
   is a testable hypothesis: probe it, or state it as unprobed. The evidence rule that
   binds implementers binds hardest at the top, where no gate sits above it.
 - Known failure modes to watch: information loss (curated summaries hide process
-  softness — hence raw transcripts at CP2), late failure detection (outcome audits catch
-  botched rounds only after the fact — hence hard gates at plan, merge, and report), and
-  contract drift one level down (hence deviation reporting as a standing obligation).
+  softness — hence the CP2 random sample of raw transcripts), late failure detection
+  (hence hard gates at plan, merge, and report, and the `oracle-rounds` outcome ledger),
+  and contract drift one level down (hence deviation reporting as a standing
+  obligation).
 - The architect's report must reconcile with your own audit point-for-point before you
   declare the round complete.

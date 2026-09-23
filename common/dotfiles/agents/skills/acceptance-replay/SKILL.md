@@ -29,9 +29,10 @@ build and run in scratch copies.
    green; name the discriminating observation and run that instead.
 4. **Forensics on "already fixed" and "regression test added".** Prove the broken state
    existed at filing (base build), name the fixing commit, and run the mutant yourself:
-   under the mutant with the new test REMOVED the suite must be green — that is the hole
-   the test fills — and with it back, only that leg red. Invoke the suite the way CI
-   invokes it, not the way the implementer invoked it: a mutant green in the harness
+   under the mutant with the new test REMOVED the full suite must be green — that is the
+   hole the test fills — and with it back, the new test's module alone goes red. Invoke
+   the full suite the way CI invokes it, not the way the implementer invoked it, and
+   confirm its executed-test count includes the new test: a mutant green in the harness
    while the shipped artifact dies means the test supplies an input production does not.
    A regression test that passes under the mutant discriminates nothing.
 5. **Adversarial input on every destructive or irreversible path** the change touches:

@@ -13,10 +13,10 @@
 #   ARCHITECT   — strong; failures are visible at arbiter checkpoints
 #   IMPLEMENTER — mid-tier; brief quality substitutes for model strength
 modelRoles:
-  ORACLE: anthropic/claude-opus-5:max
-  AUGUR: zai/glm-5.3:max
-  ARCHITECT: anthropic/claude-fable-5:high
-  IMPLEMENTER: zai/glm-5.3-flash
+  ORACLE: anthropic/claude-opus-5-5:auto
+  AUGUR: zai/glm-5.3:auto
+  ARCHITECT: anthropic/claude-fable-5-1:auto
+  IMPLEMENTER: zai/glm-5.3-flash:auto
 
 # Soft per-subagent request budget; force-stop at 1.5x. The default 200/300
 # is too low for architects, which run a whole round. omp has no per-agent

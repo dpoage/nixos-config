@@ -1,9 +1,9 @@
-# OMP model-role overlay — loaded via PI_CONFIG_FILES (see common/home/dotfiles.nix).
+# OMP settings overlay — loaded via PI_CONFIG_FILES (see common/home/dotfiles.nix).
 #
 # This is the read-only overlay layer: it overrides the writable global
-# ~/.omp/agent/config.yml per-key, so ONLY the roles named here are pinned.
-# /model Roles-view edits to these keys will NOT take effect while the
-# overlay is active — edit this file (and rebuild) instead. Project
+# ~/.omp/agent/config.yml per-key, so ONLY the keys set here are pinned.
+# /model Roles-view and /settings edits to these keys will NOT take effect
+# while the overlay is active — edit this file (and rebuild) instead. Project
 # .omp/config.yml may still define additional roles (e.g. MUSICIAN).
 #
 # Role contract (oracle-rounds / arbiter-architect skills):
@@ -17,3 +17,9 @@ modelRoles:
   AUGUR: zai/glm-5.3:max
   ARCHITECT: anthropic/claude-fable-5:high
   IMPLEMENTER: zai/glm-5.3-flash
+
+# Soft per-subagent request budget; force-stop at 1.5x. The default 200/300
+# is too low for architects, which run a whole round. omp has no per-agent
+# override (scout/sonic stay capped at 100 internally), so this is global.
+task:
+  softRequestBudget: 600

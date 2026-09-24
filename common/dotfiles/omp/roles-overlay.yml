@@ -12,11 +12,23 @@
 #                 fixes ORACLE re-reviews, so reviewer and fixer never share blind spots
 #   ARCHITECT   — strong; failures are visible at arbiter checkpoints
 #   IMPLEMENTER — mid-tier; brief quality substitutes for model strength
+#
+# Fallbacks (retry.fallbackChains) engage only when the primary keeps failing
+# (429s, quota walls, outages); bare entries inherit the failing turn's effort.
+# AUGUR falls back to the ORACLE model, which suspends the cross-family
+# guarantee for the fix rounds that run on it.
 modelRoles:
   ORACLE: anthropic/claude-opus-5-5:auto
   AUGUR: zai/glm-5.3:auto
   ARCHITECT: anthropic/claude-fable-5-1:auto
   IMPLEMENTER: zai/glm-5.3-flash:auto
+
+retry:
+  fallbackChains:
+    AUGUR:
+      - anthropic/claude-opus-5-5
+    IMPLEMENTER:
+      - anthropic/claude-sonnet-5
 
 # Soft per-subagent request budget; force-stop at 1.5x. The default 200/300
 # is too low for architects, which run a whole round. omp has no per-agent

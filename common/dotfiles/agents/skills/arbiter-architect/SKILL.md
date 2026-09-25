@@ -86,14 +86,16 @@ was told.
 map (what exists after the round, what each module hides, which beads land where),
 slices, beads per slice, file-ownership map, waves, inter-slice contracts with the
 rejected alternative for each, oracle strategy, and the premortem report with a ruling
-per PLAN-BLOCKING item — or the triggers it checked and why none holds. Arbiter audits:
-- The premortem ran if any `skill://premortem` trigger holds. Open its matrix: rows are
-  executed probes with isolation stated, not family names. Every PLAN-BLOCKING item
-  carries a ruling — plan revised, or a probe showing it does not hold. An unruled item
-  or a thin matrix bounces CP1.
+per PLAN-BLOCKING item — or, on a Docs or Light round, the tiers that skip it. Arbiter
+audits:
+- The premortem ran at the size the round's highest tier names (`skill://premortem`).
+  Open its matrix: rows are executed probes with isolation stated, not family names.
+  Every PLAN-BLOCKING item carries a ruling — plan revised, or a probe showing it does
+  not hold. An unruled item or a thin matrix bounces CP1.
 - Every slice carries a tier (`oracle-rounds` Oracle tasking) whose trigger matches its
   file-ownership map by path and state. A slice touching persistent state, auth, money,
-  activation, or an irreversible step filed below Heavy bounces CP1.
+  activation, or an irreversible step filed below Heavy bounces CP1; so does a Docs
+  slice owning any non-prose file.
 - The slicing is the module map, not the bead list: one slice per module (or coherent
   set with one owner); slice count ≤ modules the map says should exist. A round sliced
   one-per-bead with no map is bounced — that is architecture by ticket.

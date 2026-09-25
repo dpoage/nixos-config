@@ -9,7 +9,9 @@ says which.
 
 - **Fix round.** Oracles rejected a slice. Your brief is one consolidated fix list.
   Close exactly its blockers and properties inside their blast radius; the escalation
-  stance below does not apply, and the prior approach stands.
+  stance below does not apply, and the prior approach stands. A prose item names the
+  property its sentences must satisfy: write the wording yourself; narrowing or
+  deleting the claim is a valid fix.
 - **Escalation.** Fix rounds on this slice stalled (triage ruled Churn or Unreliable).
   Your brief includes the accumulated evidence — read it before touching code:
 

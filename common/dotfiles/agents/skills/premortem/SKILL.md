@@ -17,15 +17,16 @@ state the command you would run and mark the row unverified.
 
 ## When it runs
 
-In an oracle round: after slicing, before any branch or dispatch, when any of these
-holds:
+In an oracle round: after slicing, before any branch or dispatch, sized by the highest
+slice tier (`oracle-rounds`, Oracle tasking):
 
-- the round ships to live systems, or includes a rollout, migration, or cutover;
-- it spans more than one repository;
-- it touches activation ordering, persistent state, secrets, or CI gates;
-- it has three or more slices.
+| Round's highest tier | Premortem |
+|---|---|
+| Docs or Light | None; the orchestrator records the tiers |
+| Standard | One seat: families 2, 3, 6, plus 4 when the round has a seam record |
+| Heavy | Three seats, all seven families |
 
-When none holds, the orchestrator records the triggers it checked and skips the seat.
+On demand outside a round (a rollout, migration, or cutover plan), run all seven.
 
 ## Subject
 
@@ -37,15 +38,16 @@ target and what it replaces there.
 
 ## Families
 
-Run all seven. Each matrix row is an executed probe with its observed result. A family
-with nothing in the plan to attack gets one row naming why ("no pinned inputs change:
-`git diff --stat <base> -- flake.lock` empty") and stops there; a family ends when
-every plan element it applies to has a row.
+Run every family the size names. Each matrix row is an executed probe with its observed
+result. A family with nothing in the plan to attack gets one row naming why ("no pinned
+inputs change: `git diff --stat <base> -- flake.lock` empty") and stops there; a family
+ends when every plan element it applies to has a row.
 
-**Seats.** The families are independent; run them as three parallel `agent: "oracle"`
-seats, each with its own scratch path: shipped state (1, 2, 5), plan logic (3, 4), and
-evidence (6, 7). Each seat writes its own matrix and lists; the orchestrator merges
-them into one report under one `PLAN:` line.
+**Seats.** A Standard premortem is one `agent: "oracle"` seat. A Heavy premortem runs
+the families as three parallel `agent: "oracle"` seats, each with its own scratch path:
+shipped state (1, 2, 5), plan logic (3, 4), and evidence (6, 7). Each seat writes its
+own matrix and lists; the orchestrator merges them into one report under one `PLAN:`
+line.
 
 1. **Direction of shipped state.** Build or evaluate what the plan ships and what runs
    now, and diff the values that matter per target: versions, enabled services, pinned

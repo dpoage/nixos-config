@@ -33,11 +33,12 @@ epic run directly exhausts this session's context within a few rounds.
    - **Shared substrate is wave 0**: implement, gate, merge, then fan out.
    - **Concurrent seams** get a `skill://interface-contract` record with its rejected
      alternative and one owning slice; consumers may not widen it.
-   - **Tier every slice** (Light / Standard / Heavy, table under Oracle tasking) by its
-     mechanical trigger. The tier sets the slice's gates; record it in the slice map.
-3a. **Premortem** (`skill://premortem`) when a trigger in that skill holds; otherwise
-    record the triggers checked. Its families run as parallel `agent: "oracle"` seats
-    per that skill. Rule every PLAN-BLOCKING item before step 4.
+   - **Tier every slice** (Docs / Light / Standard / Heavy, table under Oracle tasking)
+     by its mechanical trigger. The tier sets the slice's gates; record it in the slice
+     map.
+3a. **Premortem** (`skill://premortem`) at the size the round's highest slice tier
+    names: none for a Docs or Light round, one seat for Standard, three for Heavy. Rule
+    every PLAN-BLOCKING item before step 4.
 4. **Branch + worktrees.** Feature branch off main; one branch + worktree per slice
    under `../<repo>-wt/`. The user's main checkout is touched only by `bd`. Mark beads
    in_progress.
@@ -54,16 +55,18 @@ epic run directly exhausts this session's context within a few rounds.
 7. **Drive fix loops.** REJECT → ONE consolidated fix list in brief-contract form,
    carrying every seat's blockers with their probe evidence and stating whether they
    expose a brief gap (your defect). Rule every `SCOPE:` item first. Nits batch with the
-   approval, non-gating. Fix lists go to `agent: "implementer-max"` in the slice's
-   worktree. Run the judge lints (below) on every fix list before sending it and on
-   every reply before measuring it.
+   approval, non-gating; prose nits skip the implementer and go to the step 10 polish
+   list. Fix lists go to `agent: "implementer-max"` in the slice's worktree. Run the
+   judge lints (below) on every fix list before sending it and on every reply before
+   measuring it.
    - **Audit the fix before any oracle** (brief rule 5). Bounce it without review if
      `git diff -U0 <prev>..<new>` changes lines outside the blast radius, `--stat` lacks
      a file the reply claims, or the diff adds a runner, harness, gate, or CI wiring no
      criterion names.
    - **Re-review is delta-scoped.** The REJECTING seat re-probes its blocker rows, its
-     matrix rows on touched files, and its families on the fix diff. Full re-review only
-     when the fix rewrites the slice.
+     matrix rows on touched files, and its families on the fix diff. A fix diff that
+     touches only prose re-probes the blocker rows alone. Full re-review only when the
+     fix rewrites the slice.
    - **An APPROVE binds a hash.** It carries past the paired seat's fix iff that diff
      misses its matrix files; otherwise the seat delta re-probes. Merge needs every
      tier seat's APPROVE on the merged hash.
@@ -97,16 +100,17 @@ epic run directly exhausts this session's context within a few rounds.
    integration implementer owning exactly the seam files. Re-probe, then re-run the step
    8 gate.
 10. **Polish.** After composition APPROVE: `skill://comment-compactor` over touched
-    source, then `skill://doc-writer` over touched or now-stale prose, scoped by
-    `git diff --name-only main...<feature>`. Comment- and prose-only; a code defect found
-    here is a fix round through its slice's REJECTING seat. Re-run the gate; the
-    PR-ready tip is the post-polish commit.
+    source, then `skill://doc-writer` over touched or now-stale prose plus every prose
+    nit the seats carried, scoped by `git diff --name-only main...<feature>`. Comment-
+    and prose-only; a code defect found here is a fix round through its slice's
+    REJECTING seat. Re-run the gate; the PR-ready tip is the post-polish commit.
 11. **Stop at PR-ready**: gate green on the polished tip, slice worktrees and branches
     removed, feature branch pushed. Report: branch + tip; module map and deviations;
-    premortem verdict and rulings (or triggers checked); slice tiers; every verdict line
-    verbatim with its seat's model; fix-round counts and triage rulings; `history://`
-    links to raw oracle transcripts; glue scope + LOC; merged-state verification; polish
-    evidence (pre-polish hash, compactor gate per file, docs revised, commands re-run);
+    premortem size, verdict, and rulings (or the tier that skipped it); slice tiers;
+    every verdict line verbatim with its seat's model; fix-round counts and triage
+    rulings; `history://` links to raw oracle transcripts; glue scope + LOC;
+    merged-state verification; polish evidence (pre-polish hash, compactor gate per
+    file, docs revised, commands re-run);
     wall time per phase (premortem, each slice's first commit, first verdicts, each fix
     round, composition, polish); follow-up beads; draft PR title + body. Record outcomes
     and findings on each bead and refresh its notes for the landing session.
@@ -140,11 +144,11 @@ you will misattribute to the implementer.
    full suite under the mutant without the test, (b) the test's module alone with it,
    (c) one shared full suite with every mutant reverted, both full runs invoked as CI
    invokes the suite. Deletion and type-shape criteria take `grep -c` plus a green build
-   instead of legs. The legs are reply evidence; a harness, runner, or
-   gate ships only when a criterion names it. Leg (a) already red means the test is
-   redundant. A mutant green in the suite while the shipped artifact dies means the
-   suite supplies an input production does not: require a leg that runs the artifact
-   with nothing supplied.
+   instead of legs; Docs-tier criteria take the doc-truth probe instead. The legs are
+   reply evidence; a harness, runner, or gate ships only when a criterion names it. Leg
+   (a) already red means the test is redundant. A mutant green in the suite while the
+   shipped artifact dies means the suite supplies an input production does not: require
+   a leg that runs the artifact with nothing supplied.
 4. **Verify the gate before buying coverage.** Before any brief requires tests, run the
    suite as CI does: nonzero executed-test count, and a deliberate break fails the
    required check.
@@ -156,7 +160,9 @@ you will misattribute to the implementer.
 6. **Relay the finding, never the explanation.** A verdict's observed behavior and its
    command are evidence; its causal story is not. Never paste a causal sentence into a
    fix list as required wording; require the fix round to evidence any mechanism it
-   states.
+   states. A prose blocker travels as the property its sentences must satisfy plus the
+   falsifying probe, never as replacement text — the oracle's or yours: the implementer
+   writes the words, and narrowing or deleting the claim always satisfies it.
 7. **Name the place.** Every parallel worker gets its own worktree, scratch dir, and
    interpreter kernel, named in its brief.
 
@@ -187,13 +193,19 @@ Seats are tasked to fail for different reasons: same-brief pairs find the same d
 
 | Tier | Mechanical trigger (touched paths and state, not judgment) | Seats |
 |---|---|---|
-| Light | Rename, dead-code deletion, dedup, docs, refactor whose behavior existing tests already pin | One: seat B |
+| Docs | Diff touches only prose: docs, changelog, help text, comments, content copy. Research or audit docs are Standard | One: doc truth |
+| Light | Rename, dead-code deletion, dedup, refactor whose behavior existing tests already pin | One: seat B |
 | Standard | Any behavior change not Heavy | Seat A + seat B |
-| Heavy | Persistent state, auth or money, activation ordering, rollout or migration, irreversible steps, cross-repo | Seat A + seat B; premortem runs |
+| Heavy | Persistent state, auth or money, activation ordering, rollout or migration, irreversible steps, cross-repo | Seat A + seat B |
 
-Any seat whose probe hits a higher tier's trigger REJECTs with `re-tier` as its blocker;
-the slice restarts at step 6 under the new tier. Misfiling down is silent, so the
-arbiter or user audits tiers with the plan.
+The round's highest tier sizes the premortem (step 3a). Any seat whose probe hits a
+higher tier's trigger REJECTs with `re-tier` as its blocker; the slice restarts at step 6
+under the new tier. Misfiling down is silent, so the arbiter or user audits tiers with
+the plan.
+
+**Doc-truth seat (Docs tier).** `skill://acceptance-replay` step 6 on the sentences the
+diff adds or changes, plus `skill://bug-hunt` family 7; blockers only under the `oracle`
+def's prose rule. No design review, no mutant legs, no second seat.
 
 | Slice type | Seat A | Seat B |
 |---|---|---|
@@ -211,8 +223,8 @@ glue diff, the premortem report. Task: `skill://design-review` on the composed d
 (where duplicate helpers, shallow seams, and seam adapters surface), plus **boundary
 fidelity** — every boundary not in the map, every map boundary that didn't land; **glue
 gating** — the glue reviewed as feature code; **premise fidelity** — each premortem
-premise re-probed on the merged branch. A boundary the records say should not exist, or a
-premise that no longer holds, is BLOCKING.
+premise re-probed on the merged branch (none on a Docs or Light round). A boundary the
+records say should not exist, or a premise that no longer holds, is BLOCKING.
 
 ## Capability allocation
 
@@ -236,6 +248,6 @@ never skip an oracle or block a dispatch.
 | Every brief, before dispatch | For each installed skill: "A coding agent received this message. Should it load the skill '<name>' before acting? The skill's trigger: <its description>" | ≥ 0.8 | Name `skill://<name>` in the brief unless it already does; subagents start blank |
 | Every brief and fix list, before dispatch | "This text is one unit of instructions sent to a coding implementer. Does it assert why something happens or how a system behaves internally (a mechanism, cause, or factual claim about system behaviour) as established fact, without quoting in this same text the command or probe output that establishes it?" | ≥ 0.85 | Probe it and quote the output, or cut to the observed behaviour (brief rule 6) |
 | Every implementer reply, before measuring | "This text is one unit of a status report a coding implementer sent its orchestrator. Does it claim an edit landed, a test or mutant passed or failed, or something was verified, WITHOUT including raw evidence for that claim in this text — no command with its output, no diff hunk, no checksum, no quoted test output?" | ≥ 0.7 | Measure these claims first (brief rule 5); each that fails counts toward *Unreliable* |
-| Every REJECT, per blocker | choice over PRODUCT / TEST_MACHINERY / PROSE: "What does the BLOCKER UNDER JUDGMENT concern?" | confidence ≥ 0.8, else classify yourself | Track the share per round; a rising non-product share is the *Overscope* signal |
+| Every REJECT, per blocker | choice over PRODUCT / TEST_MACHINERY / PROSE: "What does the BLOCKER UNDER JUDGMENT concern?" | confidence ≥ 0.8, else classify yourself | Track the share per round; a rising non-product share is the *Overscope* signal. A PROSE blocker whose required fix quotes replacement text goes out as its property (brief rule 6) |
 
 Add no other judge lints. Blocker provenance is `git diff` hunk intersection.

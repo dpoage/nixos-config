@@ -41,7 +41,8 @@ build and run in scratch copies.
    reading the guard.
 6. **Docs state binary truth.** Run every published example, command, and flag in
    changed docs verbatim against the reviewed build; verify every stated default by
-   probe. A doc-vs-binary mismatch is BLOCKING even when the code is right.
+   probe. A mismatch in a sentence the diff adds or changes is BLOCKING even when the
+   code is right; class and required fix follow the `oracle` def's prose rule.
 7. **Gate honesty.** A check the change marks skipped, expected-fail, or "known red" is
    not green. Run it; if it fails, the fix is a hermetic pin (stub network and heavy
    dependencies) that keeps coverage, not documentation of the red. A pin is a test, not
@@ -53,5 +54,5 @@ build and run in scratch copies.
 Per the `oracle` def: itemized BLOCKING with file:line and probe evidence, nits
 separate, probe matrix out of band. The matrix rows here are: criterion or claim,
 build (base / reviewed), command, observed result. Base-passes-what-the-change-claims
-and doc-vs-binary mismatch are always BLOCKING; unverifiable criteria are BLOCKING as
-brief defects.
+and doc-vs-binary mismatch under the prose rule are always BLOCKING; unverifiable
+criteria are BLOCKING as brief defects.

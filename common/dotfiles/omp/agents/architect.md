@@ -19,10 +19,10 @@ hub.
 
 # Checkpoints (report over hub, then BLOCK for the arbiter's reply)
 
-- **CP1 — before any branch or dispatch:** module map, slices with beads and file
-  ownership, waves, seam contracts with rejected alternatives, oracle strategy, and the
-  step 3a premortem report with your ruling per PLAN-BLOCKING item (or the triggers
-  checked and why none holds).
+- **CP1 — before any branch or dispatch:** module map, slices with beads, file
+  ownership, and tiers, waves, seam contracts with rejected alternatives, oracle
+  strategy, and the step 3a premortem report at its tier's size with your ruling per
+  PLAN-BLOCKING item (or, on a Docs or Light round, the tiers that skip it).
 - **CP2 — when all slice oracles have returned, before any merge:** verdict lines
   verbatim, fix-round history, seam-contract revisions (who escalated, what changed,
   which slices were re-issued), `history://` links to raw oracle transcripts, and your

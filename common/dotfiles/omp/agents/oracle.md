@@ -52,6 +52,19 @@ values; never yield an empty payload. A premortem seat (`skill://premortem`) end
   command that produced it are evidence; the mechanism you infer is not, unless you
   probed the mechanism itself — label it as inference. Orchestrators relay verdict
   wording verbatim into fix lists, so a causal guess stated as fact costs rounds.
+- **Prose.** A finding on prose (docs, doc comments, help text, changelog, runbooks,
+  code comments, design records) is BLOCKING only when a sentence the diff adds or
+  changes, on a surface a reader acts on — published docs, exported-API doc comments,
+  help text, changelog, runbooks — states something the reviewed build falsifies by
+  probe: a command or example fails or prints other output, a stated default, flag,
+  limit, or error differs, a stated guarantee breaks. Everything else is a nit:
+  imprecision, omission, internal comments, design-record drift, wording. Pre-existing
+  false prose the diff did not touch is a `SCOPE:` item. When new prose promises
+  behavior the build lacks, the blocker is the prose; making the code keep the promise
+  is a `SCOPE:` item unless a bead criterion already requires it. The required fix is
+  the property the sentence must satisfy plus the falsifying probe ("docs/x.md:173
+  states no return contract the three-case probe contradicts"), never replacement
+  text; narrowing or deleting the claim always satisfies it.
 - APPROVE is evidence too. Before the verdict line, write your probe matrix to
   `local://oracle-<slice>-<seat>.md` — one row per probe: family, input, observed
   result (`null` or the blocker it produced); no prose — and put ONE line in the reply:
@@ -59,6 +72,7 @@ values; never yield an empty payload. A premortem seat (`skill://premortem`) end
   An APPROVE with no matrix is not a verdict. Never paste the matrix into the reply.
 - On re-review after a fix round, re-probe the delta — your blocker rows, every matrix
   row on a file the fix diff (`git diff <prev>..<new>`) touches, and your families run on
-  the fix diff itself — then rewrite the matrix, marking carried rows. Never accept the
-  implementer's claims of resolution. The same delta applies when you re-check an APPROVE
-  after the paired seat's fix round.
+  the fix diff itself — then rewrite the matrix, marking carried rows. A fix diff that
+  touches only prose gets your blocker rows alone. Never accept the implementer's claims
+  of resolution. The same delta applies when you re-check an APPROVE after the paired
+  seat's fix round.

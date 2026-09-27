@@ -30,6 +30,9 @@ modelRoles:
   # Reject-only pre-screen: never approves, so a cheap model is safe. MiniMax has
   # idle quota; GLM is the fallback because its quota already runs out.
   PRESCREEN: minimax-code/MiniMax-M3:high
+  # Fan-out sweepers an oracle spawns per unit x bug family; leads only, the
+  # oracle re-runs every candidate. High fan-out, so the cheapest capable model.
+  SWEEP: minimax-code/MiniMax-M3:medium
 
 # Main-session default; raise per session with /thinking when a task needs it.
 defaultThinkingLevel: medium
@@ -42,6 +45,7 @@ retry:
       - anthropic/claude-sonnet-5
     PRESCREEN:
       - zai/glm-5.3
+    SWEEP: []
 
 # Soft per-subagent request budget; force-stop at 1.5x. The default 200/300
 # is too low for architects, which run a whole round. omp has no per-agent

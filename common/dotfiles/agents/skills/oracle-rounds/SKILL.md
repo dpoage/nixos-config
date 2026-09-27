@@ -243,11 +243,12 @@ By cost of silent failure: oracles strongest available, with generous time budge
 false APPROVE is invisible; implementers mid-tier for first implementation — their
 failures surface as REJECTs; fix rounds on `implementer-max`, bound to `@AUGUR`: an
 oracle-class model from a different family than `@ORACLE`, so the fixer and its
-re-reviewer never share blind spots; the pre-screen, scouts, and mechanical edits cheap —
-the pre-screen is safe on a cheap model only because it can never approve. The defs
-(`oracle`, `prescreen`, `implementer`, `implementer-max`, `architect`) live in
-`~/.omp/agent/agents/`, managed by nixos-config. If one is missing, restore it — NEVER
-substitute `task`.
+re-reviewer never share blind spots; the pre-screen, scouts, sweepers, and mechanical
+edits cheap — each is safe on a cheap model only because none can approve: the
+pre-screen only rejects, and scout maps and sweeper candidates are leads the oracle
+re-probes. The defs (`oracle`, `prescreen`, `sweeper`, `implementer`,
+`implementer-max`, `architect`) live in `~/.omp/agent/agents/`, managed by
+nixos-config. If one is missing, restore it — NEVER substitute `task`.
 
 ## Judge lints
 

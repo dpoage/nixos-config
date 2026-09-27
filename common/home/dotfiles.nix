@@ -41,6 +41,8 @@
     ../dotfiles/omp/agents/implementer-max.md;
   home.file.".omp/agent/agents/prescreen.md".source =
     ../dotfiles/omp/agents/prescreen.md;
+  home.file.".omp/agent/agents/sweeper.md".source =
+    ../dotfiles/omp/agents/sweeper.md;
 
   # OMP model-role overlay: read-only layer over ~/.omp/agent/config.yml.
   # PI_CONFIG_FILES makes omp load it; per-key override, strict parse.

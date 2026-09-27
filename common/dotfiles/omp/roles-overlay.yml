@@ -12,6 +12,7 @@
 #                 fixes ORACLE re-reviews, so reviewer and fixer never share blind spots
 #   ARCHITECT   — strong; failures are visible at arbiter checkpoints
 #   IMPLEMENTER — mid-tier; brief quality substitutes for model strength
+#   PRESCREEN   — cheap; reject-only on reproduced command failures, never approves
 #
 # Fallbacks (retry.fallbackChains) engage only when the primary keeps failing
 # (429s, quota walls, outages); bare entries inherit the failing turn's effort.
@@ -26,6 +27,9 @@ modelRoles:
   AUGUR: zai/glm-5.3:high
   ARCHITECT: anthropic/claude-opus-5-5:medium
   IMPLEMENTER: zai/glm-5.3:high
+  # Reject-only pre-screen: never approves, so a cheap model is safe. MiniMax has
+  # idle quota; GLM is the fallback because its quota already runs out.
+  PRESCREEN: minimax-code/MiniMax-M3:high
 
 # Main-session default; raise per session with /thinking when a task needs it.
 defaultThinkingLevel: medium
@@ -36,9 +40,14 @@ retry:
       - anthropic/claude-opus-5-5
     IMPLEMENTER:
       - anthropic/claude-sonnet-5
+    PRESCREEN:
+      - zai/glm-5.3
 
 # Soft per-subagent request budget; force-stop at 1.5x. The default 200/300
 # is too low for architects, which run a whole round. omp has no per-agent
 # override (scout/sonic stay capped at 100 internally), so this is global.
 task:
   softRequestBudget: 600
+  # arbiter (0) -> architect (1) -> oracle (2) -> scout (3): the default cap of 2
+  # strips `task` from oracles under an architect, so they could not spawn scouts.
+  maxRecursionDepth: 3

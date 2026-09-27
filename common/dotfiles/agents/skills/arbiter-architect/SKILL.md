@@ -54,6 +54,7 @@ Rank by **cost of silent failure** — spend model strength where failure is inv
 | Architect | Strong — its leverage is oracle-brief quality and honest synthesis | Its failures (bad slicing, soft briefs, drift) are VISIBLE at checkpoints; the gate structure is its safety net |
 | Implementers | Mid-tier; detailed self-contained briefs substitute for strength | Their errors are what oracles exist to catch; too weak just churns fix rounds |
 | implementer-max | `@AUGUR`: oracle-class, different model family from `@ORACLE` — every fix round, and the escalation; never the initial dispatch | Fix rounds are where collateral edits and false claims concentrate; a fixer from the reviewer's family shares its blind spots and draws its self-preference |
+| Pre-screen, scouts | Cheap (`@PRESCREEN`, `@smol`) | Neither can approve: the pre-screen rejects only on a reproduced command failure, and a scout's map is a lead list the oracle re-probes. A cheap verifier is unsafe only where its PASS counts |
 
 The architect def pins this ordering into its charter; keep it that way — the tempting
 default (strongest model architects, cheaper models review) is exactly backwards: it

@@ -52,6 +52,15 @@ epic run directly exhausts this session's context within a few rounds.
    verdict contract — `Coverage:` line, out-of-band matrix, `SCOPE:` list — lives in the
    `oracle` def; an APPROVE without its matrix goes back. Read a matrix only to reconcile
    a split verdict. Record each seat's resolved model with its verdict line.
+   - **Pre-screen first (Standard and Heavy; trial).** Before the seats, spawn one
+     `agent: "prescreen"` with the base and tip hashes, the ownership list, the CI
+     commands, and the criterion legs. It can only REJECT, and only on a reproduced
+     command failure or an ownership violation. Re-run each `BLOCKING:` command
+     yourself (brief rule 5): reproduced → it becomes the fix list, no seats spawn;
+     not reproduced → record the pre-screen REJECT as overturned and spawn the seats.
+     A PASS gates nothing. Its `LEADS:` go to seat A's brief labeled unverified; seat B
+     never sees them. A slice re-entering step 6 after a fix round is pre-screened again
+     only if the prior pre-screen rejected it.
 7. **Drive fix loops.** REJECT → ONE consolidated fix list in brief-contract form,
    carrying every seat's blockers with their probe evidence and stating whether they
    expose a brief gap (your defect). Rule every `SCOPE:` item first. Nits batch with the
@@ -107,7 +116,9 @@ epic run directly exhausts this session's context within a few rounds.
 11. **Stop at PR-ready**: gate green on the polished tip, slice worktrees and branches
     removed, feature branch pushed. Report: branch + tip; module map and deviations;
     premortem size, verdict, and rulings (or the tier that skipped it); slice tiers;
-    every verdict line verbatim with its seat's model; fix-round counts and triage
+    every verdict line verbatim with its seat's model; pre-screen tally (REJECTs,
+    REJECTs you overturned, PASSes a seat then rejected on a mechanical failure the
+    pre-screen should have run); fix-round counts and triage
     rulings; `history://` links to raw oracle transcripts; glue scope + LOC;
     merged-state verification; polish evidence (pre-polish hash, compactor gate per
     file, docs revised, commands re-run);
@@ -232,8 +243,9 @@ By cost of silent failure: oracles strongest available, with generous time budge
 false APPROVE is invisible; implementers mid-tier for first implementation — their
 failures surface as REJECTs; fix rounds on `implementer-max`, bound to `@AUGUR`: an
 oracle-class model from a different family than `@ORACLE`, so the fixer and its
-re-reviewer never share blind spots; scouts and mechanical edits cheap. The defs
-(`oracle`, `implementer`, `implementer-max`, `architect`) live in
+re-reviewer never share blind spots; the pre-screen, scouts, and mechanical edits cheap —
+the pre-screen is safe on a cheap model only because it can never approve. The defs
+(`oracle`, `prescreen`, `implementer`, `implementer-max`, `architect`) live in
 `~/.omp/agent/agents/`, managed by nixos-config. If one is missing, restore it — NEVER
 substitute `task`.
 

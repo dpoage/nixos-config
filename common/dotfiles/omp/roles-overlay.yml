@@ -17,11 +17,18 @@
 # (429s, quota walls, outages); bare entries inherit the failing turn's effort.
 # AUGUR falls back to the ORACLE model, which suspends the cross-family
 # guarantee for the fix rounds that run on it.
+#
+# Thinking levels are fixed, not `auto`: auto resolved to xhigh on ~70% of
+# turns and providers.autoThinkingMaxEffort cannot go below xhigh. GLM-5.3's
+# ladder is low/high/max (no medium), so its roles pin high.
 modelRoles:
-  ORACLE: anthropic/claude-opus-5-5:auto
-  AUGUR: zai/glm-5.3:auto
-  ARCHITECT: anthropic/claude-opus-5-5:auto
-  IMPLEMENTER: zai/glm-5.3:auto
+  ORACLE: anthropic/claude-opus-5-5:high
+  AUGUR: zai/glm-5.3:high
+  ARCHITECT: anthropic/claude-opus-5-5:medium
+  IMPLEMENTER: zai/glm-5.3:high
+
+# Main-session default; raise per session with /thinking when a task needs it.
+defaultThinkingLevel: medium
 
 retry:
   fallbackChains:

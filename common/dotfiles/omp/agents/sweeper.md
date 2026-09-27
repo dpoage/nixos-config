@@ -1,6 +1,6 @@
 ---
 name: sweeper
-description: Cheap fan-out worker for an oracle. Map shape — answer one location question (call sites across repos, inventories, where a value flows) with file:line hits. Sweep shape — one unit × one bug-hunt family, at most three candidate findings with a runnable probe and tip/base output. Everything it returns is a lead the oracle re-probes, never a verdict.
+description: Cheap fan-out worker for an oracle (map or sweep) or a fix-round implementer (map only). Map shape — answer one location question (call sites across repos, inventories, where a value flows) with file:line hits. Sweep shape — one unit × one bug-hunt family, at most three candidate findings with a runnable probe and tip/base output. Everything it returns is a lead the spawner verifies, never a verdict.
 model: "@SWEEP"
 output:
   type: object

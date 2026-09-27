@@ -52,6 +52,6 @@ retry:
 # override (scout/sonic stay capped at 100 internally), so this is global.
 task:
   softRequestBudget: 600
-  # arbiter (0) -> architect (1) -> oracle (2) -> scout (3): the default cap of 2
-  # strips `task` from oracles under an architect, so they could not spawn scouts.
+  # arbiter (0) -> architect (1) -> oracle (2) -> sweeper (3): the default cap of 2
+  # strips `task` from oracles under an architect, so they could not spawn sweepers.
   maxRecursionDepth: 3

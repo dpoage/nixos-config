@@ -20,8 +20,8 @@
 modelRoles:
   ORACLE: anthropic/claude-opus-5-5:auto
   AUGUR: zai/glm-5.3:auto
-  ARCHITECT: anthropic/claude-fable-5-1:auto
-  IMPLEMENTER: zai/glm-5.3-flash:auto
+  ARCHITECT: anthropic/claude-opus-5-5:auto
+  IMPLEMENTER: zai/glm-5.3:auto
 
 retry:
   fallbackChains:

@@ -24,18 +24,34 @@ epic run directly exhausts this session's context within a few rounds.
    moves gets the five-part record as `--design` on its owning bead; otherwise one
    paragraph on the parent bead ("no new boundaries; X, Y land in M").
 3. **Slice by module ownership** (Conway). One slice = one module from the map, or a
-   coherent set with one owner; never one slice per bead; slice count ≤ modules. One
-   implementer does a slice's beads serially. Write the file-ownership map and check
-   disjointness by file and pipeline stage, not intent: two slices editing one
-   function's stage ("different lines") are one slice, and ordering between two
-   features in one code path has one owner. A disjointness failure means the map is
-   wrong; fix the map, never split a file.
+   coherent set with one owner; never one slice per bead; slice count ≤ modules, plus
+   the change-kind splits below. One implementer does a slice's beads serially. Write
+   the file-ownership map and check disjointness by file and pipeline stage, not
+   intent: two slices editing one function's stage ("different lines") are one slice,
+   and ordering between two features in one code path has one owner. A disjointness
+   failure means the map is wrong; fix the map, never split a file.
    - **Shared substrate is wave 0**: implement, gate, merge, then fan out.
    - **Concurrent seams** get a `skill://interface-contract` record with its rejected
      alternative and one owning slice; consumers may not widen it.
    - **Tier every slice** (Docs / Light / Standard / Heavy, table under Oracle tasking)
      by its mechanical trigger. The tier sets the slice's gates; record it in the slice
      map.
+   - **Split a module by change kind.** Three kinds of change go into separate slices, run
+     in sequence on one module and each gated before the next branches:
+     - preserve: behavior and assertions stay the same. The harness may change (a test
+       moves to a new call surface); the reply shows the assertion diff against base is
+       empty. Its tier is Light unless its paths hit a Heavy trigger;
+     - a change to what existing tests assert, each change traced to a named property;
+     - new behavior that hits the Heavy trigger.
+
+     A slice that preserves behavior and changes it on the same tests has no working
+     oracle for the refactor. Moving base tests to a new call surface is preserve work;
+     a feature slice moves none. Prose findings from an earlier slice's seats go to the
+     step 10 polish list, never into a feature slice's properties. Provisional caps,
+     pending outcome-ledger evidence: split any slice that carries more than one
+     Heavy-trigger bead or more than five properties. (d52-r2 S2 combined all three
+     kinds, plus renaming and 13 carried doc findings: 3 beads, 8 properties, 61 base
+     tests moved, one Heavy slice.)
 3a. **Premortem** (`skill://premortem`) at the size the round's highest slice tier
     names: none for a Docs or Light round, one seat for Standard, three for Heavy. Rule
     every PLAN-BLOCKING item before step 4.

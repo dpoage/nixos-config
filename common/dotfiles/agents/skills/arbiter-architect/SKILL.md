@@ -98,8 +98,19 @@ audits:
   activation, or an irreversible step filed below Heavy bounces CP1; so does a Docs
   slice owning any non-prose file.
 - The slicing is the module map, not the bead list: one slice per module (or coherent
-  set with one owner); slice count ≤ modules the map says should exist. A round sliced
-  one-per-bead with no map is bounced — that is architecture by ticket.
+  set with one owner); slice count ≤ modules the map says should exist, plus change-kind
+  splits. A round sliced one-per-bead with no map is bounced — that is architecture by
+  ticket.
+- No slice mixes change kinds (`oracle-rounds` step 3). For each slice, count its beads,
+  properties, and base tests it moves to a new call surface, and name what kind of
+  change each property makes: preserve, changed assertion, or new Heavy behavior. Bounce
+  the slice if a preserve property and a changed-assertion property run on the same
+  tests, if a feature slice moves base tests, or if it inherits another slice's prose
+  findings as properties. Also bounce on the provisional caps (more than one
+  Heavy-trigger bead, more than five properties) until the outcome ledger confirms or
+  revises them. The module rule alone lets an oversized slice through CP1. Its cost
+  then shows up late: long implementer runs, REJECTs with mixed causes, and fix rounds
+  that touch everything.
 - Disjointness is real (same file + same pipeline stage = one slice; "different lines" is
   not disjointness) — and a disjointness failure was fixed by changing the map, not by
   splitting a file between slices.

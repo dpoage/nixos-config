@@ -18,7 +18,7 @@ state the command you would run and mark the row unverified.
 ## When it runs
 
 In an oracle round: after slicing, before any branch or dispatch, sized by the highest
-slice tier (`oracle-rounds`, Oracle tasking):
+slice tier (`oracle-rounds` procedure, Tiers and seats):
 
 | Round's highest tier | Premortem |
 |---|---|

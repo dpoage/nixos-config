@@ -11,6 +11,10 @@
     ../dotfiles/agents/skills/arbiter-architect/SKILL.md;
   home.file.".agents/skills/oracle-rounds/SKILL.md".source =
     ../dotfiles/agents/skills/oracle-rounds/SKILL.md;
+  home.file.".agents/skills/oracle-rounds/procedure.md".source =
+    ../dotfiles/agents/skills/oracle-rounds/procedure.md;
+  home.file.".agents/skills/oracle-rounds/casebook.md".source =
+    ../dotfiles/agents/skills/oracle-rounds/casebook.md;
   home.file.".agents/skills/doc-writer/SKILL.md".source =
     ../dotfiles/agents/skills/doc-writer/SKILL.md;
   home.file.".agents/skills/comment-compactor/SKILL.md".source =

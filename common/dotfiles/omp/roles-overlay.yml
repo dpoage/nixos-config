@@ -42,7 +42,7 @@ retry:
     AUGUR:
       - anthropic/claude-opus-5-5
     IMPLEMENTER:
-      - anthropic/claude-sonnet-5
+      - anthropic/claude-sonnet-5-5
     PRESCREEN:
       - zai/glm-5.3
     SWEEP: []

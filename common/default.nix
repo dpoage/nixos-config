@@ -183,6 +183,15 @@
   services.tailscale.enable = true;
   networking.firewall.trustedInterfaces = [ "tailscale0" ];
 
+  # Without resolved, tailscaled runs in openresolv mode: it owns
+  # /etc/resolv.conf (100.100.100.100) and snapshots NetworkManager's upstream
+  # servers from resolvconf on each link change. After a resume/roam it can
+  # snapshot before NM has pushed the new lease's DNS, and nothing re-triggers
+  # it, so every non-tailnet query SERVFAILs ("no upstream resolvers set")
+  # while IP routing works. With resolved, tailscale only sets DNS on
+  # tailscale0 and resolved reads NM's per-link servers live — no snapshot.
+  services.resolved.enable = true;
+
   # Services
   services.printing.enable = true;
   services.openssh = {

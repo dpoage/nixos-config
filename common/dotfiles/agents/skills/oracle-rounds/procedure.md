@@ -7,7 +7,8 @@ rules; a step here never overrides a rule. Rule numbers (R1–R9) refer to `SKIL
 
 1. **Scope.** Run `bd ready` from the main checkout and `bd show` every candidate. Fold
    each dependency chain into its blocker's slice. The bead list fixed here is the
-   round's scope (R2).
+   round's scope (R2). Start the round's handoff file (`skill://handoff`) and keep it
+   current for the whole round.
 2. **Module map** (`skill://module-design`). Write what modules exist after the round,
    what each hides, its interface, and which beads land where. A boundary the round adds
    or moves gets the five-part record as `--design` on its owning bead. Otherwise, write

@@ -15,6 +15,8 @@
     ../dotfiles/agents/skills/oracle-rounds/procedure.md;
   home.file.".agents/skills/oracle-rounds/casebook.md".source =
     ../dotfiles/agents/skills/oracle-rounds/casebook.md;
+  home.file.".agents/skills/handoff/SKILL.md".source =
+    ../dotfiles/agents/skills/handoff/SKILL.md;
   home.file.".agents/skills/doc-writer/SKILL.md".source =
     ../dotfiles/agents/skills/doc-writer/SKILL.md;
   home.file.".agents/skills/comment-compactor/SKILL.md".source =

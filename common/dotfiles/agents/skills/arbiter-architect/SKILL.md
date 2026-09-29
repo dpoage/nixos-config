@@ -138,6 +138,9 @@ the user the PR-ready branch and the draft PR text.
   needs more, ask the architect over the hub.
 - Record every deviation and its ruling in the round summary. Normally accept a
   self-reported deviation that survives oracle re-review.
+- Keep the epic's handoff file (`skill://handoff`). List each running architect and the
+  path of its round's handoff file under Agents. After an interruption, run the resume
+  protocol before you message any architect.
 - Your rulings are claims (R5). "The other gate already covers that class" is a
   hypothesis: probe it, or state it as unprobed.
 - Watch three failure modes. Curated summaries hide process softness; the CP2 sample

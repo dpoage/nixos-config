@@ -38,9 +38,19 @@ in
       type = lib.types.listOf lib.types.str;
       default = [ ];
       description = ''
-        Additional groups beyond the baseline (networkmanager, wheel, video,
-        audio, input, render). Profiles can append here: Nix merges list
-        options across modules.
+        Additional groups beyond the baseline (networkmanager, video, audio,
+        render; plus wheel and input when `admin` is true). Profiles can
+        append here: Nix merges list options across modules.
+      '';
+    };
+
+    admin = lib.mkOption {
+      type = lib.types.bool;
+      default = true;
+      description = ''
+        Whether the primary user administers the machine (wheel). When
+        false, the user also loses `input`: raw /dev/input access would let
+        the session log whatever admin password is typed into it.
       '';
     };
 
@@ -68,7 +78,10 @@ in
     users.users.${cfg.name} = {
       isNormalUser = true;
       description = cfg.fullName;
-      extraGroups = [ "networkmanager" "wheel" "video" "audio" "input" "render" ] ++ cfg.extraGroups;
+      extraGroups =
+        [ "networkmanager" "video" "audio" "render" ]
+        ++ lib.optionals cfg.admin [ "wheel" "input" ]
+        ++ cfg.extraGroups;
       packages = cfg.extraPackages;
       shell = cfg.shell;
     };

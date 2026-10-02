@@ -1,14 +1,14 @@
 # SOC2 + Cyber Essentials compliance stack (Pattern requirement), gated
 # behind myCompliance feature flags so only work hosts carry it — tunguska
-# never sees the Drata agent, clamd's ~1.2G resident signature DB, or the
-# Bitwarden desktop app. profiles/work.nix flips the master switch;
-# per-component flags exist to turn one piece off without losing the rest.
+# never sees the Drata agent, clamd's ~1.2G resident signature DB, the
+# Bitwarden desktop app, or root-only administration. profiles/work.nix
+# flips the master switch; per-component flags exist to turn one piece off
+# without losing the rest.
 #
 # Not gated here: screen lock (compositor-gated in home/lock.nix), the
 # firewall/auto-upgrades (baseline for every host in ./default.nix),
 # "no inbound connections" (sshd and tailnet trust exist only in
-# profiles/personal.nix), and admin elevation (wheel + password-prompting
-# sudo, the NixOS default).
+# profiles/personal.nix).
 
 { config, lib, pkgs, ... }:
 
@@ -17,7 +17,7 @@ let
 in
 {
   options.myCompliance = {
-    enable = lib.mkEnableOption "the compliance stack (Drata agent, ClamAV, Bitwarden)";
+    enable = lib.mkEnableOption "the compliance stack (Drata agent, ClamAV, Bitwarden, root-only administration)";
 
     drataAgent = lib.mkOption {
       type = lib.types.bool;
@@ -36,12 +36,41 @@ in
       default = true;
       description = "Bitwarden desktop app (Pattern's approved password manager).";
     };
+
+    rootAdmin = lib.mkOption {
+      type = lib.types.bool;
+      default = true;
+      description = ''
+        Cyber Essentials user-access control: the daily user is not in
+        wheel; administration elevates straight to root (run0, su, polkit
+        prompts) with root's own password, sops-encrypted at
+        secrets/root-password.
+      '';
+    };
   };
 
   config = lib.mkIf cfg.enable {
     myUser.extraPackages =
       lib.optional cfg.drataAgent pkgs.drata-agent
       ++ lib.optional cfg.passwordManager pkgs.bitwarden-desktop;
+
+    # Cyber Essentials: root is the separate admin account, behind a password
+    # distinct from the daily user's. neededForUsers decrypts before user
+    # setup, so root's password is never left unset. Create/rotate with:
+    #   mkpasswd -m yescrypt | sops encrypt --filename-override \
+    #     secrets/root-password --input-type binary --output-type binary \
+    #     /dev/stdin > secrets/root-password
+    sops.secrets."root-password" = lib.mkIf cfg.rootAdmin {
+      sopsFile = ../secrets/root-password;
+      format = "binary";
+      neededForUsers = true;
+    };
+    users.users.root.hashedPasswordFile =
+      lib.mkIf cfg.rootAdmin config.sops.secrets."root-password".path;
+    myUser.admin = !cfg.rootAdmin;
+    # wheel is empty, so polkit's default admin identity (unix-group:wheel)
+    # would leave run0 and graphical prompts with nobody to authenticate as.
+    security.polkit.adminIdentities = lib.mkIf cfg.rootAdmin [ "unix-user:root" ];
 
     # Drata agent autostart: tray app collecting SOC2 evidence; must run for
     # the whole graphical session. hm's hyprland module (systemd.enable

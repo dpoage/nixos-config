@@ -3,10 +3,10 @@
 # frame: disk encryption, anti-malware, automatic updates, admin accounts,
 # password manager, and firewall. Drata's Linux agent cannot auto-detect these
 # on NixOS (see overlays/drata-agent.nix header), so evidence is a terminal
-# screenshot uploaded in myDrata. Run with sudo (luksDump + iptables need
-# root):
+# screenshot uploaded in myDrata. Needs root (luksDump + iptables); the daily
+# user is not in wheel, so run0 prompts for root's own password:
 #
-#   sudo tools/soc2-evidence.sh
+#   run0 tools/soc2-evidence.sh
 #
 # Then screenshot the frame and upload it under each evidence request.
 set -euo pipefail
@@ -29,8 +29,9 @@ nixos-version
 systemctl list-timers nixos-upgrade.timer --no-pager | sed -n '1,2p'
 systemctl show nixos-upgrade.service -p Result -p ExecMainExitTimestamp
 
-section "Administrator accounts (wheel)"
+section "Administrator accounts (wheel empty; polkit admin is root)"
 getent group wheel
+grep -h addAdminRule -A2 /etc/polkit-1/rules.d/*.rules
 
 section "Password manager (Bitwarden)"
 # Store path embeds the package version: …-bitwarden-desktop-<ver>/bin/bitwarden

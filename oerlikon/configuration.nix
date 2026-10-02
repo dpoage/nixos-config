@@ -15,6 +15,12 @@
   # dance the first rebuild after a reinstall needs).
   pattern.enable = true;
 
+  # Since kernel 6.18, alienware-wmi exposes this Alienware's thermal modes as
+  # platform_profile, and its "performance" mode pins both fans at full boost
+  # even when idle. laptop.nix's PLATFORM_PROFILE_ON_AC = "performance" was a
+  # no-op under 6.12; on 6.18 it means constant max fans, so stay on balanced.
+  services.tlp.settings.PLATFORM_PROFILE_ON_AC = "balanced";
+
   myUser = {
     name = "dpoage";
     fullName = "Dustin";

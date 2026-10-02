@@ -90,7 +90,6 @@ in
       };
 
       dwindle = {
-        pseudotile = true;
         preserve_split = true;
       };
 
@@ -125,7 +124,7 @@ in
         "$mod SHIFT, F, fullscreen, 0"
         "$mod, V, togglefloating"
         "$mod, P, pseudo"
-        "$mod, S, togglesplit"
+        "$mod, S, layoutmsg, togglesplit"
 
         # Focus (vim keys)
         "$mod, H, movefocus, l"

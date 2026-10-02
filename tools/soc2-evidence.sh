@@ -3,10 +3,10 @@
 # frame: disk encryption, anti-malware, automatic updates, admin accounts,
 # password manager, and firewall. Drata's Linux agent cannot auto-detect these
 # on NixOS (see overlays/drata-agent.nix header), so evidence is a terminal
-# screenshot uploaded in myDrata. Needs root (luksDump + iptables); the daily
-# user is not in wheel, so run0 prompts for the admin account's password:
+# screenshot uploaded in myDrata. Run with sudo (luksDump + iptables need
+# root):
 #
-#   run0 tools/soc2-evidence.sh
+#   sudo tools/soc2-evidence.sh
 #
 # Then screenshot the frame and upload it under each evidence request.
 set -euo pipefail

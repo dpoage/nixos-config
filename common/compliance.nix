@@ -1,14 +1,14 @@
 # SOC2 + Cyber Essentials compliance stack (Pattern requirement), gated
 # behind myCompliance feature flags so only work hosts carry it — tunguska
-# never sees the Drata agent, clamd's ~1.2G resident signature DB, the
-# Bitwarden desktop app, or the admin-account split. profiles/work.nix flips
-# the master switch; per-component flags exist to turn one piece off without
-# losing the rest.
+# never sees the Drata agent, clamd's ~1.2G resident signature DB, or the
+# Bitwarden desktop app. profiles/work.nix flips the master switch;
+# per-component flags exist to turn one piece off without losing the rest.
 #
 # Not gated here: screen lock (compositor-gated in home/lock.nix), the
-# firewall/auto-upgrades (baseline for every host in ./default.nix), and
+# firewall/auto-upgrades (baseline for every host in ./default.nix),
 # "no inbound connections" (sshd and tailnet trust exist only in
-# profiles/personal.nix).
+# profiles/personal.nix), and admin elevation (wheel + password-prompting
+# sudo, the NixOS default).
 
 { config, lib, pkgs, ... }:
 
@@ -17,7 +17,7 @@ let
 in
 {
   options.myCompliance = {
-    enable = lib.mkEnableOption "the compliance stack (Drata agent, ClamAV, Bitwarden, separate admin account)";
+    enable = lib.mkEnableOption "the compliance stack (Drata agent, ClamAV, Bitwarden)";
 
     drataAgent = lib.mkOption {
       type = lib.types.bool;
@@ -36,37 +36,12 @@ in
       default = true;
       description = "Bitwarden desktop app (Pattern's approved password manager).";
     };
-
-    separateAdmin = lib.mkOption {
-      type = lib.types.bool;
-      default = true;
-      description = ''
-        Cyber Essentials user-access control: the daily user is not an
-        administrator; root goes through a separate `<user>-admin` account
-        whose password hash is sops-encrypted at secrets/admin-password.
-      '';
-    };
   };
 
   config = lib.mkIf cfg.enable {
     myUser.extraPackages =
       lib.optional cfg.drataAgent pkgs.drata-agent
       ++ lib.optional cfg.passwordManager pkgs.bitwarden-desktop;
-
-    # Cyber Essentials: admin rights behind a separate account + password.
-    # neededForUsers decrypts before user creation, so the admin account
-    # never exists without its password. Create/rotate the secret with:
-    #   mkpasswd -m yescrypt | sops encrypt --filename-override \
-    #     secrets/admin-password --input-type binary --output-type binary \
-    #     /dev/stdin > secrets/admin-password
-    sops.secrets."admin-password" = lib.mkIf cfg.separateAdmin {
-      sopsFile = ../secrets/admin-password;
-      format = "binary";
-      neededForUsers = true;
-    };
-    myUser.admin = !cfg.separateAdmin;
-    myUser.adminHashedPasswordFile =
-      lib.mkIf cfg.separateAdmin config.sops.secrets."admin-password".path;
 
     # Drata agent autostart: tray app collecting SOC2 evidence; must run for
     # the whole graphical session. hm's hyprland module (systemd.enable

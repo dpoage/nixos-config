@@ -24,6 +24,7 @@
         imports = [
           ../common/home
           ./monitors.nix
+          ./bazel-prune.nix
         ];
 
         # Bazel's output base defaults to ~/.cache/bazel and grows into the

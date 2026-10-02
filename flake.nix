@@ -2,12 +2,12 @@
   description = "NixOS configuration for my computers :)";
 
   inputs = {
-    nixpkgs.url = "github:nixos/nixpkgs/nixos-25.11";
+    nixpkgs.url = "github:nixos/nixpkgs/nixos-26.05";
     nixpkgs-unstable.url = "github:nixos/nixpkgs/nixos-unstable";
     nixos-hardware.url = "github:nixos/nixos-hardware/master";
-    nixvim.url = "github:nix-community/nixvim/nixos-25.11";
+    nixvim.url = "github:nix-community/nixvim/nixos-26.05";
     home-manager = {
-      url = "github:nix-community/home-manager/release-25.11";
+      url = "github:nix-community/home-manager/release-26.05";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     nix-index-database = {
@@ -63,6 +63,14 @@
         inputs.sops-nix.nixosModules.sops
         { home-manager.sharedModules = [ nix-index-database.homeModules.nix-index ]; }
         { nixpkgs.overlays = [ overlay ]; }
+        # Keep every input's source alive as long as the generation is: the
+        # unattended root upgrade (common/default.nix) cannot refetch the
+        # git+ssh pattern-cli input once nix.gc has collected it.
+        {
+          system.extraDependencies = map (i: i.outPath) (
+            builtins.attrValues (builtins.removeAttrs inputs [ "self" ])
+          );
+        }
         ./common
       ];
 

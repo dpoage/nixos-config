@@ -1,4 +1,4 @@
-{ lib, pkgs, ... }:
+{ config, lib, pkgs, ... }:
 
 {
   imports = [
@@ -70,7 +70,7 @@
     git
     htop
     btop
-    neofetch
+    fastfetch
     tree
     ripgrep
     fd
@@ -92,7 +92,6 @@
     kitty
 
     # Development tools
-    podman
     lazygit
     opencode
     bun
@@ -179,9 +178,9 @@
   # QMK/Keychron udev rules (allow flashing without root)
   hardware.keyboard.qmk.enable = true;
 
-  # Tailscale
+  # Tailscale (outbound client; inbound trust on the tailnet is a per-profile
+  # choice — see profiles/personal.nix)
   services.tailscale.enable = true;
-  networking.firewall.trustedInterfaces = [ "tailscale0" ];
 
   # Without resolved, tailscaled runs in openresolv mode: it owns
   # /etc/resolv.conf (100.100.100.100) and snapshots NetworkManager's upstream
@@ -192,36 +191,27 @@
   # tailscale0 and resolved reads NM's per-link servers live — no snapshot.
   services.resolved.enable = true;
 
-  # Services
+  # Services. sshd is not baseline: inbound access is opted into per profile
+  # (profiles/personal.nix); work hosts accept no inbound connections.
   services.printing.enable = true;
-  services.openssh = {
-    enable = true;
-    settings = {
-      PasswordAuthentication = false;
-      PermitRootLogin = "no";
-    };
-  };
   services.fstrim.enable = true;
   services.fwupd.enable = true;
 
-  # Docker
-  virtualisation.docker = {
+  # Containers: rootless podman everywhere. Hosts that keep system docker
+  # (profiles/personal.nix) get the real `docker` CLI instead of the shim.
+  virtualisation.podman = {
     enable = true;
-    enableOnBoot = true;
-    # nixos-25.11's default docker package is docker_28, marked insecure
-    # (unmaintained since Nov 2025). Pin docker_29 instead.
-    package = pkgs.docker_29;
-    autoPrune = {
-      enable = true;
-      dates = "weekly";
-    };
+    dockerCompat = !config.virtualisation.docker.enable;
   };
 
-  # Firewall
-  networking.firewall = {
-    enable = true;
-    allowedTCPPorts = [ 22 ];
-  };
+  # sops-nix derives its age identity from services.openssh.hostKeys only
+  # while sshd is enabled; name the host key directly so secrets still
+  # decrypt on hosts that run no sshd.
+  sops.age.sshKeyPaths = [ "/etc/ssh/ssh_host_ed25519_key" ];
+
+  # Firewall: default deny inbound, allow outbound. Services open their own
+  # ports (e.g. services.openssh.openFirewall).
+  networking.firewall.enable = true;
 
   # Bluetooth
   hardware.bluetooth = {
@@ -242,10 +232,27 @@
     dates = "weekly";
     options = "--delete-older-than 7d";
   };
+
+  # Security patching. The flake lives in the primary user's checkout; the
+  # nixpkgs-family inputs are re-resolved to their branch heads on every run
+  # without rewriting the committed lock (root never writes into the user's
+  # repo). Other inputs stay at their locked revs — pattern-cli is git+ssh and
+  # root has no key for it, so it must come from the store (flake.nix keeps
+  # every input source alive as a system dependency).
   system.autoUpgrade = {
     enable = true;
+    flake = "/home/${config.myUser.name}/code/nixos-config#${config.networking.hostName}";
+    upgrade = false;
+    flags = [
+      "--update-input" "nixpkgs"
+      "--update-input" "nixpkgs-unstable"
+      "--update-input" "home-manager"
+      "--update-input" "nixvim"
+      "--no-write-lock-file"
+    ];
     allowReboot = false;
-    dates = "weekly";
+    dates = "daily";
+    randomizedDelaySec = "45min";
   };
 
   # Security

@@ -32,10 +32,9 @@
     slack
     signal-desktop
     telegram-desktop
-    thunderbird
 
-    # Productivity
-    libreoffice-fresh
+    # Productivity (office suites and mail clients stay web-only: every
+    # installed one is a Cyber Essentials patch-tracking item)
     obsidian
 
     # System tray utilities

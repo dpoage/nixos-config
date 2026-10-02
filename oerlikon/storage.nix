@@ -1,6 +1,6 @@
 # oerlikon has a second NVMe (1.7T, unused by the original install) that we
 # dedicate to heavy, rebuildable state so the ~1T root disk stops filling up:
-#   - docker's data-root (images, layers, volumes)
+#   - rootless podman image/layer/volume storage
 #   - bazel's output base (redirected via ~/.bazelrc in ./configuration.nix)
 { config, ... }:
 
@@ -24,15 +24,18 @@
     ACTION=="add", SUBSYSTEM=="pci", KERNEL=="0000:00:06.0", ATTR{d3cold_allowed}="0"
   '';
 
-  # Keep docker state on the big disk instead of /var/lib/docker.
-  virtualisation.docker.daemon.settings."data-root" = "/data/docker";
+  # Rootless podman storage on the big disk instead of ~/.local/share/containers.
+  # The per-user directory is created 0700 below; if /data is not mounted
+  # (nofail), the root-owned mount point is not user-writable, so podman
+  # fails loudly rather than filling the root fs.
+  virtualisation.containers.storage.settings.storage.rootless_storage_path =
+    "/data/containers/$USER";
 
-  # With nofail above, an unmounted /data would otherwise let docker silently
-  # recreate its data-root on the root fs. Fail docker loudly instead.
-  systemd.services.docker.unitConfig.RequiresMountsFor = [ "/data" ];
-
-  # User-writable home for relocated caches (bazel output base, etc.).
+  # User-writable homes for relocated caches (bazel output base, etc.) and
+  # container storage.
   systemd.tmpfiles.rules = [
     "d /data/cache 0755 ${config.myUser.name} users -"
+    "d /data/containers 0755 root root -"
+    "d /data/containers/${config.myUser.name} 0700 ${config.myUser.name} users -"
   ];
 }

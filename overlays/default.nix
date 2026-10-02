@@ -206,6 +206,9 @@ in
           "numpy"
           "prometheus-api-client"
         ];
+        # robusta_krr/utils/service_discovery.py imports cachetools, which
+        # nixpkgs' krr leaves undeclared (formerly pulled in transitively).
+        dependencies = (old.dependencies or [ ]) ++ [ prev.python3.pkgs.cachetools ];
         # Two click-8.2 fixups (krr pins typer ^0.7 / click <8.2 upstream;
         # nixpkgs relaxes those pins):
         #  - CliRunner(mix_stderr=...) was removed; stderr is separate by
@@ -229,6 +232,21 @@ in
               'prometheus_other_headers=prometheus_other_headers or [],'
         '';
       });
+
+  # hyprsplit: nixpkgs 26.05 ships the v0.54.2 tag, which fails against its
+  # Hyprland 0.55.4 (g_pConfigManager removed). Upstream main builds against
+  # 0.55; no tagged release yet. Drop once nixpkgs' hyprsplit builds again.
+  hyprlandPlugins = prev.hyprlandPlugins // {
+    hyprsplit = prev.hyprlandPlugins.hyprsplit.overrideAttrs (_: {
+      version = "0.54.3-unstable-2026-06-11";
+      src = final.fetchFromGitHub {
+        owner = "shezdy";
+        repo = "hyprsplit";
+        rev = "6b00b677d8905fb38779c91e12d6294e0e586a44";
+        hash = "sha256-PaoUtmk+qIP/ESdxkxnY7mUMpMHjix88qu22R5GLQqE=";
+      };
+    });
+  };
 
   # Unstable overrides: pin these to unstable's newer builds flake-wide.
   claude-code = unstable.claude-code;

@@ -38,9 +38,30 @@ in
       type = lib.types.listOf lib.types.str;
       default = [ ];
       description = ''
-        Additional groups beyond the baseline (networkmanager, wheel,
-        video, audio, input, docker, render). Profiles can append here:
-        Nix merges list options across modules.
+        Additional groups beyond the baseline (networkmanager, video, audio,
+        render; plus wheel and input when `admin` is true). Profiles can
+        append here: Nix merges list options across modules.
+      '';
+    };
+
+    admin = lib.mkOption {
+      type = lib.types.bool;
+      default = true;
+      description = ''
+        Whether the primary user administers the machine (wheel). When false,
+        administration moves to a separate `<name>-admin` account with its own
+        password, and the primary user also loses `input` (raw /dev/input
+        access would let it log the admin password as it is typed).
+      '';
+    };
+
+    adminHashedPasswordFile = lib.mkOption {
+      type = lib.types.nullOr lib.types.str;
+      default = null;
+      description = ''
+        File holding the `mkpasswd` hash for the `<name>-admin` account.
+        Required when `admin` is false: it is the only wheel account, so
+        creating it without a password would lock the machine.
       '';
     };
 
@@ -65,12 +86,29 @@ in
   };
 
   config = lib.mkIf (cfg.name != "") {
+    assertions = [
+      {
+        assertion = cfg.admin || cfg.adminHashedPasswordFile != null;
+        message = "myUser.admin = false requires myUser.adminHashedPasswordFile (the admin account is the only wheel member).";
+      }
+    ];
+
     users.users.${cfg.name} = {
       isNormalUser = true;
       description = cfg.fullName;
-      extraGroups = [ "networkmanager" "wheel" "video" "audio" "input" "docker" "render" ] ++ cfg.extraGroups;
+      extraGroups =
+        [ "networkmanager" "video" "audio" "render" ]
+        ++ lib.optionals cfg.admin [ "wheel" "input" ]
+        ++ cfg.extraGroups;
       packages = cfg.extraPackages;
       shell = cfg.shell;
+    };
+
+    users.users."${cfg.name}-admin" = lib.mkIf (!cfg.admin) {
+      isNormalUser = true;
+      description = "${cfg.fullName} (admin)";
+      extraGroups = [ "wheel" ];
+      hashedPasswordFile = cfg.adminHashedPasswordFile;
     };
 
     home-manager.useGlobalPkgs = true;

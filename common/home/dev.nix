@@ -197,7 +197,7 @@ in
     # the Android SDK side lives in common/react-native.nix)
     nodejs # also provides npm + npx
     typescript
-    nodePackages.typescript-language-server
+    typescript-language-server
     yarn-berry # yarn 4.x; delegates to a repo's pinned .yarn/releases via yarnPath
     watchman # metro file watcher (.watchmanconfig)
   ];

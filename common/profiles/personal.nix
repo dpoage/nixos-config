@@ -23,9 +23,31 @@
   # enabled because asusd just doesn't find a device to talk to).
   services.asusd = {
     enable = true;
-    enableUserService = true;
     package = pkgs.asusctl;
   };
+
+  # Inbound access: sshd (key-only) and the whole tailnet trusted. Work
+  # hosts get neither — they accept no inbound connections.
+  services.openssh = {
+    enable = true;
+    settings = {
+      PasswordAuthentication = false;
+      PermitRootLogin = "no";
+    };
+  };
+  networking.firewall.trustedInterfaces = [ "tailscale0" ];
+
+  # System docker (group membership is root-equivalent). Work hosts use the
+  # rootless podman from common/default.nix instead.
+  virtualisation.docker = {
+    enable = true;
+    enableOnBoot = true;
+    autoPrune = {
+      enable = true;
+      dates = "weekly";
+    };
+  };
+  myUser.extraGroups = [ "docker" ];
 
   myUser.extraPackages = with pkgs; [
     # Browsers

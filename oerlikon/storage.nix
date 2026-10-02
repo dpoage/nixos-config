@@ -25,17 +25,34 @@
   '';
 
   # Rootless podman storage on the big disk instead of ~/.local/share/containers.
-  # The per-user directory is created 0700 below; if /data is not mounted
-  # (nofail), the root-owned mount point is not user-writable, so podman
-  # fails loudly rather than filling the root fs.
   virtualisation.containers.storage.settings.storage.rootless_storage_path =
     "/data/containers/$USER";
 
-  # User-writable homes for relocated caches (bazel output base, etc.) and
-  # container storage.
+  # User-writable home for relocated caches (bazel output base, etc.).
   systemd.tmpfiles.rules = [
     "d /data/cache 0755 ${config.myUser.name} users -"
-    "d /data/containers 0755 root root -"
-    "d /data/containers/${config.myUser.name} 0700 ${config.myUser.name} users -"
   ];
+
+  # The container store is created by a unit rather than tmpfiles for two
+  # reasons:
+  #   - /data's root is owned by the user, so a root-owned /data/containers
+  #     beneath it is an "unsafe path transition" and systemd-tmpfiles refuses
+  #     to create anything inside it.
+  #   - Gated on /data being mounted: with nofail, an unmounted /data leaves
+  #     only the root-owned mount point, podman's mkdir fails loudly, and
+  #     images never land on the root fs.
+  systemd.services.podman-data-store = {
+    description = "Create rootless podman storage on /data";
+    wantedBy = [ "multi-user.target" ];
+    after = [ "data.mount" ];
+    unitConfig = {
+      RequiresMountsFor = [ "/data" ];
+      ConditionPathIsMountPoint = "/data";
+    };
+    serviceConfig.Type = "oneshot";
+    script = ''
+      install -d -o ${config.myUser.name} -g users -m 0755 /data/containers
+      install -d -o ${config.myUser.name} -g users -m 0700 /data/containers/${config.myUser.name}
+    '';
+  };
 }

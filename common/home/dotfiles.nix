@@ -1,4 +1,4 @@
-{ ... }:
+{ config, ... }:
 
 {
   # Claude Code base config
@@ -49,6 +49,14 @@
     ../dotfiles/omp/agents/prescreen.md;
   home.file.".omp/agent/agents/sweeper.md".source =
     ../dotfiles/omp/agents/sweeper.md;
+
+  # OMP TTSR rules (~/.omp/agent/rules). Identity comes from programs.git so
+  # the work profile's mkDefault override flows through.
+  home.file.".omp/agent/rules/git-authorship.md".text =
+    builtins.replaceStrings
+      [ "@GIT_NAME@" "@GIT_EMAIL@" ]
+      [ config.programs.git.settings.user.name config.programs.git.settings.user.email ]
+      (builtins.readFile ../dotfiles/omp/rules/git-authorship.md);
 
   # OMP model-role overlay: read-only layer over ~/.omp/agent/config.yml.
   # PI_CONFIG_FILES makes omp load it; per-key override, strict parse.

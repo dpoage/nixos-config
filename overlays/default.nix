@@ -105,23 +105,23 @@ in
   # LD_LIBRARY_PATH.
   omp =
     let
-      ompVersion = "18.4.3";
+      ompVersion = "18.8.5";
       ompSources = {
         x86_64-linux = {
           url = "https://github.com/can1357/oh-my-pi/releases/download/v${ompVersion}/omp-linux-x64";
-          hash = "sha256-r87N/x9CHzyI+xcUxAezcAiZtN4+0APNg2n1KubKh94=";
+          hash = "sha256-sNFqY2+JxD8GodNyZdGyzoTXQg+4asIrzskFeGTS01w=";
         };
         aarch64-linux = {
           url = "https://github.com/can1357/oh-my-pi/releases/download/v${ompVersion}/omp-linux-arm64";
-          hash = "sha256-8ADClFdR+EqHBroLr+DeQvZ8s7hoGjcD+NE5f6IsXt0=";
+          hash = "sha256-AkX4MWeV8aAa3Mxp7Rridg5d0vbCPtTgA/60Y2EUSz8=";
         };
         x86_64-darwin = {
           url = "https://github.com/can1357/oh-my-pi/releases/download/v${ompVersion}/omp-darwin-x64";
-          hash = "sha256-iLe2X9+UZxQRaRYXpdI1y9TPl3AMGq1yS1OjAbkbmZ8=";
+          hash = "sha256-1XHH8OV0QVK+WfWnQGc9EcyqwuNlr831FuNQqDDtWcg=";
         };
         aarch64-darwin = {
           url = "https://github.com/can1357/oh-my-pi/releases/download/v${ompVersion}/omp-darwin-arm64";
-          hash = "sha256-Ezno6YuC0+I0HRmLjhf9i1be0qjYO8dvgIaoWKynw0c=";
+          hash = "sha256-+3dr1OQi03JjNklSt1NIUlgJv2VTvBxiwvAExA5t49M=";
         };
       };
     in

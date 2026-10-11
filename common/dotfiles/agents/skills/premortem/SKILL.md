@@ -65,7 +65,10 @@ line.
 3. **Necessity trace.** For every mechanism the map adds or hardens, trace its consumer
    in shipped execution: caller count, and evidence the path runs (config, logs, a dry
    run). A mechanism whose only consumer never runs is PLAN-BLOCKING; the ruling is
-   delete or descope, before an implementer builds it.
+   delete or descope, before an implementer builds it. Count what the touched subsystem
+   already carries: special cases, passes, rules added by earlier rounds. When the plan
+   adds another and the history shows fix rounds living in their interactions, report a
+   RISK naming the simpler alternative and what it would cost.
 4. **Accommodation pricing.** At every seam where A adapts to B, price the alternative:
    what changes in B instead, in files and risk. A spike's layout, a default, or an
    existing path is not a constraint until priced. An unpriced accommodation whose
@@ -81,11 +84,25 @@ line.
    orphaned commit, a dirty checkout, or a warm cache), fails on base, observes
    something that differs between the outcome wanted and the outcome feared, and names
    a mutant that exists and dies. A criterion failing any of these is PLAN-BLOCKING as a
-   brief defect.
+   brief defect. Also:
+   - Every domain term a criterion uses ("exterior", "idle", "stale") has a definition
+     and a boundary case. Probe the boundary case: if the base tree or a second reader
+     can place it on either side, the term is PLAN-BLOCKING.
+   - A measurement criterion gets one row per window its budget names, run over the
+     whole path the budget covers, on the named workload and machine. A row timing part
+     of the path, or a friendlier workload, does not count.
+   - A criterion on a user-facing artifact (rendered output, UI, report) is read off the
+     artifact. Compute its metric on the intended output and on the mutant; if the
+     values do not separate, it is PLAN-BLOCKING.
+   - A part whose consumer lands in a later slice: name the probe that runs the wired
+     path, or the criterion only checks the part's interface.
 7. **Evidence re-run.** Re-run every probe that settled a design decision, sterile: no
    ambient credentials or dotfiles, cold caches, your own interpreter, real binaries
    (`jq` is jq, not a shadow). State the isolation per row. A decision whose evidence
-   changes under isolation is PLAN-BLOCKING.
+   changes under isolation is PLAN-BLOCKING. For a figure from a spike, prototype, or
+   benchmark, diff what it measured against what production will run: the code path,
+   the workload, the machine. A decision resting on a figure that covered less is
+   PLAN-BLOCKING until the figure is re-taken on the production path.
 
 ## Output
 

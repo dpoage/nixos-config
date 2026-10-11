@@ -36,7 +36,14 @@ remaining rounds to an architect. Put the rulings and scope that carry over in t
 spawn brief.
 
 Run several architects at once only on fully disjoint lanes: different subsystems,
-different beads, no shared files.
+different beads, no shared files, and no shared unlanded base. A lane that builds on
+another lane's unmerged work is coupled to it whatever files each touches: it inherits
+the other lane's late fixes as a merge, a re-measure, and seat deltas. Either sequence
+the lanes, or have the dependent lane's CP1 name and price that reintegration slice.
+
+Write the lane rules every concurrent architect shares (machine, locks, remote pool,
+process rulings) in one lane file, and list it in the epic's handoff. Each rule in it is
+a candidate for promotion at CP3.
 
 ## Spawning the architect
 
@@ -84,11 +91,16 @@ what you audit. Proceeding past a checkpoint without your reply is a violation.
   that accommodates B when nobody priced a change to A. Discovered work is a new bead,
   never a bigger slice.
 - **Criteria (R4).** Apply the falsifier to each criterion. A criterion shaped like a list
-  of sites approves the fix rounds that follow it.
-- **Design directions.** Redirect any direction that creates silent data loss or drift
-  between docs and the binary.
+  of sites approves the fix rounds that follow it. Check that every domain term is
+  defined, that each measurement criterion names its full path, workload, and machine,
+  and that each user-facing artifact has a criterion read off the artifact.
+- **Wired paths (R7).** Every slice whose consumer lands later has a named wired-path
+  probe.
+- **Accumulation.** If this subsystem has gained rules round over round and the last
+  rounds' fix loops lived in their interactions, ask for a priced simpler alternative
+  before approving another rule.
 
-### CP2: merge authorization, when every slice oracle has returned
+### CP2: merge authorization, per slice when its seats have returned
 
 CP2 is a ledger check, not a re-review. Re-reading oracle transcripts adds a correlated
 look, not evidence.
@@ -108,6 +120,14 @@ look, not evidence.
 
 Authorization covers merging slices into the feature branch, integration glue, and the
 composition oracle with any integration fix round it triggers. It covers nothing else.
+
+**Standing authorization.** Once the first CP2 audit passes, you MAY grant a standing
+authorization for the rest of the round: a slice merges when every seat its tier names
+APPROVEs (or REJECTs on prose only) and the scripted gate is green on the merge hash,
+and the architect reports each merge in one line. Loop caps, `SCOPE:` items,
+deviations, and product decisions still escalate at once. The random sample still runs
+once per round. A blocking reply per merge costs a turn of arbiter latency on every
+slice and buys nothing once the ledger checks pass.
 
 ### CP3: PR-ready report
 
@@ -129,6 +149,10 @@ bd show <bead>                             # design and findings recorded; beads
 The round is complete when your audit reconciles with the report point for point. Hand
 the user the PR-ready branch and the draft PR text.
 
+**Promotion.** Review the report's step 12 list against your own rulings and the lane
+file. Apply the skill and def edits that meet R9's bar, or hand them to the user. A
+ruling you leave in project notes is lost when the epic ends.
+
 ## Arbiter conduct
 
 - Act at rulings, gates, and escalations. If you dispatch implementers or re-run probes
@@ -143,6 +167,12 @@ the user the PR-ready branch and the draft PR text.
   protocol before you message any architect.
 - Your rulings are claims (R5). "The other gate already covers that class" is a
   hypothesis: probe it, or state it as unprobed.
+- Status reports are claims too. Before you answer "how is it going", measure: branch
+  hashes, ledger verdicts, running agents. Never report from the last message an
+  architect sent.
+- Estimate in review rounds, not in implementation time. Code is the short part; each
+  fix round costs a fixer turn plus a seat re-probe. Give a range, state the last
+  estimate's error, and name the round that could add another loop.
 - Watch three failure modes. Curated summaries hide process softness; the CP2 sample
   counters that. Failures surface late; the checkpoints and the outcome ledger counter
   that. Contracts drift one level down; standing deviation reports counter that.

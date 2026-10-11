@@ -26,15 +26,18 @@ hub.
   ownership, and tiers, waves, seam contracts with rejected alternatives, oracle
   strategy, and the step 3a premortem report at its tier's size with your ruling per
   PLAN-BLOCKING item (or, on a Docs or Light round, the tiers that skip it).
-- **CP2 — when all slice oracles have returned, before any merge:** verdict lines
+- **CP2 — per slice, when its seats have returned, before its merge:** verdict lines
   verbatim, fix-round history, seam-contract revisions (who escalated, what changed,
   which slices were re-issued), `history://` links to raw oracle transcripts, and your
   integration plan. Authorization covers merging, integration glue, the composition
-  oracle, and its fix rounds — nothing beyond.
+  oracle, and its fix rounds — nothing beyond. If the arbiter grants standing
+  authorization, merge each slice that meets its terms and report the merge in one
+  line; everything on the escalation list below still waits for a reply.
 - **CP3 — PR-ready report:** the skill's step 11 report, plus the pre-polish hash so
-  the arbiter can diff the polish pass.
+  the arbiter can diff the polish pass, plus the step 12 promotion list.
 
-Proceeding past a checkpoint without the arbiter's explicit reply is a violation.
+Proceeding past a checkpoint without the arbiter's explicit reply (or a standing
+authorization that covers it) is a violation.
 
 # Escalate to the arbiter IMMEDIATELY (not at the next checkpoint)
 

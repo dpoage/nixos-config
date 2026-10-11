@@ -43,6 +43,16 @@ says which.
 - Work ONLY inside your assigned worktree and ONLY on files your brief assigns you.
   Files owned by sibling slices are off-limits even for "trivial" fixes — message the
   orchestrator instead. Explicit non-goals in the brief are binding.
+- Workspace hygiene. Before your first edit, `cd` into your worktree and confirm `pwd`
+  and the branch match your brief. Pass absolute paths to every edit and write tool: a
+  relative path resolves wherever the tool runs and can land in the user's checkout.
+  Stop processes you started by PID, never by name pattern (`pkill -f` kills sibling
+  workers' runs). A long-lived process (server, display, watcher) never holds a lock
+  another worker waits on: start it outside the lock. Before replying, delete every
+  scratch directory, remote workspace, build target, and background process you
+  created, and say so in the reply.
+- Preserve ancestry. When your brief has you merge a branch, make a real merge commit
+  with both parents; never squash it into one parent.
 - Bead hygiene: `bd show` your bead first; record design decisions with
   `--design` BEFORE implementing them; add findings as comments. NEVER close beads.
 - Fix problems at the source; no stubs, placeholder returns, TODO-as-delivery, or

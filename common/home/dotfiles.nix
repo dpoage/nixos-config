@@ -45,8 +45,6 @@
     ../dotfiles/omp/agents/implementer.md;
   home.file.".omp/agent/agents/implementer-max.md".source =
     ../dotfiles/omp/agents/implementer-max.md;
-  home.file.".omp/agent/agents/prescreen.md".source =
-    ../dotfiles/omp/agents/prescreen.md;
   home.file.".omp/agent/agents/sweeper.md".source =
     ../dotfiles/omp/agents/sweeper.md;
 

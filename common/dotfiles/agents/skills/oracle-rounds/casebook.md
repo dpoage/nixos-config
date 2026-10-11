@@ -5,8 +5,9 @@ file adds no rules. Read an entry when a rule's reason is unclear, or when you j
 whether a new incident repeats an old one (R9).
 
 Sources: the fleet-cutover round retro (`docs/retro-2026-09-21-fleet-cutover-round.md`,
-lessons cited as L<n>) and the apollo `d52-r2` round ledger
-(`apollo-wt/shm-pool-core/.cache/d52-ledger-r2.md`).
+lessons cited as L<n>), the apollo `d52-r2` round ledger
+(`apollo-wt/shm-pool-core/.cache/d52-ledger-r2.md`), and the sar_build P1 epic retro
+(`docs/retro-2026-10-11-sar-p1-epic.md`, cited as sar).
 
 Each entry states what happened, its cost, and the rule it shows. An entry marked
 **candidate** records a failure seen once; a second occurrence can promote it to a rule.
@@ -28,6 +29,12 @@ Each entry states what happened, its cost, and the rule it shows. An entry marke
 - **A fix worse than the bug** (fleet, L26). A cutover-wedge guard restarted comin while
   ordered `Before=comin.service`. On all 21 PCs, it would have deadlocked systemd during
   activation. The wedge it prevented costs one SSH round.
+- **Rules accumulated until their interactions were the work** (sar 2.5, candidate).
+  The flow solver gained exterior classification, promotion through openings, venting,
+  bubbling, trapped-air pressing, thin air groups, residual routing, and vacuum
+  handling, each added to close a seat's blocker. Most of about 22 fix rounds lived in
+  their interactions, and their per-step walks became most of the tick's cost. No gate
+  asked whether the model should be simpler; the user did, after the epic.
 
 ## R3: slicing
 
@@ -41,6 +48,14 @@ Each entry states what happened, its cost, and the rule it shows. An entry marke
   `slice/d52r2-delivery` staged its work as commits C1 and C2 in one slice. The slice
   reached 2534 added lines and was re-cut; later slices kept parts of it only as salvage.
   Ordering commits did not bound one implementer's load.
+- **File-disjoint lanes on one unlanded base** (sar 2.6 and 3). Both lanes touched
+  disjoint files and both built on round 2.5 before it landed. Each waited about a day
+  for it. Round 2.6 then needed a 7h35m Heavy slice and two seat re-reviews only to
+  merge 2.5's late fixes, and a "review 2.5 and 2.6 as one unit" ruling was built and
+  then abandoned.
+- **A wave waited for its slowest slice** (sar 2.5). Wave 1 needed two wave-0 slices
+  that were approved by about 15:00. It sat idle about 2 hours behind a third slice
+  that only fed wave 2. Dispatch on dependency removed the wait.
 
 ## R4: criteria
 
@@ -60,6 +75,23 @@ Each entry states what happened, its cost, and the rule it shows. An entry marke
 - **The gate gated nothing** (fleet, L3). CI executed 0 of 1265 bats tests, and no
   required check on `dev` could fail. Two fix rounds bought coverage of a suite that
   gated nothing.
+- **An undefined term in a property** (sar 2.5). "Open space" meant any set that was
+  not a compartment. Both seats rejected on it, a 2h15m fix round followed, and at least
+  three more full rounds traced to brief or contract wording the architect marked "brief
+  gap, mine". One seam contract was revised three times mid-round.
+- **A spike timed part of the path** (sar S-09 → D-061/D-062). The spike timed its flow
+  step on a damaged ship rolling ±2°: 2.29 ms p99. Production's tick also computed water
+  mass (81–93% of the cost) on an open hull in a full sea: 283 ms open, 857 ms flooded,
+  about 124× over. The 1.0 ms budget had been set from the spike figure.
+- **Met mid-round, missed after a merge** (sar 2.6). The optimisation met its 6 ms
+  budget at `fe2be43` (3.9–4.5 ms p99). Merging round 2.5's late fixes moved an air walk
+  from 0.43 to 6.53 ms mean. Nothing re-timed until the final measurement: 13 ms,
+  shipped over budget.
+- **A visual deliverable with no visual criterion** (sar 3, candidate). Every slice of
+  the testbed round passed review. The arbiter's own look at the rendered sheets found
+  the sea drawn inside dry hulls and an air pocket that was never on screen. The fix's
+  first colour metric did not separate its mutant (ΔE 37.2 vs 34.9). Cost: a post-polish
+  slice of about 7h51m.
 
 ## R5: evidence
 
@@ -73,6 +105,10 @@ Each entry states what happened, its cost, and the rule it shows. An entry marke
 - **An untested ruling** (fleet, L21). The orchestrator declined to restore coverage
   because "SC2154 covers the class". SC2154 does not see an assignment moved below its
   first use. That mutant passed every gate, and the shipped binary died on every robot.
+- **Status from messages** (sar arbiter, candidate). The arbiter reported a slice still
+  waiting on seat B, from the architect's last message. The ledger showed both APPROVEs
+  hours earlier. ETAs given from implementation time slipped more than 2×; the
+  remaining time was review rounds.
 
 ## R6: seats
 
@@ -86,6 +122,10 @@ Each entry states what happened, its cost, and the rule it shows. An entry marke
   The fleet repo's robot state was a stale fork of the platform's. No slice owned fleet
   state. The acceptance evidence, "42/42 evaluate and move", reads the same for an
   upgrade and a downgrade.
+- **Gated before anything called it** (sar 2.5). The flow slices passed both seats
+  while the sim did not step flow yet, so claim worlds could not see them. A flood probe
+  the architect improvised after wiring found water levels running away to 786–945 m.
+  The fix chain that followed took about two days, more than half the round's fix time.
 
 ## R8: named places
 
@@ -97,3 +137,23 @@ Each entry states what happened, its cost, and the rule it shows. An entry marke
   with the robots' netrc rested on this workstation's ambient `~/.netrc`. The slice
   pivoted twice. Contamination hit four times in that round: an ambient netrc, a warm
   fetcher cache, a shared kernel, and a `jq` that was `jaq`.
+- **Hygiene in briefs, not defs** (sar rounds 1–2.6). Relative paths wrote into the
+  user's checkout in three rounds, including after briefs gained a cd/pwd PRECONDITION;
+  once the edit tool itself resolved worktree paths to the user's checkout. `pkill -f`
+  killed sibling workers' tests twice. An orphaned Xvfb inherited a lock fd and held the
+  shared machine for 3h22m. Remote build names left behind filled the pool's disks
+  twice.
+
+## R9: evidence changes the process
+
+- **Rulings stranded in project notes** (sar). Per-slice merge, a scripted gate in
+  place of the pre-screen, prose to polish, a 60-minute chase, standing merge
+  authorization, re-timing after merges, and whole-path spike timing were all ruled
+  mid-epic. All lived in round lane files and briefs; none reached these skills until a
+  retro after the epic.
+- **A gate retired by its own sunset clause** (sar 2.5). The pre-screen trial needed
+  one upheld REJECT in three rounds to stay; it had none, and it added an agent turn of
+  latency to every hash. A scripted gate running the same commands replaced it.
+- **Prose blockers priced as code** (sar 2.5). 6 of the round's first 10 REJECTs were
+  wording only, each a 40–80 minute fix round with a full re-gate. After prose moved to
+  the polish list, four carried prose blockers cost one docs-only round.

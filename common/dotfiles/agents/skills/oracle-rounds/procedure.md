@@ -36,36 +36,41 @@ rules; a step here never overrides a rule. Rule numbers (R1–R9) refer to `SKIL
      into a feature slice's properties.
    - Provisional caps, until the outcome ledger confirms or revises them: split a slice
      that carries more than one Heavy-trigger bead or more than five properties.
+   - A slice whose output no merged code consumes yet gets a wired-path probe (R7): name
+     the probe, the workload it runs, and the merge that triggers it.
+   - A slice or lane that branches from unmerged work names the reintegration it will
+     need (merge, re-freeze, re-measure, seat deltas) and prices it here.
 3a. **Premortem** (`skill://premortem`). The round's highest slice tier sets the size:
    none for Docs or Light, one seat for Standard, three seats for Heavy. Rule every
    PLAN-BLOCKING item before step 4.
 4. **Branch and worktrees.** Branch the feature branch off main. Create one branch and
    one worktree per slice under `../<repo>-wt/`. Touch the user's main checkout only with
    `bd`. Mark the beads in_progress.
-5. **Dispatch implementers** (`agent: "implementer"`), one parallel batch per wave. Later
-   waves branch from the feature branch that holds wave 0. Every brief follows the brief
-   checklist (below).
+5. **Dispatch implementers** (`agent: "implementer"`). A slice dispatches when the
+   slices it depends on have merged, never when its wave finishes; a wave waits for its
+   slowest member. A slice may branch from an approved, unmerged hash if its brief names
+   that base. Every brief follows the brief checklist (below).
 6. **Gate each finished slice** with the seats its tier names (`agent: "oracle"`). Spawn
    the seats when the slice finishes. The verdict contract (`Coverage:` line, matrix,
    `SCOPE:` list) is in the `oracle` def. Send back an APPROVE that has no matrix. Read a
    matrix only to reconcile a split verdict. Record each seat's resolved model with its
    verdict line.
-   - **Pre-screen** (Standard and Heavy; trial). Before the seats, spawn one
-     `agent: "prescreen"` with the base and tip hashes, the ownership list, the CI
-     commands, and the criterion legs. The pre-screen can only REJECT, and only on a
-     reproduced command failure or an ownership violation. Re-run each `BLOCKING:`
-     command yourself (R5). If it reproduces, it becomes the fix list and no seats spawn.
-     If it does not reproduce, record the REJECT as overturned and spawn the seats. A
-     PASS gates nothing. Its `LEADS:` go to seat A's brief, labeled unverified; seat B
-     never sees them. A slice that returns after a fix round gets a new pre-screen only
-     if the previous pre-screen rejected it. The trial ends after three rounds. Keep the
-     pre-screen only if the step 11 tally shows at least one upheld REJECT.
+   - **Scripted gate** (Standard and Heavy). Before the seats, run one script on the
+     slice hash: build, lint, the suite as CI runs it, the criterion legs and named
+     mutants, and the file-ownership diff. A red gate becomes the fix list and no seats
+     spawn. Re-run it on every fix hash. It replaces an agent pre-screen: a cheap agent
+     adds a turn of latency per hash to run the same commands.
+   - **Chase.** A seat or fixer with no verdict after 60 minutes gets a status check.
+     If it cannot name its remaining probes, narrow or split its assignment.
 7. **Drive fix loops.** On a REJECT, write ONE consolidated fix list in brief-checklist
    form. The list carries every seat's blockers with their probe evidence. For each
    blocker, it says whether the blocker exposes a brief gap (your defect). Rule every
-   `SCOPE:` item first. Nits batch with the approval and never gate. Prose nits skip the
-   implementer and go to the polish list. Send fix lists to `agent: "implementer-max"` in
-   the slice's worktree.
+   `SCOPE:` item first. Nits batch with the approval and never enter a fix round.
+   Prose-only blockers never start a fix round: they go to the polish list with their
+   probes, step 10's doc-truth seat re-runs them, and a slice whose only blockers are
+   prose merges. Send fix lists to `agent: "implementer-max"` in the slice's worktree.
+   A fix that changes only prose gets the gate's build step and the rejecting seat's
+   blocker rows, nothing more.
    - **Audit the fix before any oracle sees it.** Bounce the fix without review if
      `git diff -U0 <prev>..<new>` changes lines outside the blast radius, if `--stat`
      lacks a file the reply claims, or if the diff adds a runner, harness, gate, or CI
@@ -87,6 +92,8 @@ rules; a step here never overrides a rule. Rule numbers (R1–R9) refer to `SKIL
        past its opening diff (`git diff --stat` per round, split product / tests /
        prose). Rule the `SCOPE:` items, cut, and re-brief. Descope is a normal exit.
      - *Churn*: the same blocker class recurs.
+     - *Wrong owner*: the blocker exists on base or lives in another slice's files.
+       Spin it out to its owner as its own slice or bead; this slice's loop ends there.
      - *Unreliable*: twice, the implementer's claims failed measurement or its fixes
        deleted lines outside the blast radius.
 
@@ -97,22 +104,31 @@ rules; a step here never overrides a rule. Rule numbers (R1–R9) refer to `SKIL
      without a recorded triage is a violation.
 8. **Merge and integrate.** When every tier seat APPROVEs, merge. Cross-branch
    integration is yours. Keep it minimal and record its diff scope and LOC, because no
-   slice oracle saw it. After the last merge, run the full gate (build, lint, complete
-   suite) and a hand smoke test of the composed surfaces.
+   slice oracle saw it. After each merge, run every wired-path probe it triggers (step 3)
+   and re-take every measurement criterion whose path it touched, in each window the
+   budget names; a measurement from before the merge describes another tree. After the
+   last merge, run the full gate (build, lint, complete suite) and use the composed
+   surfaces yourself: run the program, and look at every user-facing artifact
+   (rendered output, CLI output, UI) the round produces.
 9. **Gate the composition** (R7) with one oracle (composition brief below). A blocker in
     one slice's files goes to that slice's implementer, then re-merge. A blocker across
     slices or in your glue goes to one integration implementer that owns exactly the
     seam files. Re-probe, then re-run the step 8 gate.
 10. **Polish.** After the composition APPROVE, run `skill://comment-compactor` over
     touched source. Then run `skill://doc-writer` over touched or now-stale prose, plus
-    every prose nit the seats carried. Scope both with
+    every prose item the seats carried. Scope both with
     `git diff --name-only main...<feature>`. Polish changes comments and prose only. A
-    code defect found here is a fix round through its slice's rejecting seat. Re-run the
-    gate; the PR-ready tip is the post-polish commit.
+    code defect found here is a fix round through its slice's rejecting seat. Then one
+    doc-truth seat (Docs tier) re-runs every carried prose probe on the polished tip; a
+    failure gates step 11. Re-run the gate; the PR-ready tip is the post-polish commit.
 11. **Stop at PR-ready.** The gate is green on the polished tip, slice worktrees and
     branches are removed, and the feature branch is pushed. Send the report (template
     below). Record outcomes and findings on each bead and refresh its notes for the
     landing session.
+12. **Promote the round's lessons** (R9). List every ruling, brief addition, and rule
+    the round wrote into project notes, lane docs, or handoff files. For each, draft the
+    edit it implies to a skill or agent def, citing the ledger lines, or file it in the
+    casebook as a one-off. The list goes in the report; the arbiter or user applies it.
 
 ## Necessity checks
 
@@ -126,6 +142,10 @@ Apply these at step 2 and whenever you rule a `SCOPE:` item (R2).
   feeds a never-run branch are not equal jobs.
 - When a fix touches activation ordering, deletes state, or cannot be undone, its
   behavior when it goes wrong, compared with doing nothing, is an acceptance criterion.
+- Count what a subsystem has accumulated, not only what this plan adds. If its special
+  cases, rules, or passes have grown round over round and most fix rounds live in their
+  interactions, put a simpler model with a fidelity or cost knob on the table as an
+  alternative, priced like any other.
 
 ## Brief checklist
 
@@ -137,6 +157,15 @@ Every implementer brief and fix list contains these items.
 - The module-map entry and the seam contracts the slice owns or consumes.
 - Criteria as properties with their mutants (R4). Prefer the closing form: one
   end-anchored equality kills a class of defects that N presence assertions cannot.
+- A definition, with a boundary-case example, for every domain term a property uses.
+  Probe it before dispatch: if two readers could place the boundary case differently,
+  the term is undefined.
+- For each measurement criterion (time, memory, throughput, size): the whole path the
+  budget covers, the workload, the machine or proxy, and the windows. A figure from a
+  spike, a micro-benchmark, or an earlier tree is a lead until re-taken this way.
+- For a user-facing artifact (rendered output, UI, report, CLI text): a criterion read
+  off the artifact itself, whose metric separates the intended output from its mutant.
+  Show both values in the brief.
 - A preserve clause with its before-and-after probe, and a blast radius (files, region).
   When a fix replaces a mechanism, name the observation the old mechanism made that the
   new one must keep.
@@ -211,10 +240,10 @@ the invisible one.
 | Architect (epic mode) | `@ARCHITECT`, strong | Its failures are visible at checkpoints |
 | Implementers | `@IMPLEMENTER`, mid-tier | Their failures surface as REJECTs |
 | implementer-max | `@AUGUR`, oracle-class, from a different model family than `@ORACLE` | Fix rounds concentrate collateral edits and false claims. A fixer from the reviewer's family shares the reviewer's blind spots |
-| Pre-screen, sweepers, scouts, mechanical edits | Cheap (`@PRESCREEN`, `@SWEEP`) | None can approve. The pre-screen only rejects, and sweeper output is leads the oracle re-probes |
+| Sweepers, scouts, mechanical edits | Cheap (`@SWEEP`) | None can approve. Sweeper output is leads the oracle re-probes |
 
-The defs (`oracle`, `prescreen`, `sweeper`, `implementer`, `implementer-max`, `architect`)
-live in `~/.omp/agent/agents/`, managed by nixos-config. If a def is missing, restore it.
+The defs (`oracle`, `sweeper`, `implementer`, `implementer-max`, `architect`) live in
+`~/.omp/agent/agents/`, managed by nixos-config. If a def is missing, restore it.
 NEVER substitute `task`.
 
 ## Outcome ledger
@@ -236,13 +265,15 @@ R9 uses this ledger, plus the step 11 wall-time line, as its evidence.
 - Premortem size, verdict, and rulings, or the tier that skipped it.
 - Slice tiers.
 - Every verdict line verbatim, with its seat's model.
-- Pre-screen tally: REJECTs, REJECTs you overturned, and PASSes that a seat then
-  rejected on a mechanical failure the pre-screen should have run.
+- Scripted-gate tally: red runs and what each caught that a seat would otherwise have
+  spent a turn on.
 - Fix-round counts and triage rulings.
 - `history://` links to the raw oracle transcripts.
 - Glue scope and LOC; merged-state verification.
 - Polish evidence: pre-polish hash, compactor gate per file, docs revised, commands
   re-run.
 - Wall time per phase: premortem, each slice's first commit, first verdicts, each fix
-  round, composition, polish.
+  round, composition, polish, and time spent waiting on other lanes.
+- Measurement criteria re-taken after the last merge, with the tree hash.
 - Follow-up beads; draft PR title and body.
+- The step 12 promotion list.

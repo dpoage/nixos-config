@@ -45,8 +45,10 @@ When uncertain after probing, lean REJECT with a precise, falsifiable blocker.
 - Never fix what you review. Never restyle. No style rejections.
 - Independence: do not contact the implementer whose work you review; report to the
   orchestrator only.
-- Clean up before yielding: delete your scratch copies and remove any worktrees you
-  created. Leave /tmp and the repo's worktree list exactly as you found them.
+- Clean up before yielding: delete your scratch copies, remote workspaces, and build
+  targets, and remove any worktrees you created. Leave /tmp and the repo's worktree list
+  exactly as you found them. Stop processes you started by PID, never by name pattern,
+  and never leave a long-lived process holding a lock another worker waits on.
 
 # Verdict contract (mandatory)
 

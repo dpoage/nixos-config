@@ -1,31 +1,24 @@
 ---
-description: Code comments state one non-obvious fact in a line or two; a block of six or more comment lines is cut before it lands
+description: Most code needs no comment; a kept comment states one fact the code cannot, and a block of five or more comment lines is cut before it lands
 condition:
-  - '(?m)^(?:\+?[ \t]*(?://|#(?:[ \t]|$)|-- |/\*|\*(?:[ \t/]|$))[^\n]*\n){5}\+?[ \t]*(?://|#(?:[ \t]|$)|-- |/\*|\*(?:[ \t/]|$))'
+  - '(?m)^(?:\+?[ \t]*(?://|#(?:[ \t]|$)|-- |/\*|\*(?:[ \t/]|$))[^\n]*\n){4}\+?[ \t]*(?://|#(?:[ \t]|$)|-- |/\*|\*(?:[ \t/]|$))'
 scope: "tool:edit(*.{rs,go,ts,tsx,mts,cts,js,jsx,mjs,cjs,py,nix,sh,bash,zsh,c,cc,cpp,h,hpp,java,kt,swift,lua,rb,sql,toml,yaml,yml}), tool:write(*.{rs,go,ts,tsx,mts,cts,js,jsx,mjs,cjs,py,nix,sh,bash,zsh,c,cc,cpp,h,hpp,java,kt,swift,lua,rb,sql,toml,yaml,yml})"
 interruptMode: tool-only
 ---
-You wrote a comment block of six or more lines. Re-issue the call with every comment cut to what the code cannot say. Full rules: `skill://comment-compactor`.
+You wrote a comment block of five or more lines. Most code needs no comment. Re-issue the call with each comment deleted or cut to its cap. Full rules: `skill://comment-compactor`.
 
-- A comment states one fact the code cannot: an invariant, a constraint, a reason, a hazard. One line; two when the fact needs it.
-- Cut: what the code does, how it came to be, alternatives considered, change history, task or review references, reassurance, restated names and types.
-- Design rationale, rejected approaches, and incident narrative go in the commit message or the bead. Keep an upstream bug link if one exists.
-- Public API docs keep their contract (behavior, errors, panics, safety, units) and drop narration.
-- Re-issue unchanged only if the block is a license header, machine-read (directives, generated markers), commented-out code you did not write, or API docs where every line is contract.
+Keep a comment only if, without it, a competent reader would break an invariant the code does not enforce, "fix" something deliberate, or misuse an exported API. Then state that one fact.
 
-Before:
+| Comment | Cap |
+|---|---|
+| Inline, or above a statement | 1 line; 2 if the fact needs it |
+| Unexported function, type, field | 2 lines; usually none |
+| Exported API doc | Summary sentence + up to 3 lines of contract |
+| Test function doc | None; 1 line for a non-obvious bound or setup |
 
-```
-// We need to sort the entries here because the downstream consumer
-// (see process_batch) assumes they arrive in timestamp order. Previously
-// we relied on the database returning them sorted, but that turned out
-// to be unreliable when the query planner picked a hash join, which caused
-// the flaky CI test. So now we sort explicitly to be safe. This is
-// O(n log n) but n is small so it's fine.
-entries.sort_by_key(|e| e.ts);
-```
+Never write: how the code came to be, rejected alternatives, ticket or phase ids, restated code or names, mechanism in docs, examples in docs, banners, reassurance. Rationale goes in the commit message.
 
-After:
+Re-issue unchanged only for a license header, machine-read comments, doctests, or commented-out code you did not write.
 
 ```
 // process_batch requires timestamp order; the query does not guarantee it.

@@ -47,6 +47,8 @@ code deletion because the surrounding comment work looks correct.
 
 - Present tense. The comment describes current behavior, not a delta or an intention.
 - Lead with the fact. One line per fact; two when the fact needs it.
+- Keep the file's wrap width. Rewrap a shortened comment; never join lines into one
+  past the width the surrounding comments use.
 - Never invent facts. If you cannot verify WHY the code does something, tighten the
   existing explanation; do not guess a new one.
 
@@ -103,7 +105,8 @@ interrupts any edit that adds six or more consecutive comment lines.
    keeps the code before the comment marker byte-identical. Every `+` line must be a
    comment or blank. Any violation → restore that file from the baseline snapshot and
    redo it yourself; never hand-patch around a bad agent diff, and never let a code
-   change through because it "looks harmless".
+   change through because it "looks harmless". Then rewrap any added comment line
+   past the file's width yourself; light agents tend to join lines when shortening.
 5. **Build.** Typecheck or build the touched files if the repo has a cheap way to do
    so (docstrings and doc-tests are load-bearing in some toolchains).
 

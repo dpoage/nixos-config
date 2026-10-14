@@ -46,9 +46,45 @@ code deletion because the surrounding comment work looks correct.
 ## Rewrite rules
 
 - Present tense. The comment describes current behavior, not a delta or an intention.
-- Lead with the fact. One line where one line suffices.
+- Lead with the fact. One line per fact; two when the fact needs it.
 - Never invent facts. If you cannot verify WHY the code does something, tighten the
   existing explanation; do not guess a new one.
+
+## Shape
+
+A kept comment is usually one line. Length is the main defect in surviving comments,
+so a why-fact wrapped in a paragraph is cut to the fact.
+
+- **Budget.** Outside public API docs, a comment over two lines must earn each line
+  with a separate fact. A paragraph is a design record; it belongs in the commit message
+  or the issue tracker, not in the source.
+- **Cut inside kept comments.** The discovery story, rejected alternatives, the incident
+  narrative (keep the upstream link), reassurance ("n is small so it's fine", unless the
+  bound is load-bearing), restated identifiers, and examples the tests already show.
+- **Doc comments.** A summary line plus contract facts: errors, panics, safety, units,
+  ownership. No narration of the implementation.
+
+Before:
+
+```
+// We need to sort the entries here because the downstream consumer
+// (see process_batch) assumes they arrive in timestamp order. Previously
+// we relied on the database returning them sorted, but that turned out
+// to be unreliable when the query planner picked a hash join, which caused
+// the flaky CI test. So now we sort explicitly to be safe. This is
+// O(n log n) but n is small so it's fine.
+entries.sort_by_key(|e| e.ts);
+```
+
+After:
+
+```
+// process_batch requires timestamp order; the query does not guarantee it.
+entries.sort_by_key(|e| e.ts);
+```
+
+Agents writing new code get the same rules from the `terse-comments` TTSR rule, which
+interrupts any edit that adds six or more consecutive comment lines.
 
 ## Workflow
 

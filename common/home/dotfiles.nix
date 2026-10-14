@@ -55,6 +55,8 @@
       [ "@GIT_NAME@" "@GIT_EMAIL@" ]
       [ config.programs.git.settings.user.name config.programs.git.settings.user.email ]
       (builtins.readFile ../dotfiles/omp/rules/git-authorship.md);
+  home.file.".omp/agent/rules/terse-comments.md".source =
+    ../dotfiles/omp/rules/terse-comments.md;
 
   # OMP model-role overlay: read-only layer over ~/.omp/agent/config.yml.
   # PI_CONFIG_FILES makes omp load it; per-key override, strict parse.

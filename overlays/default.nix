@@ -154,6 +154,39 @@ in
     subPackages = [ "cmd/gcx" ];
   };
 
+  # Official slackapi CLI (nixpkgs' slack-cli is an unrelated tool). Renamed to
+  # avoid clashing with desktop `slack`; self-update can't write the store.
+  slack-cli =
+    let
+      version = "4.10.0";
+      arch = { x86_64-linux = "amd64"; aarch64-linux = "arm64"; }.${system};
+      hashes = {
+        amd64 = "sha256-l3Kxf3DE7FIupq4lVFIg3+F9avtbq+KPoc1Voksqv/o=";
+        arm64 = "sha256-qTDgiZd+ETgyDvvjvEncGPQNGHu79KnH/0GcRDvFLTA=";
+      };
+    in
+    final.stdenvNoCC.mkDerivation {
+      pname = "slack-cli";
+      inherit version;
+      src = final.fetchurl {
+        url = "https://github.com/slackapi/slack-cli/releases/download/v${version}/slack_cli_${version}_linux_${arch}.tar.gz";
+        hash = hashes.${arch};
+      };
+      sourceRoot = ".";
+      nativeBuildInputs = [ final.makeWrapper ];
+      installPhase = ''
+        install -Dm755 bin/slack $out/libexec/slack
+        makeWrapper $out/libexec/slack $out/bin/slack-cli --set-default SLACK_SKIP_UPDATE 1
+      '';
+      meta = {
+        description = "Slack platform CLI";
+        homepage = "https://github.com/slackapi/slack-cli";
+        license = final.lib.licenses.asl20;
+        mainProgram = "slack-cli";
+        platforms = [ "x86_64-linux" "aarch64-linux" ];
+      };
+    };
+
   # Local repackages: binaries with no nixpkgs derivation.
   # Drata SOC2 agent (Pattern compliance requirement), repacked from the
   # official Ubuntu deb — see ./drata-agent.nix for the asar surgery.

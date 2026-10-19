@@ -43,6 +43,7 @@ DEFAULT_TARGETS=(
   ".#nixosConfigurations.tunguska.pkgs.gcx"
   ".#nixosConfigurations.tunguska.pkgs.omp"
   ".#nixosConfigurations.tunguska.pkgs.pattern"
+  ".#nixosConfigurations.tunguska.pkgs.slack-cli"
   ".#nixosConfigurations.tunguska.config.hardware.nvidia.package"
   ".#nixosConfigurations.tunguska.config.programs.nixvim.build.package"
 )

@@ -30,6 +30,7 @@
 
     # Work communication
     slack
+    slack-cli
     signal-desktop
     telegram-desktop
 

@@ -264,15 +264,15 @@
         ]
       },
       "locked": {
-        "lastModified": 1788017443,
-        "narHash": "sha256-Qo63rbx6Tfc6kxfIaCaT0amD7CVieh28/psOwcnp0sg=",
-        "owner": "cernoh",
+        "lastModified": 1793659500,
+        "narHash": "sha256-fiNdLjpmS5PHGr4oXN1JhtgZPVjllg3HTXvY+jJVxQ0=",
+        "owner": "dpoage",
         "repo": "omp-flake",
-        "rev": "5e111d1bdf279c31775d451f6e5db20edd5c96fe",
+        "rev": "e2c680228195bf803b16369e8dd2270118f3edef",
         "type": "github"
       },
       "original": {
-        "owner": "cernoh",
+        "owner": "dpoage",
         "repo": "omp-flake",
         "type": "github"
       }

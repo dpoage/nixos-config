@@ -36,7 +36,7 @@
       inputs.flake-utils.follows = "gastown/flake-utils";
     };
     omp-flake = {
-      url = "github:cernoh/omp-flake";
+      url = "github:dpoage/omp-flake";
       inputs.nixpkgs.follows = "nixpkgs-unstable";
     };
   };

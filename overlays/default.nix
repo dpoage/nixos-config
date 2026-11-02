@@ -187,6 +187,42 @@ in
       };
     };
 
+  # Bend 2 (bun-compiled; dontStrip keeps the .bun payload). It finds bend2/ and
+  # guide/ beside its real path; clang on PATH serves `-o` native builds.
+  bend =
+    let
+      version = "2.0.39";
+      arch = { x86_64-linux = "x64"; aarch64-linux = "arm64"; }.${system};
+      hashes = {
+        x64 = "sha256-bPRi/Y9wsJSklQ67cJqcT/2PHRGJ2c7fH9Y81dBBx6s=";
+        arm64 = "sha256-cbQ+G7kxPdFKwrBVO4VOQcOdZeyqRwQHluv/Skb1Spc=";
+      };
+    in
+    final.stdenv.mkDerivation {
+      pname = "bend";
+      inherit version;
+      src = final.fetchurl {
+        url = "https://github.com/bendlang/bend/releases/download/v${version}/bend-${version}-linux-${arch}.tar.gz";
+        hash = hashes.${arch};
+      };
+      nativeBuildInputs = [ final.autoPatchelfHook final.makeWrapper ];
+      dontStrip = true;
+      installPhase = ''
+        mkdir -p $out/libexec/bend
+        cp -r bin bend2 guide $out/libexec/bend/
+        makeWrapper $out/libexec/bend/bin/bend $out/bin/bend \
+          --prefix PATH : ${final.lib.makeBinPath [ final.clang ]} \
+          --set-default BEND_NO_TELEMETRY 1
+      '';
+      meta = {
+        description = "Bend 2: dependently typed, parallel functional language";
+        homepage = "https://bend-lang.com";
+        license = final.lib.licenses.asl20;
+        mainProgram = "bend";
+        platforms = [ "x86_64-linux" "aarch64-linux" ];
+      };
+    };
+
   # Local repackages: binaries with no nixpkgs derivation.
   # Drata SOC2 agent (Pattern compliance requirement), repacked from the
   # official Ubuntu deb — see ./drata-agent.nix for the asar surgery.

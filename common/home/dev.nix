@@ -200,5 +200,7 @@ in
     typescript-language-server
     yarn-berry # yarn 4.x; delegates to a repo's pinned .yarn/releases via yarnPath
     watchman # metro file watcher (.watchmanconfig)
+
+    bend # Bend 2 language (overlays/default.nix)
   ];
 }

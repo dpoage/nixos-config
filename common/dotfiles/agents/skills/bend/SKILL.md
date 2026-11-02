@@ -21,9 +21,14 @@ confirm a fact against `bend guide` when behavior differs.
 `--verdict` rechecks the proofs with BendTT, a small kernel proven sound in
 Lean. If `$BENDTT` names a built kernel binary, bend runs it. Otherwise bend
 builds `bendtt.lean` into `~/.bend/bendtt/` with Lean v4.34.0 from elan or
-`PATH`, and fails without it. The binary needs no Lean at runtime. To build
-it by hand, run `lean -c bendtt.c bendtt.lean` and
-`leanc -O3 -DNDEBUG bendtt.c -o bendtt` (nixpkgs Lean 4.29.1 also works).
+`PATH`, and fails without it. The binary needs no Lean at runtime.
+
+On machines built from nixos-config, the `bend` wrapper sets `BENDTT` to a
+kernel that `overlays/bend.nix` builds with Lean 4.34.0, so `--verdict`
+works with no setup. The package build fails if bend pins another Lean
+version, or if `--verdict` stops accepting a true law or the kernel stops
+rejecting a false one. Treat `--verdict` as the gate for proofs you did not
+review.
 
 ## Language traps
 

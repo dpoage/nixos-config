@@ -226,12 +226,21 @@
     enable32Bit = true;
   };
 
-  # Nix maintenance
+  # Nix maintenance. VM/system-test iteration can add hundreds of GiB of dead
+  # store paths between scheduled runs, so the daemon also collects garbage
+  # mid-build whenever free space drops below min-free, until max-free is free.
   nix.gc = {
     automatic = true;
-    dates = "weekly";
-    options = "--delete-older-than 7d";
+    dates = "daily";
+    options = "--delete-older-than 3d";
   };
+  nix.settings.min-free = 50 * 1024 * 1024 * 1024;
+  nix.settings.max-free = 150 * 1024 * 1024 * 1024;
+  # Most of the store is live (system generations, image builds, devshells
+  # pinned by worktree .direnv roots), which GC cannot touch; hardlinking
+  # identical files across those closures can. Scheduled rather than
+  # auto-optimise-store so builds don't pay for it.
+  nix.optimise.automatic = true;
 
   # Security patching. The flake lives in the primary user's checkout; the
   # nixpkgs-family inputs are re-resolved to their branch heads on every run

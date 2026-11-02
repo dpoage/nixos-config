@@ -19,6 +19,7 @@ let
   # Globs, expanded by the script. Output-base roots contain <md5>/ dirs.
   outputRoots = [
     "/data/cache/bazel"
+    "/data/cache/bazel-ubuntu"
     "/data/ApolloCache/bazel"
     "/data/ApolloCache/bazel-review-b"
     "/data/code/apollo/.cache/bazel"
@@ -30,6 +31,7 @@ let
     "/data/ApolloCache/build"
     "/data/code/apollo/.cache/build"
     "/data/code/apollo-wt/*/.cache/build"
+    "/data/code/*/.bazel-disk-cache"
   ];
 
   prune = pkgs.writeShellApplication {

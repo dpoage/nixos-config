@@ -45,8 +45,17 @@ in
     "/data/containers/$USER";
 
   # User-writable home for relocated caches (bazel output base, etc.).
+  #
+  # /tmp sits on the root disk. Agent test runs leak a scratch dir per test
+  # (~100G of /tmp/nix-shell.* in ten days), and the stock "q /tmp 10d" rule
+  # never catches up: it ages by atime too, so any grep/du/find over /tmp
+  # restarts every file's clock. Age by creation/modification/status change
+  # only, sooner. 00-nixos.conf sorts before systemd's tmp.conf, so this line
+  # wins for /tmp.
+  boot.tmp.cleanOnBoot = true;
   systemd.tmpfiles.rules = [
     "d /data/cache 0755 ${config.myUser.name} users -"
+    "q /tmp 1777 root root bcmBM:3d"
   ];
 
   # The container store is created by a unit rather than tmpfiles for two

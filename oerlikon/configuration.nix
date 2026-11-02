@@ -35,9 +35,18 @@
 
         # Bazel's output base defaults to ~/.cache/bazel and grows into the
         # hundreds of GB; keep it on the big /data SSD (see ./storage.nix).
-        # Wrappers that pass their own --output_user_root are unaffected.
+        # Every workspace path (so every worktree) gets its own output base;
+        # what can be shared across them is the download cache, the fetched
+        # external repos, and the action/CAS disk cache. Bazel GCs the disk
+        # cache itself once it is idle. Wrappers that pass their own
+        # --output_user_root/--disk_cache (the apollo dev container) are
+        # unaffected; ./bazel-prune.nix caps those from outside.
         home.file.".bazelrc".text = ''
           startup --output_user_root=/data/cache/bazel
+          common --repository_cache=/data/cache/repos
+          common --repo_contents_cache=/data/cache/repo-contents
+          build --disk_cache=/data/cache/build
+          build --experimental_disk_cache_gc_max_size=100G
         '';
         # No rice opt-in yet — oerlikon stays on hyprland + catppuccin
         # defaults. Flip these to migrate the work laptop to gruvbox+niri:

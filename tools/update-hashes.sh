@@ -10,9 +10,6 @@
 # Typical workflows:
 #   tools/update-hashes.sh --update          # nix flake update, then fix fallout
 #                                            # (e.g. gastown goModules outputHash)
-#   tools/update-hashes.sh --omp-version 17.1.0
-#                                            # bump omp: prefetches all 4 platform
-#                                            # binaries, rewrites version + hashes
 #   tools/update-hashes.sh --gcx-version 0.3.0
 #                                            # bump gcx: resets src/vendor hashes to
 #                                            # sentinels, build loop fills them in
@@ -41,7 +38,6 @@ EMPTY_HASH="sha256-47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU="
 DEFAULT_TARGETS=(
   ".#nixosConfigurations.tunguska.pkgs.gastown"
   ".#nixosConfigurations.tunguska.pkgs.gcx"
-  ".#nixosConfigurations.tunguska.pkgs.omp"
   ".#nixosConfigurations.tunguska.pkgs.pattern"
   ".#nixosConfigurations.tunguska.pkgs.slack-cli"
   ".#nixosConfigurations.tunguska.pkgs.bend"
@@ -110,27 +106,6 @@ build_loop() {
 
 # --- version bumps ----------------------------------------------------------
 
-bump_omp() {
-  local ver=$1 ln url hashline newhash
-  log "bumping omp to $ver"
-  grep -q 'ompVersion = "' "$OVERLAY" || die "ompVersion pin not found in $OVERLAY"
-  sed -i "s|ompVersion = \"[^\"]*\"|ompVersion = \"$ver\"|" "$OVERLAY"
-  # Prefetch every release binary; the hash line directly follows each url line.
-  grep -n 'url = ".*oh-my-pi/releases/download' "$OVERLAY" | cut -d: -f1 |
-    while read -r ln; do
-      url=$(sed -n "${ln}s|.*url = \"\([^\"]*\)\".*|\1|p" "$OVERLAY")
-      url=${url//\$\{ompVersion\}/$ver}
-      hashline=$((ln + 1))
-      sed -n "${hashline}p" "$OVERLAY" | grep -q 'hash = "sha256-' ||
-        die "expected hash on $OVERLAY:$hashline after url line $ln"
-      log "prefetching $url"
-      newhash=$(nix store prefetch-file --json "$url" | grep -oP '"hash":"\K[^"]+') ||
-        die "prefetch failed for $url"
-      sed -i "${hashline}s|sha256-[A-Za-z0-9+/=]\{44\}|$newhash|" "$OVERLAY"
-      log "fixed overlays/default.nix:$hashline  -> $newhash"
-    done
-}
-
 bump_gcx() {
   local ver=$1
   log "bumping gcx to $ver (hashes reset; build loop will fill them in)"
@@ -152,7 +127,6 @@ while [[ $# -gt 0 ]]; do
   case $1 in
     --update) do_update=1 ;;
     --full) full=1 ;;
-    --omp-version) shift; bump_omp "${1:?--omp-version needs a value}" ;;
     --gcx-version) shift; bump_gcx "${1:?--gcx-version needs a value}" ;;
     -h|--help) usage ;;
     -*) die "unknown flag: $1 (see --help)" ;;

@@ -1,0 +1,11 @@
+version: 2
+updates:
+  # dpoage/omp-flake bumps itself daily (its bump-oh-my-pi workflow); this
+  # carries those bumps into flake.lock. Other inputs stay on manual
+  # `tools/update-hashes.sh --update`.
+  - package-ecosystem: nix
+    directory: /
+    schedule:
+      interval: daily
+    allow:
+      - dependency-name: omp-flake

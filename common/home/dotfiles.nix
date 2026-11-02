@@ -35,6 +35,8 @@
     ../dotfiles/agents/skills/acceptance-replay/SKILL.md;
   home.file.".agents/skills/premortem/SKILL.md".source =
     ../dotfiles/agents/skills/premortem/SKILL.md;
+  home.file.".agents/skills/bend/SKILL.md".source =
+    ../dotfiles/agents/skills/bend/SKILL.md;
 
   # OMP agent definitions (~/.omp/agent/agents)
   home.file.".omp/agent/agents/oracle.md".source =

@@ -18,8 +18,12 @@ confirm a fact against `bend guide` when behavior differs.
 3. Check a file with `bend file.bend`. A `main` that returns a value prints it.
 4. Use `bend file.bend --check-only` to check without running `main`.
 
-`--verdict` rechecks with the Lean kernel. It needs Lean v4.34.0 on `PATH`;
-without Lean it fails after the normal check.
+`--verdict` rechecks the proofs with BendTT, a small kernel proven sound in
+Lean. If `$BENDTT` names a built kernel binary, bend runs it. Otherwise bend
+builds `bendtt.lean` into `~/.bend/bendtt/` with Lean v4.34.0 from elan or
+`PATH`, and fails without it. The binary needs no Lean at runtime. To build
+it by hand, run `lean -c bendtt.c bendtt.lean` and
+`leanc -O3 -DNDEBUG bendtt.c -o bendtt` (nixpkgs Lean 4.29.1 also works).
 
 ## Language traps
 

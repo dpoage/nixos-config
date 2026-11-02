@@ -205,6 +205,7 @@ in
     programs.yazi = {
       enable = true;
       enableZshIntegration = true;
+      shellWrapperName = "yy";
       settings = {
         mgr.show_hidden = true;
         preview.wrap = "yes";
@@ -274,8 +275,17 @@ in
     programs.ssh = {
       enable = true;
       enableDefaultConfig = false;
-      matchBlocks."*" = {
-        setEnv = { TERM = "xterm-256color"; };
+      settings."*" = {
+        SetEnv = { TERM = "xterm-256color"; };
+      };
+      # Alias the fleet flake's platform inputs fetch through
+      # (robot-provisioning-fleet flake.nix).
+      settings."github-platform" = {
+        HostName = "github.com";
+        User = "git";
+        IdentityFile = "~/.ssh/id_ed25519";
+        IdentitiesOnly = true;
+        HostKeyAlias = "github.com";
       };
     };
 

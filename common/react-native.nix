@@ -82,13 +82,13 @@ in
     nss
     pango
     systemd # libudev
-    xorg.libX11
-    xorg.libXcomposite
-    xorg.libXdamage
-    xorg.libXext
-    xorg.libXfixes
-    xorg.libXrandr
-    xorg.libxcb
+    libx11
+    libxcomposite
+    libxdamage
+    libxext
+    libxfixes
+    libxrandr
+    libxcb
   ];
 
   # adb device access is handled by systemd's built-in uaccess rules for

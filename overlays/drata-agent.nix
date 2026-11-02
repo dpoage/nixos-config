@@ -65,13 +65,25 @@
   libgbm,
   libGL,
   libnotify,
+  libx11,
+  libxcb,
+  libxcomposite,
+  libxcursor,
+  libxdamage,
+  libxext,
+  libxfixes,
+  libxi,
   libxkbcommon,
+  libxrandr,
+  libxrender,
+  libxscrnsaver,
+  libxshmfence,
+  libxtst,
   nspr,
   nss,
   pango,
   systemd,
   xdg-utils,
-  xorg,
   zlib,
 }:
 
@@ -106,19 +118,19 @@ let
     systemd
     xdg-utils
     zlib
-    xorg.libX11
-    xorg.libXScrnSaver
-    xorg.libXcomposite
-    xorg.libXcursor
-    xorg.libXdamage
-    xorg.libXext
-    xorg.libXfixes
-    xorg.libXi
-    xorg.libXrandr
-    xorg.libXrender
-    xorg.libXtst
-    xorg.libxcb
-    xorg.libxshmfence
+    libx11
+    libxscrnsaver
+    libxcomposite
+    libxcursor
+    libxdamage
+    libxext
+    libxfixes
+    libxi
+    libxrandr
+    libxrender
+    libxtst
+    libxcb
+    libxshmfence
   ];
 in
 stdenv.mkDerivation (finalAttrs: {

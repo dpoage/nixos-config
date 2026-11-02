@@ -398,7 +398,7 @@
         gofumpt
         gotools
         jre_minimal
-        nixfmt-rfc-style
+        nixfmt
         prettierd
         starpls
         stylua

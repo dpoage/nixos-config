@@ -185,7 +185,7 @@ in
       default = "${config.home.homeDirectory}/Pictures/Wallpapers";
       description = ''
         Directory the wallpaper helper picks random images from.
-        Used by the awww/swww wallpaper daemon integration.
+        Used by the awww wallpaper daemon integration.
       '';
     };
   };
@@ -193,7 +193,7 @@ in
   # Resolve the palette unconditionally so base components (kitty, waybar,
   # hyprland, starship) can theme from `myRice.colors` even on hosts that
   # haven't opted into the full rice bundle. `cfg.enable` still gates the
-  # opt-in program modules (niri, fuzzel, mako, swaylock, alacritty, swww).
+  # opt-in program modules (niri, fuzzel, mako, swaylock, alacritty, awww).
   config = let p = palettes.${cfg.palette}; in {
     myRice.colors   = p.colors;
     myRice.meta     = p.meta;

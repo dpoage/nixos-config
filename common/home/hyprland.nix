@@ -14,7 +14,7 @@ let
 in
 {
   # Wallpaper via hyprpaper. Disabled when myRice owns the wallpaper —
-  # rice runs swww and the two daemons fight over the layer surface.
+  # rice runs awww and the two daemons fight over the layer surface.
   services.hyprpaper = lib.mkIf (!(config.myRice.enable or false)) {
     enable = true;
     settings = {
@@ -26,6 +26,8 @@ in
   wayland.windowManager.hyprland = {
     enable = true;
     xwayland.enable = true;
+    # Settings below are hyprlang-shaped; stay on it until a Lua port.
+    configType = "hyprlang";
 
     plugins = [
       pkgs.hyprlandPlugins.hyprsplit

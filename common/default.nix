@@ -8,7 +8,6 @@
     ./cloud.nix
     ./kubernetes.nix
     ./hashicorp.nix
-    ./gastown.nix
     ./myUser.nix
     ./nvidia.nix
     ./compliance.nix
@@ -63,6 +62,7 @@
   environment.systemPackages = with pkgs; [
     claude-code
     beads
+    dolt # beads' storage backend (`bd dolt push`)
 
     # Core utilities
     wget

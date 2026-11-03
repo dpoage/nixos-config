@@ -1,5 +1,5 @@
 # Package overlay: adds flake-input packages and selected unstable packages to
-# `pkgs`, so every module sees `pkgs.gastown`, `pkgs.gcx`, `pkgs.unstable.<name>`
+# `pkgs`, so every module sees `pkgs.beads`, `pkgs.gcx`, `pkgs.unstable.<name>`
 # etc. without threading a `specialArgs.extraPkgs` set through every signature.
 #
 # Wired in flake.nix via `nixpkgs.overlays`. To expose a new tool flake-wide,
@@ -38,7 +38,7 @@ in
         mkdir -p $out/bin
         ln -s ${prev.bazelisk}/bin/bazelisk $out/bin/bazel
       '';
-      version = builtins.substring 0 8 inputs.pattern-cli.rev;
+      version = builtins.substring 0 8 (inputs.pattern-cli.rev or "dirty");
       pattern-unwrapped = unstable.buildGoModule {
         pname = "pattern";
         inherit version;
@@ -79,16 +79,6 @@ in
         wrapProgram $out/bin/pattern --prefix PATH : ${bazel-shim}/bin
       '';
     };
-
-  gastown = inputs.gastown.packages.${system}.default.overrideAttrs (old: {
-    goModules = old.goModules.overrideAttrs {
-      outputHash = "sha256-ZUEQQ0br+5UQnk/XLM7NLDCd1qA93VOho1iQ3q3RUm8=";
-    };
-    # gastown vendors dolt, which pulls in dolthub/go-icu-regex. That package
-    # uses cgo and includes <unicode/uregex.h>, linking against -licui18n
-    # -licuuc -licudata. Add ICU so the headers and libs are on the search path.
-    buildInputs = (old.buildInputs or [ ]) ++ [ unstable.icu ];
-  });
 
   # Version pin and LD_LIBRARY_PATH wrapper live in the dpoage/omp-flake fork;
   # bump with `nix flake update omp-flake`.

@@ -22,18 +22,11 @@
       url = "github:gastownhall/beads";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    gastown = {
-      url = "github:steveyegge/gastown";
-      # gastown's go.mod requires Go >= 1.26.2; stable nixpkgs only has 1.25.x,
-      # so follow unstable (which gastown's own flake targets) for a new enough Go.
-      inputs.nixpkgs.follows = "nixpkgs-unstable";
-    };
     pattern-cli = {
       url = "git+ssh://git@github.com/Pattern-Labs/pattern_cli";
       # pattern's go.mod requires Go >= 1.26.3; stable nixpkgs only has 1.25.x,
-      # so follow unstable for a new enough Go (same reasoning as gastown).
+      # so follow unstable for a new enough Go.
       inputs.nixpkgs.follows = "nixpkgs-unstable";
-      inputs.flake-utils.follows = "gastown/flake-utils";
     };
     omp-flake = {
       url = "github:dpoage/omp-flake";

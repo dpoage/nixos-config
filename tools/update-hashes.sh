@@ -9,7 +9,7 @@
 #
 # Typical workflows:
 #   tools/update-hashes.sh --update          # nix flake update, then fix fallout
-#                                            # (e.g. gastown goModules outputHash)
+#                                            # (e.g. a changed vendorHash)
 #   tools/update-hashes.sh --gcx-version 0.3.0
 #                                            # bump gcx: resets src/vendor hashes to
 #                                            # sentinels, build loop fills them in
@@ -36,7 +36,6 @@ EMPTY_HASH="sha256-47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU="
 
 # Default targets: every attr in this repo that carries a pinned FOD hash.
 DEFAULT_TARGETS=(
-  ".#nixosConfigurations.tunguska.pkgs.gastown"
   ".#nixosConfigurations.tunguska.pkgs.gcx"
   ".#nixosConfigurations.tunguska.pkgs.pattern"
   ".#nixosConfigurations.tunguska.pkgs.slack-cli"

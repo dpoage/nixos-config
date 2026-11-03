@@ -1,11 +1,27 @@
 version: 2
 updates:
-  # dpoage/omp-flake bumps itself daily (its bump-oh-my-pi workflow); this
-  # carries those bumps into flake.lock. Other inputs stay on manual
-  # `tools/update-hashes.sh --update`.
+  # Daily so dpoage/omp-flake's self-bumps (its bump-oh-my-pi workflow) land
+  # promptly; omp-flake stays ungrouped to get its own PR. The groups keep the
+  # rest to two PRs that update in place.
   - package-ecosystem: nix
     directory: /
     schedule:
       interval: daily
-    allow:
-      - dependency-name: omp-flake
+    ignore:
+      # Private git+ssh input; Dependabot has no credentials for it.
+      - dependency-name: pattern-cli
+    groups:
+      # Release-branch inputs that must move together.
+      nixos-release:
+        patterns: [nixpkgs, home-manager, nixvim]
+      flake-inputs:
+        patterns: ["*"]
+        exclude-patterns: [omp-flake]
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    groups:
+      actions:
+        patterns: ["*"]

@@ -1,9 +1,11 @@
+# Pull requests are disabled on this repo, so Dependabot's updates arrive as
+# dependabot/** branch pushes. Both checks run on them; the merge job then
+# fast-forwards main to the branch.
 name: Check
 
 on:
-  pull_request:
   push:
-    branches: [main]
+    branches: [main, "dependabot/**"]
 
 permissions:
   contents: read
@@ -49,3 +51,26 @@ jobs:
             --override-input pattern-cli path:./ci/pattern-cli-stub \
             .#nixosConfigurations.tunguska.pkgs.beads \
             .#nixosConfigurations.tunguska.pkgs.omp
+
+  merge:
+    needs: [eval, packages]
+    if: startsWith(github.ref, 'refs/heads/dependabot/') && github.actor == 'dependabot[bot]'
+    runs-on: ubuntu-latest
+    # Dependabot-triggered runs get a read-only token unless raised here.
+    permissions:
+      contents: write
+    # One merge at a time: every update touches flake.lock, so only the first
+    # of a batch can fast-forward. The rest stay unmerged until Dependabot's
+    # next daily run recreates them on top of the new main.
+    concurrency: dependabot-merge
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - name: Fast-forward main
+        run: |
+          if gh api -X PATCH "repos/${{ github.repository }}/git/refs/heads/main" \
+               -f sha="${{ github.sha }}" -F force=false >/dev/null; then
+            gh api -X DELETE "repos/${{ github.repository }}/git/refs/heads/${{ github.ref_name }}"
+          else
+            echo "::warning::main moved since ${{ github.ref_name }} was cut; Dependabot's next run will recreate it"
+          fi

@@ -1,8 +1,9 @@
 version: 2
 updates:
-  # Daily so dpoage/omp-flake's self-bumps (its bump-oh-my-pi workflow) land
-  # promptly; omp-flake stays ungrouped to get its own PR. The groups keep the
-  # rest to two PRs that update in place.
+  # Pull requests are disabled here: updates arrive as dependabot/** branches
+  # that .github/workflows/check.yml checks and fast-forwards into main. Daily
+  # so dpoage/omp-flake's self-bumps land promptly; omp-flake stays ungrouped
+  # in its own branch, and the groups keep the rest to two branches.
   - package-ecosystem: nix
     directory: /
     schedule:

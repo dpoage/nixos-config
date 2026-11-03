@@ -10,6 +10,20 @@ constructor, and a panic on impossible shapes.
 
 Rule numbers below refer to SKILL.md.
 
+## Contents
+
+- Sums and elimination (rules 1, 2, 5)
+- Failure (rule 4)
+- Parse, don't validate (rule 3)
+- Distinct meanings (rule 6)
+- Typestate (rule 7)
+- Resources (rule 8)
+- Interfaces as propositions (rule 9)
+- Parametricity (rule 10)
+- Compile-time staging (rule 11)
+- Recursive data (rule 12)
+- Tooling
+
 ## Sums and elimination (rules 1, 2, 5)
 
 ```go

@@ -12,6 +12,18 @@ Required `tsconfig` settings: `strict`, `noUncheckedIndexedAccess`,
 
 Rule numbers below refer to SKILL.md.
 
+## Contents
+
+- Sums and elimination (rules 1, 2, 5)
+- Failure (rule 4)
+- Parse, don't validate (rule 3)
+- Distinct meanings (rule 6)
+- Typestate (rule 7)
+- Resources (rule 8)
+- Constraints and parametricity (rules 9, 10)
+- Compile-time staging (rule 11)
+- Recursive data (rule 12)
+
 ## Sums and elimination (rules 1, 2, 5)
 
 ```ts
@@ -52,8 +64,12 @@ function assertNever(x: never): never { throw new Error(`unreachable: ${JSON.str
 declare const EmailBrand: unique symbol;
 export type Email = string & { readonly [EmailBrand]: true };
 
-export function parseEmail(raw: string): Email | undefined {
-  return isValid(raw) ? (raw as Email) : undefined; // the one sanctioned cast
+export type EmailResult = { ok: true; value: Email } | { ok: false; error: "invalid-email" };
+
+export function parseEmail(raw: string): EmailResult {
+  return isValid(raw)
+    ? { ok: true, value: raw as Email } // the one sanctioned cast
+    : { ok: false, error: "invalid-email" };
 }
 ```
 
@@ -109,5 +125,5 @@ export function parseEmail(raw: string): Email | undefined {
 
 - Recursive discriminated unions work directly
   (`type Tree = { kind: "leaf"; v: number } | { kind: "node"; l: Tree; r: Tree }`).
-  Write one fold over the union. Engines generally do not perform tail-call
-  optimization, so deep data needs an explicit stack.
+  Write one fold over the union. V8 and SpiderMonkey do not implement proper tail
+  calls (only JavaScriptCore does), so deep data needs an explicit stack.

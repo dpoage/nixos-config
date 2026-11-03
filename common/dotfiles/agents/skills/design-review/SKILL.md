@@ -82,14 +82,24 @@ otherwise search the tree for each exported name.
 These apply `type-driven-design`'s rules to every type the diff adds or changes,
 internal types included, and need nothing beyond this section. A required fix names
 the target structure ("replace `kind` + optional fields with a sum of `Circle` |
-`Rect`") and the enforcement level it reaches. The levels are owned by
-`type-driven-design`: 1 "Unconstructible", 2 "Statically flagged", 3 "Rejected at one
-boundary", 4 "Crashes at the use site". Do not demand an encoding the language
-lacks. Go has no sum types; Elixir and untyped Python have no static types; Go,
-TypeScript, Python, and Elixir cannot consume a value, so the source of a transition
-stays usable. In those cases a fix at level 3 plus 4 (one boundary, loud failure
-everywhere else) is complete, and for transitions that means the old value is
-disabled and any later use crashes.
+`Rect`") and the enforcement level it reaches. The levels, owned by
+`type-driven-design`:
+
+> 1. **Unconstructible.** The illegal value or call does not type-check (Rust, C++, Haskell).
+> 2. **Statically flagged.** An analyzer warns before running (Dialyzer, the Elixir
+>    type checker, `-Wswitch`, clippy).
+> 3. **Rejected at one boundary.** A single constructor or parser refuses bad input,
+>    and everything downstream assumes validity.
+> 4. **Crashes at the use site.** A non-matching clause raises immediately (Elixir
+>    function heads, `FunctionClauseError`).
+> 5. **Defended everywhere.** Scattered `if (!valid)` checks. This is the condition
+>    being designed away. Never choose it.
+
+Do not demand an encoding the language lacks. Go has no sum types; Elixir and
+untyped Python have no static types; Go, TypeScript, Python, and Elixir cannot
+consume a value, so the source of a transition stays usable. In those cases a fix
+at level 3 plus 4 (one boundary, loud failure everywhere else) is complete, and for
+transitions that means the old value is disabled and any later use crashes.
 
 9. **Inhabitant probe.** For each new or changed struct, record, or class, compare the
    product of the field cardinalities with the domain's meaningful states, and list
@@ -110,12 +120,13 @@ disabled and any later use crashes.
     variant or the absorbing arm. Nit when the arm already existed.
 12. **State probe.** Look for state enums or flags checked at method entry, fields
     that are null in some states, and transitions that mutate in place and leave the
-    source usable. BLOCKING when the protocol touches a Heavy-tier concern (resource
-    lifecycle, auth, money, wire protocol, irreversible step) or a public API, or when
-    a plausible misordering produces a silent wrong result, provided a fix exists in
-    the language: consuming the source, or disabling the old value so its use
-    crashes. Nit otherwise; a runtime enum inside a module that owns every call site
-    is acceptable.
+    source usable. BLOCKING when a fix exists in the language (consuming the source,
+    or disabling the old value so its use crashes) and either a violation would be a
+    serious bug, as `type-driven-design` defines it ("Typestate is for cases where a
+    violation would be a serious bug: auth, resource lifecycle, wire protocols, and
+    library APIs."), or a plausible misordering produces a silent wrong result. Nit
+    otherwise; a runtime enum inside a module that owns every call site is
+    acceptable.
 13. **Resource probe.** For each type that owns a handle (fd, socket, lock,
     transaction, connection): can it be copied, and can it be dropped without release?
     A copyable type with a release step is BLOCKING (double release). A drop without

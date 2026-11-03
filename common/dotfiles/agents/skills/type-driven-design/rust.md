@@ -8,6 +8,19 @@ unstable, and there is no specialization.
 
 Rule numbers below refer to SKILL.md.
 
+## Contents
+
+- Sums, products, and elimination (rules 1, 2, 5)
+- Failure as a value (rule 4)
+- Parse, don't validate (rule 3)
+- Newtypes and phantom tags (rule 6)
+- Typestate (rule 7)
+- Resources (rule 8)
+- Traits as propositions (rule 9)
+- Parametricity (rule 10)
+- Compile-time staging (rule 11)
+- Recursive data (rule 12)
+
 ## Sums, products, and elimination (rules 1, 2, 5)
 
 - Model "or" with an `enum` whose variants carry data; never with a struct plus a

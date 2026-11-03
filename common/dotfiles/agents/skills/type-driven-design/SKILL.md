@@ -14,9 +14,8 @@ functions cannot exist.
 
 Source: Ayush Bhat, *Type-Theoretic C++*, 11 parts, starting at
 <https://loomblog.com/post/type-theoretic-foundations>. The rules and vocabulary below
-come from that series. The enforcement ladder, the type record, and the error classes
-in rule 4 are this skill's additions. The language files map the rules onto each type
-system.
+come from that series. The enforcement ladder and the type record are this skill's
+additions. The language files map the rules onto each type system.
 
 ## Where this fits
 
@@ -32,10 +31,10 @@ all of them.
 
 This skill is the mechanism layer. When `interface-contract` says "make invalid
 states unrepresentable", "name identities", "no ordering requirements", or "ownership
-in the signature", this skill gives the techniques and their per-language encodings.
-It also governs types that never cross a boundary, which `interface-contract` does
-not cover. Error classification (define out of existence, contract error, or bug)
-belongs to `interface-contract`.
+and lifetime in the signature", this skill gives the techniques and their
+per-language encodings. It also governs types that never cross a boundary, which
+`interface-contract` does not cover. Error classification (define out of existence,
+contract error, or bug) belongs to `interface-contract`.
 
 ## Language files
 
@@ -110,13 +109,11 @@ elimination rules of the domain.
    introduction path, so count the construction sites. One exception, owned by
    `interface-contract`: "A deliberate second check at a privilege boundary is
    defense in depth, not re-validation; say so in the code."
-4. **Make contract errors values.** First classify each error with the three classes
-   owned by `interface-contract`: "Defined out of existence", "Contract errors" the
-   caller can act on, and "Bugs". A contract error is a sum type (`Result`/`expected`/
-   `{:ok, _} | {:error, _}`), never a sentinel value, a `bool` plus an out-param, or
-   an undocumented throw. Success data must be unreachable in the failure branch. For
-   bugs, `interface-contract` states: "Inside one trust domain these are assertions
-   or panics, not error values."
+4. **Make failures values.** A failure the caller acts on is a sum type
+   (`Result`/`expected`/`{:ok, _} | {:error, _}`), never a sentinel value, a `bool`
+   plus an out-param, or an undocumented throw. Success data must be unreachable in
+   the failure branch. Which cases are failures at all, and which are bugs, is
+   decided by `interface-contract`'s error classification, not here.
 5. **Eliminate exhaustively.** Pattern matching is the elimination rule, so handle
    every introduction form. Do not use a wildcard or `default` over a sum you own: it
    turns "a new variant breaks the build at every site" into silent wrong behavior.
@@ -212,13 +209,23 @@ elimination rules of the domain.
 
 ## Workflow
 
-**Authoring.** Answer the design questions, then write the types before the
-functions. For each new domain type, state machine, or resource handle, write a
-**type record**: its states and inhabitant count, its introduction paths, its
-elimination sites, and the ladder level it reaches. Put the record where the design
-record goes (the bead's `--design` field, the PR body, or the brief reply), next to
-the `module-design` record when there is one. Let the functions follow from the
-types. If a function body starts with a defensive check, go back and tighten the
-type.
+**Authoring.**
+
+1. Answer the design questions.
+2. Write the types before the functions.
+3. For each new domain type, state machine, or resource handle, write a type record.
+   Copy this checklist:
+   ```
+   Type record: <type>
+   - [ ] States and inhabitant count (meaningful vs representable)
+   - [ ] Introduction paths (the parser, and every other construction site)
+   - [ ] Elimination sites (matches, switches, visits over it)
+   - [ ] Ladder level reached, and why not higher
+   - [ ] Extension axis: new variants or new operations (rule 13)
+   ```
+4. Put the record where the design record goes (the bead's `--design` field, the PR
+   body, or the brief reply), next to the `module-design` record when there is one.
+5. Write the functions. If a function body starts with a defensive check, go back to
+   step 2 and tighten the type.
 
 **Reviewing** is `design-review`'s job (type probes 9–14), not this skill's.

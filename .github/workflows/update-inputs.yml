@@ -1,0 +1,83 @@
+# Daily flake-input bump, committed straight to main (pull requests are
+# disabled on this repo, which rules out Dependabot). Inputs move in groups;
+# a group lands only if ci/check.sh passes with it. A failing group is
+# reverted and the run fails so GitHub notifies; the other groups still land.
+name: Update flake inputs
+
+on:
+  schedule:
+    # After dpoage/omp-flake's 06:00 self-bump.
+    - cron: "0 7 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency: update-inputs
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: DeterminateSystems/nix-installer-action@v19
+
+      - name: Update and check each group
+        id: update
+        run: |
+          set -euo pipefail
+          # pattern-cli is private git+ssh: never updated here.
+          release="nixpkgs home-manager nixvim"
+          rest=$(jq -r --arg skip "omp-flake pattern-cli $release" \
+            '.nodes.root.inputs | keys[] | select(. as $k | $skip | split(" ") | index($k) | not)' \
+            flake.lock | xargs)
+          groups=("omp-flake" "$release" "$rest")
+
+          landed=() failed=()
+          for group in "${groups[@]}"; do
+            echo "::group::$group"
+            cp -f flake.lock flake.lock.good
+            # shellcheck disable=SC2086 # group is a space-separated input list
+            nix flake update $group
+            if cmp -s flake.lock flake.lock.good; then
+              echo "up to date"
+            elif ci/check.sh; then
+              landed+=("$group")
+            else
+              echo "::error title=update-inputs::check failed with: $group"
+              cp -f flake.lock.good flake.lock
+              failed+=("$group")
+            fi
+            rm -f flake.lock.good
+            echo "::endgroup::"
+          done
+
+          if [ ${#landed[@]} -gt 0 ]; then
+            {
+              echo "message<<EOF"
+              echo "flake.lock: update inputs"
+              echo
+              printf -- '- %s\n' "${landed[@]}"
+              echo "EOF"
+            } >> "$GITHUB_OUTPUT"
+          fi
+          [ ${#failed[@]} -eq 0 ] || echo "failed=true" >> "$GITHUB_OUTPUT"
+
+      # Commit through the contents API: GitHub attributes it to
+      # github-actions[bot] and signs it, with no local git identity.
+      - name: Commit
+        if: steps.update.outputs.message != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+          MESSAGE: ${{ steps.update.outputs.message }}
+        run: |
+          gh api -X PUT "repos/${{ github.repository }}/contents/flake.lock" \
+            -f message="$MESSAGE" \
+            -f content="$(base64 -w0 flake.lock)" \
+            -f sha="$(git rev-parse HEAD:flake.lock)" \
+            -f branch="${{ github.ref_name }}"
+
+      - name: Report failed groups
+        if: steps.update.outputs.failed == 'true'
+        run: exit 1

@@ -1,6 +1,6 @@
 ---
 name: doc-writer
-description: Use when writing or revising prose documentation — READMEs, docs/ pages, guides, tutorials, man pages, changelogs, skill files, and module- or package-level doc comments. Load before drafting or editing any of these. Not for inline code comments or commit messages. GitHub comments, issues, and PRs use `skill://github-voice`.
+description: Use when writing or revising prose documentation — READMEs, docs/ pages, guides, tutorials, man pages, changelogs, skill files, and module- or package-level doc comments. Load before drafting or editing any of these. Not for inline code comments or commit messages. Not for GitHub comments, issues, and PRs (`github-voice`).
 ---
 
 # Documentation Writer
@@ -21,8 +21,7 @@ govern every choice. When they conflict, clarity wins.
 ## Scope
 
 Prose documentation only. GitHub posts (comments, issues, PRs, reviews) follow
-`skill://github-voice`. Inline code comments follow the surrounding codebase's
-conventions.
+`github-voice`. Inline code comments follow the surrounding codebase's conventions.
 
 ## Structure before sentences
 
@@ -68,6 +67,22 @@ conventions.
 - State a default or a value only after you confirm it against the code. Do not
   reproduce a stale one.
 - When behavior is uncertain, test it. Do not paper over the gap with a vague modal.
+
+## Skill files
+
+A skill is loaded into a worker's context, so every cross-reference can cost a load.
+
+- A skill never tells its reader to load another skill. The brief, the agent
+  definition, or the user decides what loads.
+- Name another skill bare (`design-review`) and only to route: "Not for X
+  (`design-review`)." A `skill://` URI is a load instruction. Use one only for the
+  skill's own files (`skill://oracle-rounds/procedure.md`), and in orchestration
+  skills and agent definitions that write briefs.
+- Make a skill complete for its role. When it needs a fact that another skill owns,
+  copy the fact verbatim, in quotes, and name the owner (`owned by bug-hunt`). Never
+  paraphrase or copy a subset; a partial copy drifts from its owner.
+- Triggers in the description cause loads. Name explicit phrases and concrete tasks.
+  Never trigger on a code shape that matches most edits.
 
 ## Never
 

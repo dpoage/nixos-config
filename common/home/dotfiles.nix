@@ -37,6 +37,20 @@
     ../dotfiles/agents/skills/premortem/SKILL.md;
   home.file.".agents/skills/bend/SKILL.md".source =
     ../dotfiles/agents/skills/bend/SKILL.md;
+  home.file.".agents/skills/type-driven-design/SKILL.md".source =
+    ../dotfiles/agents/skills/type-driven-design/SKILL.md;
+  home.file.".agents/skills/type-driven-design/cpp.md".source =
+    ../dotfiles/agents/skills/type-driven-design/cpp.md;
+  home.file.".agents/skills/type-driven-design/rust.md".source =
+    ../dotfiles/agents/skills/type-driven-design/rust.md;
+  home.file.".agents/skills/type-driven-design/go.md".source =
+    ../dotfiles/agents/skills/type-driven-design/go.md;
+  home.file.".agents/skills/type-driven-design/typescript.md".source =
+    ../dotfiles/agents/skills/type-driven-design/typescript.md;
+  home.file.".agents/skills/type-driven-design/python.md".source =
+    ../dotfiles/agents/skills/type-driven-design/python.md;
+  home.file.".agents/skills/type-driven-design/elixir.md".source =
+    ../dotfiles/agents/skills/type-driven-design/elixir.md;
 
   # OMP agent definitions (~/.omp/agent/agents)
   home.file.".omp/agent/agents/oracle.md".source =

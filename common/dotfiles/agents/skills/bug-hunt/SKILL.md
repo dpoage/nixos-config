@@ -1,6 +1,6 @@
 ---
 name: bug-hunt
-description: Use when probing a named unit (package, adapter, state machine, test suite) for latent defects by executing adversarial inputs and paths nobody tested — on demand, before a release, or as the adversarial-correctness oracle in an oracle round. Read-only; every finding rests on an executed probe with a base-commit observation and lands as a bead. Trigger on "hunt bugs", "what else is broken here", "probe this adapter", "find latent defects". For a diff's design load `design-review`; for acceptance of a change load `acceptance-replay`.
+description: Use when probing a named unit (package, adapter, state machine, test suite) for latent defects by executing adversarial inputs and paths nobody tested — on demand, before a release, or as the adversarial-correctness oracle in an oracle round. Read-only; every finding rests on an executed probe with a base-commit observation and lands as a bead. Trigger on "hunt bugs", "what else is broken here", "probe this adapter", "find latent defects". Not for a diff's design (`design-review`) or a change's acceptance (`acceptance-replay`).
 ---
 
 # Bug Hunt
@@ -89,6 +89,11 @@ with: impact class — `wire-invalid`, `silent-data-loss`, `wrong-output`,
 observation; file:line of the defect and of the last writer or guard; the contract or
 doc sentence verbatim where one applies; one-sentence fix; `history://` link to the
 hunt. Duplicates of open beads are comments on the existing bead.
+
+When a defect is representational (a broken field invariant from family 2, a state
+flag read in the wrong state, two primitives of one type swapped, an unchecked
+constructor), the one-sentence fix also names the type change that makes the defect
+class unconstructible: a sum type, a validated type, a type per state, or a newtype.
 
 Close with the probe matrix (family × probes × result, null results included) — when
 run as an oracle this is the `Coverage:` matrix the verdict contract requires.

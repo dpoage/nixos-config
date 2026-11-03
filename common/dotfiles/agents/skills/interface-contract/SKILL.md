@@ -1,6 +1,6 @@
 ---
 name: interface-contract
-description: Use when adding or changing something other code or users depend on — a public function signature, exported type, trait or interface, CLI flag, config key, wire format, or error variant. Governs how narrow the surface is, which states are representable, how errors are classified, and what callers must know. Not for internal changes that leave every caller-visible surface unchanged. For module boundaries load `module-design`; for reviewing existing surfaces load `design-review`.
+description: Use when a brief asks for a seam or contract record, or when the task names a surface other code or users depend on — a public API, exported type, trait or interface, CLI flag, config key, wire format, or error surface — and asks to design, add, or change it. Governs how narrow the surface is, which states are representable, how errors are classified, and what callers must know. Not for internal changes that leave every caller-visible surface unchanged. Not for module boundaries (`module-design`), type-level techniques and per-language encodings (`type-driven-design`), or reviewing existing surfaces (`design-review`).
 ---
 
 # Interface Contract
@@ -12,6 +12,10 @@ functions. One function with four booleans has a larger interface than three fun
 with none.
 
 ## Signature rules
+
+These rules state what the surface must guarantee. The techniques that enforce them
+(sum types, newtypes and phantom tags, typestate tokens, move-only handles), and how
+each language encodes them, are the subject of `type-driven-design`.
 
 - **Make invalid states unrepresentable.** If two fields cannot both be set, the type
   is a sum type, not two optionals. If a value has a valid range, the parameter type

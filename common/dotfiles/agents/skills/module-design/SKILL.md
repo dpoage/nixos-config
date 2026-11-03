@@ -1,6 +1,6 @@
 ---
 name: module-design
-description: Use before writing code that creates, splits, merges, or moves a module boundary — a package, crate, service, subsystem, or class that owns a decision — or when a brief asks for a `--design` record. Produces a five-part design record and gates it against deep-module, information-hiding, and YAGNI rules. Not for edits inside an existing module that keep its boundary. For signatures load `interface-contract`; for reviewing a design load `design-review`.
+description: Use before writing code that creates, splits, merges, or moves a module boundary — a package, crate, service, subsystem, or class that owns a decision — or when a brief asks for a `--design` record. Produces a five-part design record and gates it against deep-module, information-hiding, and YAGNI rules. Not for edits inside an existing module that keep its boundary. Not for signatures (`interface-contract`), type-level encoding (`type-driven-design`), or reviewing a design (`design-review`).
 ---
 
 # Module Design
@@ -86,7 +86,10 @@ a "when we add X" is not a justification.
 - **Extensibility hooks.** Remove event emitters, `before`/`after` hooks, and generic
   type parameters with a single instantiation. A callback the module calls inside a
   scope it owns (transaction, lock, retry, iteration) is not a hook: it keeps the
-  ordering rule out of the caller's hands. Keep it.
+  ordering rule out of the caller's hands. Keep it. A state or tag parameter
+  (typestate, phantom tag) is not a hook either; count each state or tag in use as
+  one instantiation. A phantom tag with a single tag in use is a plain newtype, so
+  write the newtype.
 - **Layers that forward.** Delete a layer whose methods each call one method below with
   the same arguments. Point the callers at the layer below.
 

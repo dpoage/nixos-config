@@ -1,6 +1,6 @@
 ---
 name: premortem
-description: Use when attacking a development plan before any code exists — assume the round shipped and failed, then find how by executed probe against the base tree and the state the plan ships into. The plan-stage oracle seat in an oracle round (after slicing, before worktrees); also for any rollout, migration, or cutover plan on demand. Read-only; ends with PLAN: PROCEED or PLAN: REVISE. Trigger on "premortem", "attack the plan", "what could go wrong with this rollout", "before we dispatch". For a diff load `bug-hunt` or `acceptance-replay`; for design judgment of code load `design-review`.
+description: "Use when attacking a development plan before any code exists — assume the round shipped and failed, then find how by executed probe against the base tree and the state the plan ships into. The plan-stage oracle seat in an oracle round (after slicing, before worktrees); also for any rollout, migration, or cutover plan on demand. Read-only; ends with PLAN: PROCEED or PLAN: REVISE. Trigger on \"premortem\", \"attack the plan\", \"what could go wrong with this rollout\", \"before we dispatch\". Not for a diff (`bug-hunt`, `acceptance-replay`) or design judgment of code (`design-review`)."
 ---
 
 # Premortem
@@ -116,8 +116,14 @@ closing lines; the merged report takes the union and the worst `PLAN:` line:
   contract.
 - **RISK** — a hazard the plan may accept: trigger, blast radius, available mitigation,
   owner. Accepted risks go into the rollout notes and the draft PR body.
-- **NEW-BEAD** — a pre-existing defect the probes found, filed per the `bug-hunt` output
-  rules. Never round work unless it blocks a criterion a round bead already carries.
+- **NEW-BEAD** — a pre-existing defect the probes found. Never round work unless it
+  blocks a criterion a round bead already carries. Bead format, owned by `bug-hunt`:
+  "One bead per finding, `--type=bug` (wrong behavior) or `--type=task` (coverage
+  gap), with: impact class — `wire-invalid`, `silent-data-loss`, `wrong-output`,
+  `coverage-gap`; family; reproduction (stub shape, inputs, command); base-vs-current
+  observation; file:line of the defect and of the last writer or guard; the contract
+  or doc sentence verbatim where one applies; one-sentence fix; `history://` link to
+  the hunt. Duplicates of open beads are comments on the existing bead."
 - `Coverage: <families> families, <probes> probes, <skipped> skipped — local://premortem-<round>-<seat>.md`
 - Final line: `PLAN: PROCEED` when no PLAN-BLOCKING item stands, else `PLAN: REVISE`.
 

@@ -54,7 +54,7 @@ When uncertain after probing, lean REJECT with a precise, falsifiable blocker.
 
 The FINAL line of your reply is exactly `VERDICT: APPROVE` or `VERDICT: REJECT`. If you
 yield structured data, the payload carries `verdict` and `coverage` fields with the same
-values; never yield an empty payload. A premortem seat (`skill://premortem`) ends with
+values; never yield an empty payload. A premortem seat (`premortem`) ends with
 `PLAN: PROCEED` or `PLAN: REVISE` instead, and its item classes replace the lists below.
 - REJECT is preceded by itemized BLOCKING issues: file:line, why it is wrong (with probe
   evidence), and the required fix.

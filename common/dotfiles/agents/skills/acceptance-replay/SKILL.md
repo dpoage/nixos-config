@@ -1,6 +1,6 @@
 ---
 name: acceptance-replay
-description: Use when judging whether a change does what it claims — replaying the motivating incident against the built artifact and verifying every acceptance criterion, claimed fix, and published doc by executed probe. The behavior-replay oracle in an oracle round; also for verifying any PR's claims on demand. Read-only. Trigger on "does this actually fix it", "verify the acceptance criteria", "replay the incident", "check the PR's claims". For latent-defect probing load `bug-hunt`; for design judgment load `design-review`.
+description: Use when judging whether a change does what it claims — replaying the motivating incident against the built artifact and verifying every acceptance criterion, claimed fix, and published doc by executed probe. The behavior-replay oracle in an oracle round; also for verifying any PR's claims on demand. Read-only. Trigger on "does this actually fix it", "verify the acceptance criteria", "replay the incident", "check the PR's claims". Not for latent-defect probing (`bug-hunt`) or design judgment (`design-review`).
 ---
 
 # Acceptance Replay
@@ -47,7 +47,6 @@ build and run in scratch copies.
    not green. Run it; if it fails, the fix is a hermetic pin (stub network and heavy
    dependencies) that keeps coverage, not documentation of the red. A pin is a test, not
    a new runner or gate.
-8. **Then design.** Run the `skill://design-review` probes on the diff.
 
 ## Verdict
 

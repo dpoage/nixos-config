@@ -152,7 +152,8 @@ Apply these at step 2 and whenever you rule a `SCOPE:` item (R2).
 Every implementer brief and fix list contains these items.
 
 - Bead IDs, file ownership, and non-goals.
-- Every skill the worker must load, named as `skill://<name>`. Subagents start blank.
+- The skills from the skill table (below), each named as `skill://<name>`. Subagents
+  start blank and load only what the brief names.
 - Worktree, scratch path, and interpreter kernel (R8).
 - The module-map entry and the seam contracts the slice owns or consumes.
 - Criteria as properties with their mutants (R4). Prefer the closing form: one
@@ -183,6 +184,23 @@ Every implementer brief and fix list contains these items.
 - A prose blocker travels as the property its sentences must satisfy, plus the
   falsifying probe. It never travels as replacement text, whether the text is the
   oracle's or yours. Narrowing or deleting the claim always satisfies the property.
+
+### Skill table
+
+Name only the rows whose trigger the slice hits. A fix-round brief carries its
+slice's rows plus any row that a blocker's required fix hits. A slice that hits no
+row gets no design skill.
+
+| Slice trigger | Implementer brief names |
+|---|---|
+| Adds, splits, merges, or moves a module boundary | `skill://module-design` |
+| Adds or changes a caller-visible surface: exported signature or type, CLI flag, config key, wire format, error variant | `skill://interface-contract` |
+| Adds a domain type, state machine, resource handle, or validation boundary, or changes one's states, invariants, or introduction paths | `skill://type-driven-design` and `skill://type-driven-design/<lang>.md` for the slice's language |
+| Edits prose documentation | `skill://doc-writer` |
+
+Seats take their skills from the seat table below, never from this one.
+`design-review` contains its own type probes, so seat B never needs
+`type-driven-design`.
 
 ## Tiers and seats
 

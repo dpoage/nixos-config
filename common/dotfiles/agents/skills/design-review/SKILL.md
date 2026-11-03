@@ -1,6 +1,6 @@
 ---
 name: design-review
-description: Use when reviewing a diff, branch, PR, or module for architectural quality — module depth, information hiding, cohesion, coupling, speculative generality, and interface cost. Read-only; produces findings with file:line evidence from executed probes, in the oracle verdict format (BLOCKING vs nit). Load in oracle and reviewer briefs whenever the brief says "design", "architecture", "code review", "is this abstraction worth it", "judge against design principles", or the change introduces a new module or public surface. For producing a design load `module-design`; for API decisions load `interface-contract`.
+description: Use when reviewing a diff, branch, PR, or module for design quality — module depth, information hiding, cohesion, coupling, speculative generality, interface cost, and representable states (illegal states, unchecked construction, non-exhaustive matches, state flags, copyable handles). Read-only; produces findings with file:line evidence from executed probes, in the oracle verdict format (BLOCKING vs nit). Load in oracle and reviewer briefs whenever the brief says "design", "architecture", "code review", "is this abstraction worth it", "judge against design principles", or the change introduces a new module or public surface. Self-contained for review; not for producing a design (`module-design`, `interface-contract`, `type-driven-design`).
 ---
 
 # Design Review
@@ -11,8 +11,9 @@ does every piece of structure have a **caller that exists**. A finding is ground
 when it names a file:line and the probe that produced it. Taste without a probe is a
 nit, never a blocker.
 
-Vocabulary is Ousterhout and Parnas; the authoring rules live in `module-design` and
-`interface-contract`. This skill is the inverse: the same rules, applied as probes.
+Vocabulary is Ousterhout and Parnas for boundaries, and type theory for representation.
+The authoring rules live in `module-design`, `interface-contract`, and
+`type-driven-design`. This skill is the inverse: the same rules, applied as probes.
 
 **Module** means the smallest unit with an enforced boundary in the language: a Rust
 module, a Go package with its subpackages, a TypeScript directory with one entry file,
@@ -76,6 +77,59 @@ otherwise search the tree for each exported name.
    covers does not. BLOCKING when the diff introduced the second secret, nit when it
    widened a pre-existing one.
 
+## Type probes
+
+These apply `type-driven-design`'s rules to every type the diff adds or changes,
+internal types included, and need nothing beyond this section. A required fix names
+the target structure ("replace `kind` + optional fields with a sum of `Circle` |
+`Rect`") and the enforcement level it reaches. The levels are owned by
+`type-driven-design`: 1 "Unconstructible", 2 "Statically flagged", 3 "Rejected at one
+boundary", 4 "Crashes at the use site". Do not demand an encoding the language
+lacks. Go has no sum types; Elixir and untyped Python have no static types; Go,
+TypeScript, Python, and Elixir cannot consume a value, so the source of a transition
+stays usable. In those cases a fix at level 3 plus 4 (one boundary, loud failure
+everywhere else) is complete, and for transitions that means the old value is
+disabled and any later use crashes.
+
+9. **Inhabitant probe.** For each new or changed struct, record, or class, compare the
+   product of the field cardinalities with the domain's meaningful states, and list
+   the extra states (a kind field next to fields that only some kinds use, bool flags,
+   nullable fields). BLOCKING when code in the diff branches on an extra state, or
+   would mishandle one silently. Nit otherwise.
+10. **Introduction probe.** For each type that carries an invariant, list every site
+    that can construct it without going through its parser: public fields,
+    literals, casts, zero values, derived deserializers, infallible conversions.
+    BLOCKING when unchecked input reaches such a site in shipped code. A downstream
+    re-check of an already-typed value is a nit that points at this leak, except as
+    `interface-contract` states: "A deliberate second check at a privilege boundary
+    is defense in depth, not re-validation; say so in the code."
+11. **Elimination probe.** For each match, switch, or visit over a sum the repo owns,
+    flag every wildcard or default arm that absorbs cases. A terminal arm that proves
+    exhaustiveness (`assert_never`, `assertNever`, `static_assert`, or a panic backed
+    by an exhaustiveness linter) does not count. BLOCKING when the diff adds the
+    variant or the absorbing arm. Nit when the arm already existed.
+12. **State probe.** Look for state enums or flags checked at method entry, fields
+    that are null in some states, and transitions that mutate in place and leave the
+    source usable. BLOCKING when the protocol touches a Heavy-tier concern (resource
+    lifecycle, auth, money, wire protocol, irreversible step) or a public API, or when
+    a plausible misordering produces a silent wrong result, provided a fix exists in
+    the language: consuming the source, or disabling the old value so its use
+    crashes. Nit otherwise; a runtime enum inside a module that owns every call site
+    is acceptable.
+13. **Resource probe.** For each type that owns a handle (fd, socket, lock,
+    transaction, connection): can it be copied, and can it be dropped without release?
+    A copyable type with a release step is BLOCKING (double release). A drop without
+    release, or a must-use result that can be dropped silently, is BLOCKING when it
+    leaks or loses data, and a nit when cleanup still happens.
+14. **Generic probe.** For each generic parameter in the diff, look for type
+    inspection, specialization, or runtime type checks on it. BLOCKING when it breaks a
+    law that existing callers rely on (a phantom tag inspected or specialized, or a
+    container that behaves differently for one element type). Nit otherwise.
+
+Adjacent parameters of one primitive type that carry different meanings are covered
+by probe 5 and by `interface-contract`'s "name identities". The required fix is a
+newtype in the target language.
+
 ## Necessity before quality
 
 A finding that a thing need not exist is not a quality finding and must not be routed as
@@ -135,9 +189,12 @@ into `retry.rs`; both callers import it".
    for the named secret; a secret the callers already reference is not hidden, and
    part 1 is then a BLOCKING misstatement. Parts 4 and 5: the rewrite and deletion
    probes test them; a record that understates rewrite cost or overstates deletion
-   cost is BLOCKING.
+   cost is BLOCKING. A type record (from `type-driven-design`) is a claim too: probes 9
+   and 10 test its inhabitant counts and introduction paths, and a record that
+   undercounts either is BLOCKING.
 2. **Name the modules** the diff touches, what each hides, and the import edges the
-   diff adds.
+   diff adds. Name the domain types, state machines, and resource handles it adds or
+   changes, and the target language.
 3. **Run the probes** in order. Record raw results before interpreting them.
 4. **Walk the smell list** against the probe results.
 5. **Write the verdict.** Each blocker: file:line, probe evidence, required fix. Never

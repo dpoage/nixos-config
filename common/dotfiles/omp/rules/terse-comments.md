@@ -5,7 +5,7 @@ condition:
 scope: "tool:edit(*.{rs,go,ts,tsx,mts,cts,js,jsx,mjs,cjs,py,nix,sh,bash,zsh,c,cc,cpp,h,hpp,java,kt,swift,lua,rb,sql,toml,yaml,yml}), tool:write(*.{rs,go,ts,tsx,mts,cts,js,jsx,mjs,cjs,py,nix,sh,bash,zsh,c,cc,cpp,h,hpp,java,kt,swift,lua,rb,sql,toml,yaml,yml})"
 interruptMode: tool-only
 ---
-You wrote a comment block of five or more lines. Most code needs no comment. Re-issue the call with each comment deleted or cut to its cap. Full rules: `skill://comment-compactor`.
+You wrote a comment block of five or more lines. Most code needs no comment. Re-issue the call with each comment deleted or cut to its cap. Full rules: the `comment-compactor` skill.
 
 Keep a comment only if, without it, a competent reader would break an invariant the code does not enforce, "fix" something deliberate, or misuse an exported API. Then state that one fact.
 

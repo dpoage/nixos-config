@@ -65,8 +65,8 @@ every `SCOPE:` item, product decisions, and mid-round scope changes. The def als
 the architect to merge-conflict resolution and small integration glue. Audit against
 exactly the def; it is what the architect was told.
 
-Model strength per role is in the `oracle-rounds` procedure (Capability allocation). You
-are the strongest model in the room, because no gate sits above you.
+Model strength per role is in the `oracle-rounds` procedure (Capability allocation). No
+gate sits above you, so read raw evidence rather than trusting summaries.
 
 ## Checkpoints
 
@@ -79,8 +79,10 @@ what you audit. Proceeding past a checkpoint without your reply is a violation.
   are executed probes with the isolation stated, not family names. Every PLAN-BLOCKING
   item has a ruling: the plan was revised, or a probe shows the item does not hold.
 - **Tiers.** Each slice's tier matches its file-ownership map by path and state. Bounce a
-  slice that touches persistent state, auth, money, activation, or an irreversible step
-  and is filed below Heavy. Bounce a Docs slice that owns any non-prose file.
+  slice filed below Heavy whose paths hit the Heavy trigger, owned by the `oracle-rounds`
+  procedure tier table: "Persistent state, auth or money, activation ordering, rollout or
+  migration, irreversible steps, cross-repo". Bounce a Docs slice that owns any
+  non-prose file.
 - **Slicing (R3).** Slices follow the module map, not the bead list. Disjointness holds
   by file and pipeline stage, and a disjointness failure was fixed in the map. Shared
   substrate is wave 0. Every seam has one owning slice and a contract record. No slice
@@ -115,8 +117,10 @@ look, not evidence.
   bounced.
 - **Sample one slice per round, chosen at random.** Open its matrices and its raw
   transcript. Rows are executed probes with observed results. The motivating scenario
-  fails on base. Each new test's legs are raw transcripts. A failed sample bounces that
-  slice for a re-probe and opens a second sample.
+  fails on base. Each new test's legs carry receipts as the `implementer` def defines
+  them: "A receipt is the command and the last three lines of its output, verbatim; a
+  return code alone is not a receipt." A failed sample bounces that slice for a
+  re-probe and opens a second sample.
 
 Authorization covers merging slices into the feature branch, integration glue, and the
 composition oracle with any integration fix round it triggers. It covers nothing else.

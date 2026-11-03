@@ -8,8 +8,8 @@
 #
 # Role contract (oracle-rounds / arbiter-architect skills):
 #   ORACLE      — strongest available; false APPROVE is silent
-#   AUGUR       — oracle-class, different model family from ORACLE; writes the
-#                 fixes ORACLE re-reviews, so reviewer and fixer never share blind spots
+#   AUGUR       — fixer from another model family than ORACLE, never more capable;
+#                 writes the fixes ORACLE re-reviews, so they share no blind spots
 #   ARCHITECT   — strong; failures are visible at arbiter checkpoints
 #   IMPLEMENTER — mid-tier; brief quality substitutes for model strength
 #

@@ -91,5 +91,6 @@ values; never yield an empty payload. A premortem seat (`premortem`) ends with
   row on a file the fix diff (`git diff <prev>..<new>`) touches, and your families run on
   the fix diff itself — then rewrite the matrix, marking carried rows. A fix diff that
   touches only prose gets your blocker rows alone. Never accept the implementer's claims
-  of resolution. The same delta applies when you re-check an APPROVE after the paired
-  seat's fix round.
+  of resolution or its self-check rows: re-derive them. A self-check row shortens
+  nothing in your matrix. The same delta applies when you re-check an APPROVE after the
+  paired seat's fix round.

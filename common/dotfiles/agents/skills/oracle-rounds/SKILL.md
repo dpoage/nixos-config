@@ -19,10 +19,14 @@ The casebook gives examples; it adds no rules.
 
 ## Rules
 
-1. **Roles never blur.** You write no feature code. Implementers never review their own
-   work. Oracles never fix what they review.
-   Why: each role's output is the next role's evidence. A role that checks itself
-   produces no evidence.
+1. **Roles never blur.** You write no feature code. Oracles never fix what they review.
+   Implementers never judge their own work. They run the legs and the self-check their
+   def names and attach the raw output. They give no bug-hunt or design-review probe
+   and no verdict on what they observe outside their brief's criteria: an observation
+   goes under its self-check heading with no fix.
+   Why: each role's output is the next role's evidence. A self-check is a claim with
+   its receipt, which a seat re-derives and may still reject. A self-review is a
+   verdict, and a role that passes verdict on itself produces no evidence.
 
 2. **Scope is the bead list fixed at slicing.** Everything the round discovers becomes a
    bead. Nothing becomes round work unless it blocks a criterion a round bead already

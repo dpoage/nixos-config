@@ -70,11 +70,15 @@ A3. **Actionability.** For each instruction, check that a reader can act on it a
     reader can collect. An instruction that cannot be acted on, or a gate that cannot
     be decided, is BLOCKING when a role depends on it, and SHOULD-FIX otherwise.
 A4. **Dry run.** Test the skill the way it is used.
-    1. Before running anything, write three scenarios with expected behavior: two
-       representative tasks the skill exists for and one near-miss it must not
-       change. Keep each small enough to finish in a `/tmp` scratch repository. For
-       an edit that changes only wording, one scenario is enough. For an
-       orchestration skill, dry-run one step, not a whole round.
+    1. Before running anything, write three scenarios: two representative tasks the
+       skill exists for and one near-miss it must not change. Keep each small enough
+       to finish in a `/tmp` scratch repository. For an edit that changes only
+       wording, one scenario is enough. For an orchestration skill, dry-run one step,
+       not a whole round. For each scenario, name the property the skill claims to
+       improve and a measure of it on the artifact, for example invalid states
+       reachable through the public API, construction paths that skip the parser,
+       distinct failure cases a caller can match on, or blockers a seat would raise.
+       Completing the task is not the measure: a baseline usually completes it too.
     2. Dispatch each scenario as the agent that loads the skill in production (for
        example `implementer`, `oracle`, `sweeper`), so it runs on that role's model.
        The brief names the skill the way production does (an absolute file path for
@@ -89,11 +93,14 @@ A4. **Dry run.** Test the skill the way it is used.
     4. Read the model each run actually used from its transcript (`history://<id>`).
        A run that fell back to another model counts only for that model; report the
        fallback, and do not count the run toward the role's primary model in B7.
-    5. Grade each run against its expected behavior and cite its `history://` link.
-       A run that does the wrong thing because of the skill (wrong instruction,
-       missed rule, wrong output) is BLOCKING. A run that hesitates, asks, or reads
-       unrelated files because the skill is unclear is SHOULD-FIX. A baseline that
-       does as well as the skill run is a SHOULD-FIX finding under A2.
+    5. Grade by reading the artifact the run produced (code, diff, reply evidence),
+       not the run's description of it, and cite its `history://` link. When a
+       baseline exists, take each measure on it and the skill run side by side. A
+       run that does the wrong thing because of the skill (wrong instruction, missed
+       rule, wrong output) is BLOCKING. A run that hesitates, asks, or reads
+       unrelated files because the skill is unclear is SHOULD-FIX. A baseline whose
+       measures equal the skill run's is a SHOULD-FIX finding under A2; a baseline
+       that only shares the skill run's patterns is not.
 
 ### B. Best practices
 

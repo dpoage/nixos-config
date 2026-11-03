@@ -3,6 +3,16 @@
 The steps of a round, with the tables and templates each step uses. `SKILL.md` holds the
 rules; a step here never overrides a rule. Rule numbers (R1–R9) refer to `SKILL.md`.
 
+## Contents
+
+- Steps (1–12)
+- Necessity checks
+- Brief checklist, with the skill table
+- Tiers and seats
+- Capability allocation
+- Outcome ledger
+- Report template (step 11)
+
 ## Steps
 
 1. **Scope.** Run `bd ready` from the main checkout and `bd show` every candidate. Fold
@@ -55,6 +65,10 @@ rules; a step here never overrides a rule. Rule numbers (R1–R9) refer to `SKIL
    `SCOPE:` list) is in the `oracle` def. Send back an APPROVE that has no matrix. Read a
    matrix only to reconcile a split verdict. Record each seat's resolved model with its
    verdict line.
+   - **Reply audit.** Read the reply's headings. Bounce, without seats, a reply that
+     lacks one of the reply headings the `implementer` def lists, whose Legs section
+     lacks a block per criterion, or whose Scope `--stat` names a file the brief does
+     not own. This costs no agent turn.
    - **Scripted gate** (Standard and Heavy). Before the seats, run one script on the
      slice hash: build, lint, the suite as CI runs it, the criterion legs and named
      mutants, and the file-ownership diff. A red gate becomes the fix list and no seats
@@ -72,17 +86,18 @@ rules; a step here never overrides a rule. Rule numbers (R1–R9) refer to `SKIL
    A fix that changes only prose gets the gate's build step and the rejecting seat's
    blocker rows, nothing more.
    - **Audit the fix before any oracle sees it.** Bounce the fix without review if
-     `git diff -U0 <prev>..<new>` changes lines outside the blast radius, if `--stat`
-     lacks a file the reply claims, or if the diff adds a runner, harness, gate, or CI
-     wiring that no criterion names.
+     `git diff -U0 <prev>..<new>` deletes or modifies existing lines outside the blast
+     radius, if `--stat` lacks a file the reply claims, or if the diff adds a runner,
+     harness, gate, or CI wiring that no criterion names.
    - **Re-review** follows the `oracle` def: the rejecting seat re-probes the delta.
    - **An APPROVE carries past the paired seat's fix** only if that fix diff misses the
      approving seat's matrix files. Otherwise the approving seat re-probes the delta.
    - **Contract escalation.** If an implementer reports a seam contract as wrong, the
      defect is yours. Revise the record, re-issue it to the owner and every consumer,
      and note it on the owning bead. Never let one side adapt around the contract.
-   - **Loop cap.** A seat's second consecutive REJECT forces triage. A blocker that the
-     fix introduced counts as no progress; a blocker is fix-introduced if its lines
+   - **Loop cap.** A seat's second consecutive REJECT forces triage. A REJECT whose
+     blockers all went to the polish list does not count toward the cap. A blocker that
+     the fix introduced counts as no progress; a blocker is fix-introduced if its lines
      intersect the fix's `git diff` hunks. Record the class and the ruling on the bead:
      - *Thrash*: blockers hit requirements the brief never pinned, the fix closed
        exactly the cited sites and the property survived, or the seats pull in opposite
@@ -170,13 +185,18 @@ Every implementer brief and fix list contains these items.
 - A preserve clause with its before-and-after probe, and a blast radius (files, region).
   When a fix replaces a mechanism, name the observation the old mechanism made that the
   new one must keep.
-- The mutant for each property. Default: delete the line the fix adds. For defaults and
-  unset variables: run the shipped artifact with nothing exported. The implementer
-  returns the legs its def specifies. Deletion and type-shape criteria take `grep -c`
-  and a green build instead of legs. Docs-tier criteria take the doc-truth probe. If
-  leg (a) is already red, the test is redundant. If a mutant is green in the suite while
-  the shipped artifact dies, the suite supplies an input that production does not:
-  require a leg that runs the artifact with nothing supplied.
+- The mutant for each property. Default: delete the line the fix adds. For a
+  threshold, limit, or default: the off-by-one mutant. For defaults and unset
+  variables: run the shipped artifact with nothing exported. The implementer returns
+  the legs and self-check its def specifies. Deletion and type-shape criteria take
+  `grep -c` and a green build instead of legs. Docs-tier criteria take the doc-truth
+  probe. If leg (a) is already red, the test is redundant. If a mutant is green in the
+  suite while the shipped artifact dies, the suite supplies an input that production
+  does not: require a leg that runs the artifact with nothing supplied.
+- A property names every axis the production code branches on (container kind, commit
+  path, client state), with a mutant per axis.
+- For a test that exercises timing or concurrency: the run count and the load bound its
+  leg must meet.
 - A harness, runner, or gate ships only when a criterion names it.
 - Before any brief requires tests, verify the gate: run the suite as CI runs it, confirm
   a nonzero executed-test count, and confirm that a deliberate break fails the required
@@ -252,12 +272,15 @@ Rank model strength by the cost of silent failure. The tempting default, a stron
 architect with cheaper oracles, is backwards: it guards the visible failure and starves
 the invisible one.
 
+Every reviewing role is at least as capable as the role whose work it reviews: `@ORACLE`
+is never weaker than `@IMPLEMENTER` or `@AUGUR`.
+
 | Role | Model | Reason |
 |---|---|---|
 | Oracles | `@ORACLE`, strongest available, generous time budget | A false APPROVE is invisible |
 | Architect (epic mode) | `@ARCHITECT`, strong | Its failures are visible at checkpoints |
 | Implementers | `@IMPLEMENTER`, mid-tier | Their failures surface as REJECTs |
-| implementer-max | `@AUGUR`, oracle-class, from a different model family than `@ORACLE` | Fix rounds concentrate collateral edits and false claims. A fixer from the reviewer's family shares the reviewer's blind spots |
+| implementer-max | `@AUGUR`, from a different model family than `@ORACLE`, never more capable than it | Fix rounds concentrate collateral edits and false claims. A fixer from the reviewer's family shares the reviewer's blind spots. What it adds over `@IMPLEMENTER` is a fresh context, the full verdict history, and license to discard the approach, not model strength |
 | Sweepers, scouts, mechanical edits | Cheap (`@SWEEP`) | None can approve. Sweeper output is leads the oracle re-probes |
 
 The defs (`oracle`, `sweeper`, `implementer`, `implementer-max`, `architect`) live in
@@ -273,6 +296,9 @@ Pre-merge gates are proxies. What escapes them is the only measure of which gate
    `escaped-from:<round-id>`.
 3. In that bead's body, name the gate that should have caught the defect (brief,
    premortem, seat A, seat B, composition, polish), or write "none could have".
+4. When a later gate in the round (composition, polish, doc-truth) catches a defect an
+   earlier seat approved, file it as in items 2 and 3 before step 11. The report lists
+   the bead IDs.
 
 R9 uses this ledger, plus the step 11 wall-time line, as its evidence.
 

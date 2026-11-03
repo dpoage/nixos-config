@@ -43,9 +43,9 @@ authorization that covers it) is a violation.
 
 - Destructive operations outside the workflow; rule conflicts.
 - Loop cap: a seat's 2nd consecutive REJECT on a slice (`oracle-rounds` step 7 — fix-
-  introduced blockers count as no progress). Include your triage verdict (thrash = brief
-  defect you must fix, overscope = necessity ruling needed, churn or unreliable =
-  dispatch `implementer-max`) and wait for the ruling before re-dispatching.
+  introduced blockers count as no progress). Include your triage verdict, one of the
+  five classes owned by `oracle-rounds` procedure step 7: "Thrash", "Overscope",
+  "Churn", "Wrong owner", "Unreliable". Wait for the ruling before re-dispatching.
 - Any `SCOPE:` item an oracle raises. Necessity is the arbiter's call, not yours, and
   relaying it to an implementer as a blocker is the failure the channel exists to
   prevent.

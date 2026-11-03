@@ -16,9 +16,9 @@ jobs:
       matrix:
         host: [oerlikon, tunguska]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
-      - uses: DeterminateSystems/nix-installer-action@v19
+      - uses: DeterminateSystems/nix-installer-action@v23
 
       # pattern-cli is a private git+ssh input; swap in an empty stub so the
       # hosts evaluate without credentials. Evaluation warnings (deprecations,
@@ -38,9 +38,9 @@ jobs:
   packages:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
-      - uses: DeterminateSystems/nix-installer-action@v19
+      - uses: DeterminateSystems/nix-installer-action@v23
 
       # Flake-input packages not served by cache.nixos.org.
       - name: Build beads and omp

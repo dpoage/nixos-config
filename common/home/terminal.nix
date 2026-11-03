@@ -111,6 +111,10 @@ in
         # Window
         background_opacity = toString rice.terminal.opacity;
         window_padding_width = "8";
+        # kitty >= 0.49 restores the last window state (incl. maximized) on
+        # Wayland; under Hyprland that opens every new kitty maximized
+        # instead of tiled. The tiler owns geometry, so don't remember it.
+        remember_window_size = "no";
         confirm_os_window_close = "0";
         enable_audio_bell = "no";
         tab_bar_style = "powerline";

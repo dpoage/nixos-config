@@ -51,6 +51,8 @@
     ../dotfiles/agents/skills/type-driven-design/python.md;
   home.file.".agents/skills/type-driven-design/elixir.md".source =
     ../dotfiles/agents/skills/type-driven-design/elixir.md;
+  home.file.".agents/skills/skill-review/SKILL.md".source =
+    ../dotfiles/agents/skills/skill-review/SKILL.md;
 
   # OMP agent definitions (~/.omp/agent/agents)
   home.file.".omp/agent/agents/oracle.md".source =
@@ -63,6 +65,8 @@
     ../dotfiles/omp/agents/implementer-max.md;
   home.file.".omp/agent/agents/sweeper.md".source =
     ../dotfiles/omp/agents/sweeper.md;
+  home.file.".omp/agent/agents/skill-reviewer.md".source =
+    ../dotfiles/omp/agents/skill-reviewer.md;
 
   # OMP TTSR rules (~/.omp/agent/rules). Identity comes from programs.git so
   # the work profile's mkDefault override flows through.

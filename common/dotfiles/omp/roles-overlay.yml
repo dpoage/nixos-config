@@ -29,6 +29,9 @@ modelRoles:
   # Fan-out sweepers an oracle spawns per unit x bug family; leads only, the
   # oracle re-runs every candidate. High fan-out, so the cheapest capable model.
   SWEEP: minimax-code/MiniMax-M3:medium
+  # skill-reviewer agent: a second opinion on skills the main session (Opus)
+  # usually writes, so it runs on a different model.
+  SKILL_REVIEW: anthropic/claude-fable-5-1:high
 
 # Main-session default; raise per session with /thinking when a task needs it.
 defaultThinkingLevel: medium
@@ -40,6 +43,9 @@ retry:
     IMPLEMENTER:
       - anthropic/claude-sonnet-5-5
     SWEEP: []
+    # No fallback: falling back to the authoring model would quietly remove the
+    # second opinion. A failed review is visible; a same-model one is not.
+    SKILL_REVIEW: []
 
 # Soft per-subagent request budget; force-stop at 1.5x. The default 200/300
 # is too low for architects, which run a whole round. omp has no per-agent

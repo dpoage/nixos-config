@@ -29,8 +29,8 @@ modelRoles:
   # Fan-out sweepers an oracle spawns per unit x bug family; leads only, the
   # oracle re-runs every candidate. High fan-out, so the cheapest capable model.
   SWEEP: minimax-code/MiniMax-M3:medium
-  # skill-reviewer agent: a second opinion on skills the main session (Opus)
-  # usually writes, so it runs on a different model.
+  # Second opinion on skills the Opus main session writes: a different, larger
+  # model, so the reviewer is at least as capable as the author.
   SKILL_REVIEW: anthropic/claude-fable-5-1:high
 
 # Main-session default; raise per session with /thinking when a task needs it.

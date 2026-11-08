@@ -7,11 +7,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1794047287,
-        "narHash": "sha256-JHEO0apaO7aR18+Sa9HWUroTT/UZaS24mnf+w1wucBk=",
+        "lastModified": 1794101711,
+        "narHash": "sha256-eqX3vfqbk2FdyTst0z1Az7lgmrm8ut8F4ruraf4sLp4=",
         "owner": "gastownhall",
         "repo": "beads",
-        "rev": "087a4ec58869547d0ac361310054d7e7b9dc4095",
+        "rev": "2edea9ced8c6f6124b6c157896ae53a0e09ff7be",
         "type": "github"
       },
       "original": {
@@ -87,11 +87,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1793543282,
-        "narHash": "sha256-PHtGxKYM99f8WhGR5YD7iiCiwemKa2wUD4yVI2oALFg=",
+        "lastModified": 1794132860,
+        "narHash": "sha256-iGNtQnUZsi+v6/4NbtYr+dsmASa6GkzXtUcTpE8F3mE=",
         "owner": "nix-community",
         "repo": "nix-index-database",
-        "rev": "cee0f879d338cf08f814210fa6c2b280594ade0a",
+        "rev": "af9249ca33bc2efaae5d071e4c67ddef19dcb681",
         "type": "github"
       },
       "original": {
@@ -208,11 +208,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1794055295,
-        "narHash": "sha256-vLWbPgw5xb825elD5OYM9A1ZBXHcbctg5jJ4NLB3Xfg=",
+        "lastModified": 1794142721,
+        "narHash": "sha256-/V+wYcEAejZwVWOO+H8y5OzaSlxXr/mTWLImRce9CzM=",
         "owner": "dpoage",
         "repo": "omp-flake",
-        "rev": "a525788057260cadbd18641214fd63224f4e3661",
+        "rev": "46d6ad69ee2c13784e56f81f0812ea99a72b3fd9",
         "type": "github"
       },
       "original": {

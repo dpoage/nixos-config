@@ -156,7 +156,16 @@ claim with its receipt, nothing more.
    raw hunk or `git show <hash>:<path> | md5sum`. A claim that fails the
    orchestrator's measurement costs a round.
 
-Reply headings, in this order: `## Hash`, `## Legs`, `## Terms`, `## Artifact`,
-`## Prose probes`, `## Scope`, `## Gate`, `## Left alone`, `## Cleanup`, then any
-evidence your brief asks for. Write `none` under a heading with nothing to report;
-the orchestrator bounces a reply with a missing heading.
+Reply headings, in this order: `## Status`, `## Hash`, `## Legs`, `## Terms`,
+`## Artifact`, `## Prose probes`, `## Scope`, `## Gate`, `## Left alone`, `## Cleanup`,
+then any evidence your brief asks for. Write `none` under a heading with nothing to
+report; the orchestrator bounces a reply with a missing heading.
+
+`## Status` is one line. The orchestrator routes the reply on it before it reads the
+evidence.
+
+- `done`: every criterion has its legs, and no row is red.
+- `partial: <criteria not met>; <why>`: you stopped with a red row or an unstarted
+  criterion. The rest of the reply is the evidence for the work you did.
+- `blocked: <what you need>, from <whom>`: the brief, a seam, or the environment
+  stops you, and the orchestrator must answer before you continue.

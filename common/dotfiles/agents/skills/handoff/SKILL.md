@@ -16,8 +16,9 @@ or that runs agents that outlive a turn, keeps one.
 
 | Interruption | Survives | Lost |
 |---|---|---|
-| Network or API outage | Processes, kernels, containers, files | Turns in flight abort; the agents park |
+| Network or API outage, account rate limit | Processes, kernels, containers, files | Turns in flight abort; the agents park |
 | omp crash or restart | Containers, all files on disk | Eval kernels, hub processes not started `detached`, background jobs, turns in flight |
+| Host reboot or power loss | Files the OS flushed to disk | Every process, kernel, and container; tmpfs paths; writes not yet flushed; turns in flight |
 
 When a session resumes, the harness restores the transcript, marks the interrupted turn
 as aborted, and restores its subagents as parked. A parked agent keeps its context, and
@@ -51,7 +52,9 @@ Link longer material, such as the plan and the briefs, by path. Do not copy it.
 3. State: one row per ref, with worktree, branch, hash, dirty-file count, stash count,
    and pushed or not.
 4. In flight: one row per running item, with what it is, its owner, its start time, and
-   the command whose output shows whether it finished.
+   the command whose output shows whether it finished. A question that waits for a
+   reply from the user or the arbiter is in flight too. Its row names where the reply
+   arrives, such as the hub or a bead comment.
 5. Agents: ID, role, worktree, and status.
 6. Environment: numbered bring-up commands, each with the check that proves it worked.
 

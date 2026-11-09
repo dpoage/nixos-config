@@ -14,6 +14,6 @@ Skip the rollover in these cases, and reply with one line that says why:
 
 Otherwise:
 
-1. Write the handoff with `context_notes`: goal, state, decisions and reasons, open risks, what you wait for, and references (paths, ledger files, bead IDs, agent IDs, branches).
+1. Write the handoff with `context_notes`: goal, state, decisions and reasons, open risks, what you wait for, and references (paths, ledger files, bead IDs, agent IDs, branches). If the lane keeps a handoff file, update that file first. Then the notes give its path and only what the file does not hold.
 2. Call `new_context`.
 3. Reply with one line: "Context rolled over." Do not repeat your report.

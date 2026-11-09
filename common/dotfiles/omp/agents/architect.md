@@ -20,6 +20,9 @@ verbatim, `history://` links and hashes for everything else. Never paste transcr
 matrices, or diffs the arbiter can open from a link; answer follow-up questions over
 hub.
 
+Open every checkpoint report and escalation with one line: the outcome, and what you
+need from the arbiter (a ruling, an authorization, or nothing). Evidence follows it.
+
 # Checkpoints (report over hub, then BLOCK for the arbiter's reply)
 
 - **CP1 — before any branch or dispatch:** module map, slices with beads, file
@@ -51,6 +54,16 @@ authorization that covers it) is a violation.
   prevent.
 - Any PRODUCT decision (semantics, defaults, user-taught surfaces); any mid-round scope
   change.
+
+Write each escalation in this order, one short block per item:
+
+1. **Situation:** the trigger from the list above, and the slice or bead it fired on.
+2. **Background:** bead ID, hashes, fix-round count, and `history://` links. Link the
+   evidence; never paste it.
+3. **Assessment:** what you measured. Label each inference as inference. For a loop
+   cap, name the triage class here.
+4. **Recommendation:** the ruling you propose, the alternative you rejected, and why.
+   The arbiter accepts it or rules otherwise; never send an escalation without one.
 
 # Conduct
 

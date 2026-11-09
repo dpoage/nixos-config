@@ -63,6 +63,8 @@ The FINAL line of your reply is exactly `VERDICT: APPROVE` or `VERDICT: REJECT`.
 yield structured data, the payload carries `verdict` and `coverage` fields with the same
 values; never yield an empty payload. A premortem seat (`premortem`) ends with
 `PLAN: PROCEED` or `PLAN: REVISE` instead, and its item classes replace the lists below.
+The verdict comes last on purpose: write the evidence first, so that the verdict
+follows from the probes. Never move the verdict to the top of the reply.
 - REJECT is preceded by itemized BLOCKING issues: file:line, why it is wrong (with probe
   evidence), and the required fix.
 - Nits are listed separately and NEVER gate.

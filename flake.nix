@@ -26,16 +26,20 @@
       url = "git+ssh://git@github.com/Pattern-Labs/pattern_cli";
       inputs.flake-utils.follows = "gastown/flake-utils";
     };
+    llm-agents = {
+      url = "github:numtide/llm-agents.nix";
+      inputs.nixpkgs.follows = "nixpkgs-unstable";
+    };
   };
 
-  outputs = { self, nixpkgs, nixpkgs-unstable, nixos-hardware, nixvim, home-manager, nix-index-database, beads, gastown, pattern-cli, ... }:
+  outputs = { self, nixpkgs, nixpkgs-unstable, nixos-hardware, nixvim, home-manager, nix-index-database, beads, gastown, pattern-cli, llm-agents, ... }:
   let
     system = "x86_64-linux";
     unstable = import nixpkgs-unstable { inherit system; config.allowUnfree = true; };
     extraPkgs = {
       beads = beads.packages.${system}.default;
-      claude-code = unstable.claude-code;
       dolt = unstable.dolt;
+      llmAgents = llm-agents.packages.${system};
       gastown = gastown.packages.${system}.default.overrideAttrs (old: {
         goModules = old.goModules.overrideAttrs {
           outputHash = "sha256-PQT/Xq9na3vI8Oy9INBYJf3GsiN5IxAVCxrNLhyIpO8=";

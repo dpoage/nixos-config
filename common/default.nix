@@ -8,6 +8,7 @@
     ./cloud.nix
     ./kubernetes.nix
     ./gastown.nix
+    ./llm
     ./myUser.nix
     # Profiles in ./profiles/ are imported directly by each host
     # (laptop + work, workstation + personal, etc.) — not from here.
@@ -61,7 +62,6 @@
 
   # System packages
   environment.systemPackages = with pkgs; [
-    extraPkgs.claude-code
     extraPkgs.beads
 
     # Core utilities
@@ -94,7 +94,6 @@
     # Development tools
     podman
     lazygit
-    opencode
     bun
     sops
     pkg-config

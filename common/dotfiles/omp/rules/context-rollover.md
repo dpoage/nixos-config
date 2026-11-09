@@ -23,7 +23,7 @@ Roll over at a cutover point only if work remains in this session and the window
 
 ## Procedure
 
-1. Write the notebook with `context_notes` as a handoff to a reader with no memory of this window. Record the goal, the current state, the decisions and their reasons, the open risks, the exact next action, and the references: file paths, bead IDs, agent IDs, branch names.
+1. Write the notebook with `context_notes` as a handoff to a reader with no memory of this window. Record the goal, the current state, the decisions and their reasons, the open risks, the exact next action, and the references: file paths, bead IDs, agent IDs, branch names. If the lane keeps a handoff file, update that file first. Then the notes give its path and only what the file does not hold.
 2. Call `new_context`.
 3. Continue with the next action from the notebook. Do not stop the turn.
 

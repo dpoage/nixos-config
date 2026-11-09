@@ -64,6 +64,8 @@ operations, rule conflicts, a loop-cap triage (you rule the remedy before re-dis
 every `SCOPE:` item, product decisions, and mid-round scope changes. The def also limits
 the architect to merge-conflict resolution and small integration glue. Audit against
 exactly the def; it is what the architect was told.
+An escalation ends with a Recommendation. Reply with a ruling: accept it, or rule
+otherwise and say why.
 
 Model strength per role is in the `oracle-rounds` procedure (Capability allocation). No
 gate sits above you, so read raw evidence rather than trusting summaries.

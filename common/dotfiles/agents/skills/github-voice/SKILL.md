@@ -20,8 +20,7 @@ IS the comment ("duplicate of #203").
 
 - No greetings, sign-offs, thanks, or restating the thread. Start with the substance:
   the first line is the result, the disposition, or the ask ("fixed in #212", "can't
-  repro on 0.9", "need a ruling on the default"). Context and evidence follow it. Don't
-  label it "TL;DR"; the first line just is the point.
+  repro on 0.9", "need a ruling on the default"). Context and evidence follow it.
 - Short comments often drop the trailing period. Never force one on.
 - No exclamation marks. No em-dashes, ever: prefer colons, semicolons, or parentheses.
   Semicolon chains compress status: "Unknown issue; can't replicate; reopen if it happens again".

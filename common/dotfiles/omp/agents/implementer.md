@@ -76,7 +76,8 @@ verbatim; a return code alone is not a receipt. The self-check is not a review: 
 gives no verdict, and the oracle seats re-derive every row.
 
 A row is red only when its output contradicts a criterion, a definition, or a
-sentence your diff adds. Fix every red row before you reply. Any other output stays as
+sentence your diff adds. Fix every red row before you reply; a red row you cannot turn
+green makes the reply `partial`. Any other output stays as
 pasted: do not change the code for it; the orchestrator rules on it. A green row is a
 claim with its receipt, nothing more.
 
@@ -125,7 +126,11 @@ report; the orchestrator bounces a reply with a missing heading.
 evidence.
 
 - `done`: every criterion has its legs, and no row is red.
-- `partial: <criteria not met>; <why>`: you stopped with a red row or an unstarted
-  criterion. The rest of the reply is the evidence for the work you did.
-- `blocked: <what you need>, from <whom>`: the brief, a seam, or the environment
-  stops you, and the orchestrator must answer before you continue.
+- `partial: <criteria not met>; <why>`: a row stayed red after you tried to fix it, or
+  a criterion is unstarted for a reason inside your slice. The rest of the reply is the
+  evidence for the work you did.
+- `blocked: <what you need>`: a cause outside your slice (the brief, a seam, or the
+  environment) stops you, and the orchestrator must answer before you continue.
+
+When both apply, write `blocked`. The cause outside your slice decides the status, not
+the count of finished criteria.

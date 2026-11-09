@@ -83,7 +83,8 @@ The handoff file and the transcript are claims. Measure before you act.
 4. Run each In-flight command. Classify each item as finished, not started, or partial.
    Inspect a partial item before you retry it. Never repeat a step that is unsafe to
    repeat, such as a commit, a push, a merge, or a bead update, until you measure that
-   it did not happen.
+   it did not happen. A pending question is finished when its reply is present where
+   its row says.
 5. Revive each parked agent with one hub message addressed to it by name. A broadcast
    (`agent://all`) reaches only running agents; it does not revive parked ones. The
    message states the interruption time and the measured state of the agent's

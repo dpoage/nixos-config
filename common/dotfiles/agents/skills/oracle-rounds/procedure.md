@@ -65,12 +65,13 @@ rules; a step here never overrides a rule. Rule numbers (R1–R9) refer to `SKIL
    `SCOPE:` list) is in the `oracle` def. Send back an APPROVE that has no matrix. Read a
    matrix only to reconcile a split verdict. Record each seat's resolved model with its
    verdict line.
-   - **Reply audit.** Read the reply's headings. Bounce, without seats, a reply that
-     lacks one of the reply headings the `implementer` def lists, whose Legs section
-     lacks a block per criterion, or whose Scope `--stat` names a file the brief does
-     not own. This costs no agent turn. A reply whose Status is not `done` gets no
-     seats: answer a `blocked` reply, and re-dispatch or re-scope the open criteria of
-     a `partial` reply.
+   - **Reply audit.** Read `## Status` first. A reply whose Status is not `done` gets
+     no seats: answer a `blocked` reply (a seam report follows the Contract escalation
+     bullet in step 7), and re-dispatch or re-scope the open criteria of a `partial`
+     reply. For a `done` reply, bounce without seats a reply that lacks one of the
+     reply headings the `implementer` def lists, whose Legs section lacks a block per
+     criterion, or whose Scope `--stat` names a file the brief does not own. This costs
+     no agent turn.
    - **Scripted gate** (Standard and Heavy). Before the seats, run one script on the
      slice hash: build, lint, the suite as CI runs it, the criterion legs and named
      mutants, and the file-ownership diff. A red gate becomes the fix list and no seats

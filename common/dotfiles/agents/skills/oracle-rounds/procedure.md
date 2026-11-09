@@ -73,7 +73,10 @@ rules; a step here never overrides a rule. Rule numbers (R1–R9) refer to `SKIL
      slice hash: build, lint, the suite as CI runs it, the criterion legs and named
      mutants, and the file-ownership diff. A red gate becomes the fix list and no seats
      spawn. Re-run it on every fix hash. It replaces an agent pre-screen: a cheap agent
-     adds a turn of latency per hash to run the same commands.
+     adds a turn of latency per hash to run the same commands. When slices merge faster
+     than a gate gets a slot, one merge-priority gate on the combined hash may replace
+     the per-slice gates; the record names which slice hashes it covers. Run a gate in
+     a detached worktree no one else commits to: a tree that moves mid-gate voids it.
    - **Chase.** A seat or fixer with no verdict after 60 minutes gets a status check.
      If it cannot name its remaining probes, narrow or split its assignment.
 7. **Drive fix loops.** On a REJECT, write ONE consolidated fix list in brief-checklist
@@ -117,7 +120,10 @@ rules; a step here never overrides a rule. Rule numbers (R1–R9) refer to `SKIL
      ruling buys one fix round. If implementer-max draws two consecutive REJECTs, pull
      the slice, file the evidence on the bead, and escalate to the user. "One more round"
      without a recorded triage is a violation.
-8. **Merge and integrate.** When every tier seat APPROVEs, merge. Cross-branch
+8. **Merge and integrate.** When every tier seat APPROVEs AND every red leg of the
+   slice's gate runs has a recorded disposition (fixed, infra, or ruled), merge. A seat
+   APPROVE does not cover gate reds: read the full red list (junit or a full re-run, not a
+   log tail) and the verdict line itself. Cross-branch
    integration is yours. Keep it minimal and record its diff scope and LOC, because no
    slice oracle saw it. After each merge, run every wired-path probe it triggers (step 3)
    and re-take every measurement criterion whose path it touched, in each window the
@@ -178,10 +184,36 @@ Every implementer brief and fix list contains these items.
   the term is undefined.
 - For each measurement criterion (time, memory, throughput, size): the whole path the
   budget covers, the workload, the machine or proxy, and the windows. A figure from a
-  spike, a micro-benchmark, or an earlier tree is a lead until re-taken this way.
+  spike, a micro-benchmark, or an earlier tree is a lead until re-taken this way. A
+  cost criterion names what it attributes (the mechanism's own increment, or the whole
+  path) and the paired control arm that isolates it, before dispatch.
+- For a budget verdict within its run-to-run spread of the bar: re-take it as interleaved
+  base and tip runs in one quiet hold before attributing it to a slice. A tip over the
+  bar is a slice's fault only if base stays under it in the same hold.
+- For a transition or switch property (fidelity change, release, wake): a leg that runs
+  the transition while its drivers move (roll, pitch, inflow), not only at rest.
+- For a test that waits on the wall clock: bound the wait by observed progress (a tick
+  or state reached), never a fixed time, and show it passes 20 times under at least 2×
+  load. A fixed wait passes on a quiet machine and fails on the gate host.
+- For a set of worlds or tests a criterion ranges over (wet, flooding, served, pinned):
+  derive the set from the data the property depends on, with a test that fails when a
+  member is missing. A hand list goes stale at the next main merge.
+- For a "one owner" property (a formula, a unit, a support test): the command that proves
+  it, such as a grep that must return zero hits outside the owner, run on the merged tree.
+  A copy that survives in a second file passes every behavioural test.
+- For a bound a ruling sets: the reading its mutant must show, strictly outside the
+  bound. A bound of one send interval can't fail a client that is one send interval behind.
+- The gate's ownership pattern is copied from the brief's file list, not retyped.
 - For a user-facing artifact (rendered output, UI, report, CLI text): a criterion read
   off the artifact itself, whose metric separates the intended output from its mutant.
   Show both values in the brief.
+- For a criterion amended after dispatch (a new metric, window, mask or twin): freeze its
+  text with a hash, then have a seat other than the implementer show it on base and on
+  the mutant before any candidate is scored under it. Twice, an amended render criterion
+  could not fail its own mutant (sar VIS F1, O2). A changed measuring instrument (a
+  harness classifier, a sampler, a test's starting state) is an amended criterion too;
+  validate it on constructed known-good and known-bad cases, and each guard's mutant must
+  be red on the population the guard exists for (sar 2.10a X-1).
 - A preserve clause with its before-and-after probe, and a blast radius (files, region).
   When a fix replaces a mechanism, name the observation the old mechanism made that the
   new one must keep.

@@ -8,7 +8,8 @@ description: Use when driving a multi-issue development round with parallel suba
 A round takes a set of beads to a PR-ready feature branch. Implementers build each slice
 in its own worktree. Oracle seats gate each slice, and one composition oracle gates the
 merged whole. You orchestrate: map, scope, dispatch, rule, integrate, polish, report. You
-NEVER open the PR, merge to main, or close beads.
+NEVER open the PR or merge to main. Close a bead only once its work is on main and the user
+has allowed bead closing, with the main hash in the reason.
 
 If the work spans several rounds (an epic), load `skill://arbiter-architect` first.
 
@@ -57,6 +58,9 @@ The casebook gives examples; it adds no rules.
    against a boundary case before dispatch. A measurement counts only if it would read
    differently under the feared outcome, covers the whole path the budget names, on the
    named workload and machine, and is re-taken after the last merge that touches it.
+   For a noisy measurement, the pass rule (median of N, tip against base in one hold,
+   which windows bind) is fixed before the sample is taken. A rule changed after
+   seeing the sample is a weakened gate.
    Why: a brief shaped like a list produces a fix shaped like a list, and the property
    survives. Workers implement the literal text, so an undefined term is built one way
    and reviewed another.

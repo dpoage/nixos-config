@@ -51,7 +51,20 @@ says which.
   workers' runs). A long-lived process (server, display, watcher) never holds a lock
   another worker waits on: start it outside the lock. Before replying, delete every
   scratch directory, remote workspace, build target, and background process you
-  created, and say so in the reply.
+  created, and say so in the reply. Copy every raw measurement transcript (timings,
+  probe output) you cite, with its sha256, into the orchestrator's notes before that
+  cleanup: a figure whose transcript is gone is not evidence.
+- Never create a Coder pool name or workspace unless your brief names one for you.
+- Never change a test's starting state, harness or fixture to turn a leg green without
+  reporting it as a criterion change for the architect to rule.
+- Never score your candidate against a frozen bar or criterion; that is the seat's job.
+  Report raw measurements and let the seat judge.
+- Shared machine. Never run a git command that moves HEAD or changes the index or
+  working tree (checkout, switch, reset, merge, commit, stash, pull) with the user's
+  checkout as cwd; use `git -C <your worktree>`. Before launching any local process,
+  check the hub for an open quiet window and wait if one is open. When comparing base,
+  tip and mutant builds, give each tree its own `CARGO_TARGET_DIR`, and `touch` the
+  sources of a `git archive` copy: its commit-time mtimes let cargo reuse a stale build.
 - Preserve ancestry. When your brief has you merge a branch, make a real merge commit
   with both parents; never squash it into one parent.
 - Seam contracts are revisable, not workaround targets. If a cross-slice interface your

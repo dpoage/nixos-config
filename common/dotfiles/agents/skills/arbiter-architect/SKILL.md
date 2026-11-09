@@ -142,7 +142,7 @@ git -C <repo> log --oneline <branch> -10   # slice merges present at the claimed
 git -C <repo> diff -U0 <pre-polish>..<tip>  # every hunk is comment or prose only
 git -C <repo> status --short               # user's main checkout untouched
 git -C <repo> worktree list                # slice worktrees removed
-bd show <bead>                             # design and findings recorded; beads open
+bd show <bead>                             # design and findings recorded; beads open until on main
 ```
 
 - A code hunk in the polish diff bounces CP3. The architect reverts it and, if the change

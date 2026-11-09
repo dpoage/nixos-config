@@ -92,6 +92,27 @@ Each entry states what happened, its cost, and the rule it shows. An entry marke
   the sea drawn inside dry hulls and an air pocket that was never on screen. The fix's
   first colour metric did not separate its mutant (ΔE 37.2 vs 34.9). Cost: a post-polish
   slice of about 7h51m.
+- **A budget miss blamed on the wrong tree** (sar 2.8b B-3, K4). The composition read
+  the tip's edit p99 over its 49.38 ms bar in 2 of 6 runs and attributed it to WALLS.
+  Six interleaved runs in one quiet hold put main over the bar in 4 of 6 and the tip
+  in 1. The tail predated the round.
+- **A list grew past its pin** (sar 2.8b, Comp28c B1). B added `dry_heel_wake` to CI;
+  no slice added its cross-libm golden row, so the golden covered 13 of 14 scenarios
+  until composition. The fix shipped a guard test that fails when ci.yml gains an
+  unpinned scenario.
+- **A changed assertion lost its mutant** (sar 2.8b, PocketSeatB r1 B1). A granted
+  rewrite of the guard-release leg widened its window; a 9.35 s guard timer passed the
+  whole suite where 10 s was specified. A changed assertion names the mutant the old
+  one killed and shows it still dies.
+- **A pin on a chaotic trajectory was a coin flip** (sar 2.10b, LD3 probe). Flood legs
+  pinned one run's peak at a named step. Under 1e-9° heel nudges, base failed its own
+  gate in 30 of 32 runs, and base and tip were statistically indistinguishable. On a
+  chaotic trajectory, judge the settled state plus an ensemble of nudged runs (tip and
+  base on the same nudges, a rank test), never one run's value at one step.
+- **A state variable judged by the variable it is bounded through** (sar 2.10a U-p,
+  found in 2.10b). Seats approved a pipe law because water levels stayed sane, and the
+  positivity pass guaranteed that. The flow q, which later slices read as momentum,
+  reached 1.5e6 m/s. Judge a state variable by its readers.
 
 ## R5: evidence
 
@@ -105,10 +126,54 @@ Each entry states what happened, its cost, and the rule it shows. An entry marke
 - **An untested ruling** (fleet, L21). The orchestrator declined to restore coverage
   because "SC2154 covers the class". SC2154 does not see an assignment moved below its
   first use. That mutant passed every gate, and the shipped binary died on every robot.
+- **A ruled guard that fired in production** (sar HULL, LOCATE-G). The arbiter specified
+  `debug_assert!(rayon::current_thread_index().is_none())` around an index build. Every
+  production structure solve runs inside a rayon pool, so the assert fired on the real
+  path. A thread-local build permit replaced it. A mechanism a ruling names is probed
+  on the production path before dispatch, like any other term.
+- **A brief's figure named the wrong quantity** (sar HULL, LOCATE-P). The brief recorded
+  a "4.02 MB table"; 4.02 MB was the whole lookup index. The seat caught it against the
+  heap measurement.
+- **An optional sentence reopened doc-truth** (sar P3-R1, polish S3). A non-gating
+  rewording of `Link::send`'s doc added a claim no one probed; the seat showed it false
+  for streams, and the doc-truth loop hit its cap. Optional prose edits get the same
+  falsifying probe as gating ones, or they aren't made.
+- **A quantity premise went stale at a merge** (sar P3-R1, sar-yd7). A scope ruling
+  rested on "R1 constructs ≤ 32 KB"; HULL's landing brought a 138 KB world. Re-measure
+  quantity premises after every main merge, not only when they were set.
+- **A render mask that marked geometry, not what is seen** (sar VIS F1, O4). A "water
+  pixel" mask made by painting the water magenta marks the mesh footprint, which a fade
+  never changes, so the film check could not fail. Pass/fail masks come from the
+  measured variant's own visible output (difference against the same frame with the
+  effect hidden).
+- **A measurement twin that the scene still shaded** (sar VIS FILM, OCEAN O2). Thickness
+  and depth encoded as colour read wrong because fog and an air-pocket overlay blended
+  into the twin. Twins turn off fog and every overlay, and forced-value probes (all 0,
+  all 1, a known 6 cm) prove they read true before use.
 - **Status from messages** (sar arbiter, candidate). The arbiter reported a slice still
   waiting on seat B, from the architect's last message. The ledger showed both APPROVEs
   hours earlier. ETAs given from implementation time slipped more than 2×; the
   remaining time was review rounds.
+- **A gate that could not fail** (sar P3-R1, found by a P3-R2 premortem seat). The
+  gate ran each multi-line step as `( body ) ; rc=$?` without `-e`, so only the last
+  command's status counted. A fake tree whose `cargo test` exited 101 printed GATE
+  GREEN. Fix: `bash -eo pipefail` per step, plus failure-signature grep; every gate
+  script now ships with a fake-failure probe in local and remote mode.
+- **A determinism alarm from the gate itself** (sar 2.8b, GateAccel). `sar determinism`
+  reported Diverged twice under load. The binary hashes its own executable into each
+  recording header, and a parallel archive extraction replaced `target/debug/sar`
+  between the two passes. A one-byte exe swap mid-run reproduced it exactly. Legs that
+  run a self-identifying binary use a private copy.
+- **A premise relayed to the user was a calibration** (sar 2.10b LIFT). The architect
+  called k = 1.5 "the published value"; the user chose on it. A seat checked the source:
+  the published law is k = 1, and 1.5 was a transfer from another hull. Any "published",
+  "standard" or "physical" claim put to the user carries its citation, checked by a seat
+  before the question goes out.
+- **Four gates on one slot** (sar, 10-30). The slot lock was a flock on the gate
+  process's fd. Gates killed by tool-call timeouts freed it while their remote children
+  ran for hours, and the next gate's partial pkill wiped their evidence. Slot ownership
+  must outlive the process (a keeper, a verified nuke by cwd/session). Lanes killing
+  `$!` after `setsid … &` hit the wrapper, not the gate: record the real PID.
 
 ## R6: seats
 
@@ -126,6 +191,10 @@ Each entry states what happened, its cost, and the rule it shows. An entry marke
   while the sim did not step flow yet, so claim worlds could not see them. A flood probe
   the architect improvised after wiring found water levels running away to 786–945 m.
   The fix chain that followed took about two days, more than half the round's fix time.
+- **A composed gate replaced the slice gates, and a slice skipped its crate suite**
+  (sar 2.10b PART). Seats ran the slice's targeted legs; the composed gate had not
+  reached the crate's other suites, and two of them regressed. When one composed gate
+  replaces slice gates, each slice runs its crate's full suite before composition.
 
 ## R8: named places
 
@@ -157,3 +226,7 @@ Each entry states what happened, its cost, and the rule it shows. An entry marke
 - **Prose blockers priced as code** (sar 2.5). 6 of the round's first 10 REJECTs were
   wording only, each a 40–80 minute fix round with a full re-gate. After prose moved to
   the polish list, four carried prose blockers cost one docs-only round.
+- **Wall time bought with parallel seats** (sar 2.8b, P3-R1/R2, user directive). Seats
+  spawned on a candidate hash in parallel with its gate, implementer-max on every fix
+  round, and a build-once sharded gate runner (6h17m → 1h41m, identical test lists,
+  fail-closed probe) cut each slice's wall time without changing any gate.

@@ -81,10 +81,12 @@ The handoff file and the transcript are claims. Measure before you act.
    Inspect a partial item before you retry it. Never repeat a step that is unsafe to
    repeat, such as a commit, a push, a merge, or a bead update, until you measure that
    it did not happen.
-5. Revive each parked agent with one hub message. The message states the interruption
-   time and the measured state of the agent's worktree, and says: "Re-measure your last
-   step before you continue. Reply with what you measured." Never dispatch a new agent
-   onto a worktree whose owner can be revived.
+5. Revive each parked agent with one hub message addressed to it by name. A broadcast
+   (`agent://all`) reaches only running agents; it does not revive parked ones. The
+   message states the interruption time and the measured state of the agent's
+   worktree, and says: "Re-measure your last step before you continue. Reply with what
+   you measured." Never dispatch a new agent onto a worktree whose owner can be revived.
+   After a rate-limit stop, revive the critical-path agents first and stagger the rest.
 6. If an agent cannot be revived, or cannot continue coherently, spawn a fresh agent in
    the same role with its brief, plus: "The worktree holds prior uncommitted work.
    Measure it, keep what passes, and redo the rest."
@@ -93,3 +95,7 @@ The handoff file and the transcript are claims. Measure before you act.
 Source: the apollo d52-r2 round recovered from a host reboot on 2026-09-28 with steps
 2–5. Both revived agents continued with their context. One agent's in-progress fix had
 not reached disk and was redone.
+
+The sar epic (2026-10-26/27) recovered from three account rate-limit stops the same way:
+every architect and parked seat resumed with its context after a per-agent revive.
+A broadcast sent first reached only the one agent that was still running.

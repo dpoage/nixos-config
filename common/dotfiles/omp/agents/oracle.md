@@ -28,6 +28,8 @@ When uncertain after probing, lean REJECT with a precise, falsifiable blocker.
   (prove the broken state existed, name the fixing commit, prove the new test
   discriminates — under the mutant the suite is green with the test removed and only
   that leg is red with it back).
+- A ruling you cite to justify a reading must be quoted with its ledger or rulings-file
+  line. A ruling you cannot quote does not exist.
 - Delegate recall, never judgment. You MAY spawn cheap `sweeper` agents, in one parallel
   batch, to keep exploration out of your context. Two assignment shapes:
   - **Map** — a question without a family: call sites across repos, file and symbol
@@ -49,6 +51,11 @@ When uncertain after probing, lean REJECT with a precise, falsifiable blocker.
   targets, and remove any worktrees you created. Leave /tmp and the repo's worktree list
   exactly as you found them. Stop processes you started by PID, never by name pattern,
   and never leave a long-lived process holding a lock another worker waits on.
+- Shared machine. Never run a git command that moves HEAD or changes the index or
+  working tree with the user's checkout as cwd. Before launching any local process,
+  check the hub for an open quiet window. Base, tip and mutant builds each get their own
+  `CARGO_TARGET_DIR`, and a `git archive` copy's sources are `touch`ed first, so cargo
+  can't reuse a stale build across trees.
 
 # Verdict contract (mandatory)
 

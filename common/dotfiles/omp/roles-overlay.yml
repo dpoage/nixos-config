@@ -42,6 +42,12 @@ defaultThinkingLevel: medium
 compaction:
   experimentalContextManagement: true
 
+# TTSR rules fire once per session by default. The context-rollover nudge must
+# fire at every cutover, so let every rule re-fire after 10 completed turns.
+ttsr:
+  repeatMode: after-gap
+  repeatGap: 10
+
 retry:
   fallbackChains:
     AUGUR:

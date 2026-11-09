@@ -77,6 +77,10 @@
       (builtins.readFile ../dotfiles/omp/rules/git-authorship.md);
   home.file.".omp/agent/rules/terse-comments.md".source =
     ../dotfiles/omp/rules/terse-comments.md;
+  home.file.".omp/agent/rules/context-rollover.md".source =
+    ../dotfiles/omp/rules/context-rollover.md;
+  home.file.".omp/agent/rules/context-rollover-nudge.md".source =
+    ../dotfiles/omp/rules/context-rollover-nudge.md;
 
   # OMP model-role overlay: read-only layer over ~/.omp/agent/config.yml.
   # PI_CONFIG_FILES makes omp load it; per-key override, strict parse.

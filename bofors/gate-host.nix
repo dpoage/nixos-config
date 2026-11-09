@@ -3,6 +3,8 @@
 { lib, pkgs, ... }:
 
 {
+  # Sustained all-core: ~86 W power-limited, ~4.3 GHz, Tctl ~92 °C, no thermal
+  # throttling (docs/bofors-loadtest-2026-11-09.md).
   powerManagement.cpuFreqGovernor = "performance";
 
   # An unattended rebuild here VOIDed a gate hold (sar Q32); deploy by hand.

@@ -48,14 +48,11 @@
           build --disk_cache=/data/cache/build
           build --experimental_disk_cache_gc_max_size=100G
         '';
-        # No rice opt-in yet — oerlikon stays on hyprland + catppuccin
-        # defaults. Flip these to migrate the work laptop to gruvbox+niri:
-        #
-        #   myRice = {
-        #     enable = true;
-        #     palette = "gruvbox";
-        #     compositor = "niri";
-        #   };
+        # Gruvbox palette on the Hyprland stack. The palette themes the base
+        # components (kitty, waybar, hyprland, hyprlock, starship) without
+        # the rice bundle. To go fully gruvbox+niri, add `enable = true;
+        # compositor = "niri";` and import niri-stack.nix.
+        myRice.palette = "gruvbox";
       };
   };
 

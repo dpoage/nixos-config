@@ -9,14 +9,14 @@ If your tools include `context_notes` and `new_context`, start each new context 
 A natural cutover point is a moment when the finished work no longer needs its raw tool output:
 
 - A bead, issue, or todo phase is closed.
-- A commit lands, or a push succeeds.
+- Work lands on the main branch, or a round, lane, or epic completes.
 - A subagent, oracle, or review round returns its verdict, and you recorded the result.
 - An investigation ends, and you recorded its conclusion.
 - The user moves to an unrelated topic.
 
 Roll over at a cutover point only if work remains in this session and the window holds earlier work that you no longer read. Skip the rollover in these cases:
 
-- You are about to give your final answer or yield.
+- You are about to give your final answer or yield. A checkpoint reminder that arrives after your final answer overrides this case.
 - The current window started in the last few turns.
 - You are in the middle of a debug loop, or you have edits whose reasons are not recorded.
 

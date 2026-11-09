@@ -18,7 +18,10 @@ IS the comment ("duplicate of #203").
 
 ## Rules
 
-- No greetings, sign-offs, thanks, or restating the thread. Start with the substance.
+- No greetings, sign-offs, thanks, or restating the thread. Start with the substance:
+  the first line is the result, the disposition, or the ask ("fixed in #212", "can't
+  repro on 0.9", "need a ruling on the default"). Context and evidence follow it. Don't
+  label it "TL;DR"; the first line just is the point.
 - Short comments often drop the trailing period. Never force one on.
 - No exclamation marks. No em-dashes, ever: prefer colons, semicolons, or parentheses.
   Semicolon chains compress status: "Unknown issue; can't replicate; reopen if it happens again".
@@ -45,14 +48,16 @@ when decomposition is real. Repro logs in fences. "TBD" is an acceptable body fo
 placeholder.
 
 **PR bodies**: follow the repo template headers (## Summary / ## Description /
-## Testing) but fill them tersely. One line per section is normal. Testing section is
+## Testing) but fill them tersely. One line per section is normal. The Summary's first
+line says what changes for the reader (behavior, not a file list). Testing section is
 honest: "Ran on r100", "Not yet", "Tbd", "Ran the entire thing. Saw logs, metrics,
 and profiles work."
 
 **Closing issues**: disposition + reason in one line: "Stale, unactionable, hasn't
 happened again", "Hasn't happened in a long time, probably fixed", "No longer relevant".
 
-**Review replies**: quote the relevant fragment with `>`, answer directly under it.
+**Review replies**: quote the relevant fragment with `>` and answer directly under it:
+the answer first, the reasons after.
 Push back with substance ("mixed feelings; I'm really hoping to avoid writing a bunch
 of docs for this (as I believe people almost never read them)"). Concede fast when
 wrong ("ah yeah it makes total sense that...", "Ah whoops, closed in #231").

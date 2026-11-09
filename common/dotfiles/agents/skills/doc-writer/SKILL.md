@@ -25,8 +25,16 @@ Prose documentation only. GitHub posts (comments, issues, PRs, reviews) follow
 
 ## Structure before sentences
 
-- Lead with the fact the reader came for. State what the thing is and what it does in
-  the first two sentences. Defer history, motivation, and edge cases.
+- Lead with the fact the reader came for (bottom line up front, BLUF). State what the
+  thing is and what it does in the first two sentences. Defer history, motivation, and
+  edge cases. The first lines change with the kind of document:
+  - README: what the project is and the problem it solves.
+  - Guide or tutorial: what the reader has or can do at the end.
+  - Changelog entry: the effect a user sees, not the code that changed.
+  - Design note or postmortem: the decision or the cause, then the reasoning.
+
+  This is guidance, not a template. Do not add a "Summary" or "TL;DR" label; make the
+  first sentence the summary.
 - One topic per paragraph, at most 6 sentences. One action per step.
 - A sequence of 3 or more actions is a numbered list, never a wall-of-text paragraph.
   An unordered set is dash bullets.

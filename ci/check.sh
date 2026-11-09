@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Evaluate both hosts and build the flake-input packages cache.nixos.org
+# Evaluate every host and build the flake-input packages cache.nixos.org
 # lacks. pattern-cli is a private git+ssh input; an empty stub stands in so
 # this runs without credentials. Evaluation warnings (deprecations, renamed
 # options) are echoed as GitHub annotations rather than failing the check.
@@ -10,7 +10,7 @@ stub=(--override-input pattern-cli path:./ci/pattern-cli-stub)
 log=$(mktemp)
 trap 'rm -f "$log"' EXIT
 
-for host in oerlikon tunguska; do
+for host in oerlikon tunguska bofors; do
   echo ">> evaluating $host"
   status=0
   nix eval --raw --option allow-import-from-derivation false "${stub[@]}" \

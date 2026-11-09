@@ -3,7 +3,6 @@
 {
   imports = [
     ./neovim.nix
-    ./desktop.nix
     ./bazel.nix
     ./cloud.nix
     ./kubernetes.nix
@@ -11,8 +10,8 @@
     ./myUser.nix
     ./nvidia.nix
     ./compliance.nix
-    # Profiles in ./profiles/ are imported directly by each host
-    # (laptop + work, workstation + personal, etc.) — not from here.
+    # Profiles in ./profiles/ and ./desktop.nix (hosts with a screen) are
+    # imported directly by each host — not from here.
   ];
 
   nix.settings.experimental-features = [ "nix-command" "flakes" ];
@@ -51,7 +50,6 @@
   };
 
   # Programs
-  programs.firefox.enable = true;
   programs.zsh.enable = true;
   # Neovim is configured via nixvim in neovim.nix
   # programs.neovim is not used — it conflicts with nixvim's wrapped binary
@@ -89,7 +87,6 @@
     oh-my-zsh
     starship
     tmux
-    kitty
 
     # Development tools
     lazygit
@@ -164,19 +161,7 @@
     pstree
     lsof
     strace # syscall tracing — prerequisite for authoring sandbox policies
-
-    # Wayland utilities
-    wayland-utils
-    wlr-randr
-
-    # Keyboard (QMK / Keychron)
-    qmk
-    qmk_hid
-    vial
   ];
-
-  # QMK/Keychron udev rules (allow flashing without root)
-  hardware.keyboard.qmk.enable = true;
 
   # Tailscale (outbound client; inbound trust on the tailnet is a per-profile
   # choice — see profiles/personal.nix)
@@ -193,7 +178,6 @@
 
   # Services. sshd is not baseline: inbound access is opted into per profile
   # (profiles/personal.nix); work hosts accept no inbound connections.
-  services.printing.enable = true;
   services.fstrim.enable = true;
   services.fwupd.enable = true;
 
@@ -212,19 +196,6 @@
   # Firewall: default deny inbound, allow outbound. Services open their own
   # ports (e.g. services.openssh.openFirewall).
   networking.firewall.enable = true;
-
-  # Bluetooth
-  hardware.bluetooth = {
-    enable = true;
-    powerOnBoot = true;
-  };
-  services.blueman.enable = true;
-
-  # Graphics
-  hardware.graphics = {
-    enable = true;
-    enable32Bit = true;
-  };
 
   # Nix maintenance. VM/system-test iteration can add hundreds of GiB of dead
   # store paths between scheduled runs, so the daemon also collects garbage

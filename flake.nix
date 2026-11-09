@@ -32,6 +32,10 @@
       url = "github:dpoage/omp-flake";
       inputs.nixpkgs.follows = "nixpkgs-unstable";
     };
+    microvm = {
+      url = "github:microvm-nix/microvm.nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   outputs =
@@ -78,6 +82,12 @@
       nixosConfigurations = {
         tunguska = mkHost ./tunguska;
         oerlikon = mkHost ./oerlikon;
+        bofors = mkHost {
+          imports = [
+            ./bofors
+            inputs.microvm.nixosModules.host
+          ];
+        };
       };
     };
 }

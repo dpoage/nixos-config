@@ -1,6 +1,27 @@
+# Everything a machine with a screen and a person at it needs: compositor,
+# greeter, audio, fonts, graphics, peripherals. Hosts with a display import
+# this directly; headless hosts (bofors) leave it out.
 { pkgs, ... }:
 
 {
+  programs.firefox.enable = true;
+
+  services.printing.enable = true;
+
+  hardware.bluetooth = {
+    enable = true;
+    powerOnBoot = true;
+  };
+  services.blueman.enable = true;
+
+  hardware.graphics = {
+    enable = true;
+    enable32Bit = true;
+  };
+
+  # QMK/Keychron udev rules (allow flashing without root)
+  hardware.keyboard.qmk.enable = true;
+
   # Hyprland
   programs.hyprland = {
     enable = true;
@@ -57,6 +78,15 @@
     grim
     slurp
     swappy
+    wayland-utils
+    wlr-randr
+
+    kitty
+
+    # Keyboard (QMK / Keychron)
+    qmk
+    qmk_hid
+    vial
   ];
 
   # Fonts

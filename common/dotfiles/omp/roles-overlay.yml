@@ -36,6 +36,12 @@ modelRoles:
 # Main-session default; raise per session with /thinking when a task needs it.
 defaultThinkingLevel: medium
 
+# Notes-backed context windows: adds context_notes/new_context, so a long-running
+# main session (an arbiter) can roll its own context over without losing its
+# attached background agents, instead of summary compaction.
+compaction:
+  experimentalContextManagement: true
+
 retry:
   fallbackChains:
     AUGUR:

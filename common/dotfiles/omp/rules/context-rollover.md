@@ -10,6 +10,7 @@ A natural cutover point is a moment when the finished work no longer needs its r
 
 - A bead, issue, or todo phase is closed.
 - Work lands on the main branch, or a round, lane, or epic completes.
+- A checkpoint closes: you recorded a decision, ruling, or approval and handed the next step to other agents.
 - A subagent, oracle, or review round returns its verdict, and you recorded the result.
 - An investigation ends, and you recorded its conclusion.
 - The user moves to an unrelated topic.

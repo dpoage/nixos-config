@@ -43,7 +43,7 @@ in
         pname = "pattern";
         inherit version;
         src = inputs.pattern-cli;
-        vendorHash = "sha256-yc8TfGI2wXaSv6tfTsMGGH2BOJJXmnBqyY/DtNlMc2A=";
+        vendorHash = "sha256-YaxaPA3SY96afL8LzJgo/WkWmJI4jZN0KDswIDMgd2E=";
         proxyVendor = true;
         # Private module access inside the goModules FOD (see upstream flake
         # and common/pattern.nix for the sandbox netrc wiring).
@@ -84,7 +84,9 @@ in
   # bump with `nix flake update omp-flake`.
   omp = inputs.omp-flake.packages.${system}.default;
 
-  gcx = unstable.buildGoModule rec {
+  # Go 1.26: gcx 0.2.15's vendored grpc uses http2.TrailerPrefix, which
+  # doesn't compile under Go 1.27. Drop the pin when bumping gcx.
+  gcx = unstable.buildGo126Module rec {
     pname = "gcx";
     version = "0.2.15";
     src = unstable.fetchFromGitHub {

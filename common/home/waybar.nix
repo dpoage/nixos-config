@@ -1,9 +1,9 @@
-{ config, lib, ... }:
+{ config, osConfig, lib, ... }:
 
 let
   rice = config.myRice;
-  c = rice.colors;
-  named = import ./rice/named.nix c;
+  c = osConfig.myTheme.colors;
+  named = osConfig.myTheme.named;
 
   # Waybar CSS @define-color block, generated from the shared semantic map so
   # the bar re-themes with the active palette.

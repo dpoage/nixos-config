@@ -2,13 +2,17 @@
 # Note: this coexists with the existing programs.kitty config in
 # terminal.nix — both can be installed; the user picks at runtime.
 
-{ config, lib, pkgs, ... }:
+{ config, osConfig, lib, pkgs, ... }:
 
 let
   cfg = config.myRice;
-  c   = cfg.colors;
+  t   = osConfig.myTheme;
+  c   = t.colors;
   # Alacritty wants colors as "0x" + hex.
   hex = v: "0x${v}";
+  ansiNames = [ "black" "red" "green" "yellow" "blue" "magenta" "cyan" "white" ];
+  ansiHalf = offset: lib.listToAttrs (lib.imap0
+    (i: name: lib.nameValuePair name (hex (builtins.elemAt t.ansi (offset + i)))) ansiNames);
 in
 {
   config = lib.mkIf cfg.enable {
@@ -21,8 +25,8 @@ in
         window = {
           dynamic_padding = true;
           decorations = "full";
-          opacity = cfg.terminal.opacity;
-          decorations_theme_variant = "Dark";
+          opacity = t.terminal.opacity;
+          decorations_theme_variant = if t.meta.variant == "dark" then "Dark" else "Light";
           dimensions = {
             columns = 100;
             lines = 30;
@@ -37,11 +41,11 @@ in
           multiplier = 3;
         };
         font = {
-          size = cfg.fonts.monoSize;
-          normal = { family = cfg.fonts.mono; style = "Regular"; };
-          bold   = { family = cfg.fonts.mono; style = "Bold"; };
-          italic = { family = cfg.fonts.mono; style = "Italic"; };
-          bold_italic = { family = cfg.fonts.mono; style = "Bold Italic"; };
+          size = t.fonts.monoSize;
+          normal = { family = t.fonts.mono; style = "Regular"; };
+          bold   = { family = t.fonts.mono; style = "Bold"; };
+          italic = { family = t.fonts.mono; style = "Italic"; };
+          bold_italic = { family = t.fonts.mono; style = "Bold Italic"; };
         };
         colors = {
           draw_bold_text_with_bright_colors = true;
@@ -49,26 +53,8 @@ in
             background = hex c.bg;
             foreground = hex c.fg;
           };
-          normal = {
-            black   = hex c.bg0;
-            red     = hex c.red;
-            green   = hex c.green;
-            yellow  = hex c.yellow;
-            blue    = hex c.blue;
-            magenta = hex c.purple;
-            cyan    = hex c.aqua;
-            white   = hex c.fg4;
-          };
-          bright = {
-            black   = hex c.gray;
-            red     = hex c.redBr;
-            green   = hex c.greenBr;
-            yellow  = hex c.yellowBr;
-            blue    = hex c.blueBr;
-            magenta = hex c.purpleBr;
-            cyan    = hex c.aquaBr;
-            white   = hex c.fg;
-          };
+          normal = ansiHalf 0;
+          bright = ansiHalf 8;
         };
         selection = {
           semantic_escape_chars = ",│`|:\"' ()[]{}<>\t";

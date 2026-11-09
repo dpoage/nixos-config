@@ -1,8 +1,8 @@
-{ config, lib, pkgs, ... }:
+{ config, osConfig, lib, pkgs, ... }:
 
 let
-  c = config.myRice.colors; # resolved palette (default catppuccin)
-  wallpaper = "${pkgs.nixos-artwork.wallpapers.nineish-catppuccin-mocha-alt}/share/backgrounds/nixos/nix-wallpaper-nineish-catppuccin-mocha-alt.png";
+  c = osConfig.myTheme.colors;
+  wallpaper = osConfig.myTheme.wallpaper;
 
   # Autostart for the selected bar. Only waybar needs the monitor-hotplug
   # restart shim; quickshell-based bars (noctalia, custom) handle hotplug

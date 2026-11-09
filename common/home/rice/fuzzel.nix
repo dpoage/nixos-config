@@ -2,11 +2,11 @@
 # Uses home-manager's `programs.fuzzel` module which writes
 # ~/.config/fuzzel/fuzzel.ini from a typed `settings` attrset.
 
-{ config, lib, pkgs, ... }:
+{ config, osConfig, lib, pkgs, ... }:
 
 let
   cfg = config.myRice;
-  c   = cfg.colors;
+  c   = osConfig.myTheme.colors;
 in
 {
   config = lib.mkIf cfg.enable {
@@ -16,7 +16,7 @@ in
         main = {
           font = "FantasqueSansM Nerd Font Mono:weight=medium:size=13";
           prompt = "\">  \"";
-          icon-theme = "breeze-dark";
+          icon-theme = if config.gtk.iconTheme != null then config.gtk.iconTheme.name else "hicolor";
           icons-enabled = "yes";
           terminal = "alacritty";
           fields = "name,generic,comment,categories,filename,keywords";

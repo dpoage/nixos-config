@@ -11,10 +11,10 @@
 # ...`; it has no effect on actual locking. Unlock needs a PAM service
 # NixOS-side: programs.hyprlock.enable in profiles/hyprland-stack.nix.
 
-{ config, lib, ... }:
+{ config, osConfig, lib, ... }:
 
 let
-  c = config.myRice.colors; # resolved palette (default catppuccin)
+  c = osConfig.myTheme.colors;
 
   # Lock after 5 min idle; screen off 30 s later. The dconf idle-delay
   # mirror below must equal this, so both read the same constant.

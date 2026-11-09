@@ -2,11 +2,11 @@
 # home-manager's programs.swaylock supports `package` override, so we
 # swap in swaylock-effects to unlock blur/vignette/clock features.
 
-{ config, lib, pkgs, ... }:
+{ config, osConfig, lib, pkgs, ... }:
 
 let
   cfg = config.myRice;
-  c   = cfg.colors;
+  c   = osConfig.myTheme.colors;
 in
 {
   config = lib.mkIf cfg.enable {

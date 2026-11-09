@@ -3,7 +3,13 @@
 # Based on morhetz/gruvbox with the "hard" dark background variant.
 # Bright accent variants are used for prompt segments (good contrast
 # against the near-black promptFg).
+{ pkgs }:
 {
+  upstream = {
+    nvim = { name = "gruvbox"; settings.contrast = "hard"; };
+    bat = "gruvbox-dark";
+  };
+
   meta = {
     name = "Gruvbox Dark Hard";
     variant = "dark";

@@ -1,9 +1,4 @@
-# Maps a resolved palette (ramp keys from palettes/*.nix) to the Catppuccin-style
-# semantic color names that the Starship prompt format and Waybar CSS reference.
-# Kept in one place so both consumers stay consistent when the palette changes.
-#
-# Usage: `named = import ./named.nix colors;` -> { mauve = "cba6f7"; ... }
-# Values are bare 6-digit hex (no leading '#'), like the palette ramp keys.
+# Catppuccin-style semantic names over palette keys, shared by Starship and Waybar.
 colors:
 
 {

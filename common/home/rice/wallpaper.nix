@@ -1,6 +1,6 @@
 # Wallpaper daemon (awww, formerly swww) + set-wallpaper helper script.
 
-{ config, lib, pkgs, ... }:
+{ config, osConfig, lib, pkgs, ... }:
 
 let
   cfg = config.myRice;
@@ -10,7 +10,7 @@ let
     runtimeInputs = with pkgs; [ awww coreutils findutils ];
     text = ''
       # Wallpaper helper. Usage:
-      #   set-wallpaper            # random from $WALLPAPER_DIR
+      #   set-wallpaper            # random from $WALLPAPER_DIR, else the theme wallpaper
       #   set-wallpaper restore    # re-apply last (used at session start)
       #   set-wallpaper <path>     # explicit file
 
@@ -32,9 +32,11 @@ let
       fi
 
       pick_random() {
-          find "$WALLPAPER_DIR" -type f \
+          local pick
+          pick=$(find "$WALLPAPER_DIR" -type f \
             \( -iname '*.jpg' -o -iname '*.jpeg' -o -iname '*.png' \) \
-            | shuf -n 1
+            2>/dev/null | shuf -n 1 || true)
+          echo "''${pick:-${osConfig.myTheme.wallpaper}}"
       }
 
       mode="''${1:-random}"
@@ -56,7 +58,7 @@ let
       esac
 
       if [[ -z "''${target:-}" || ! -f "$target" ]]; then
-          echo "set-wallpaper: no valid image found in $WALLPAPER_DIR" >&2
+          echo "set-wallpaper: no such image: ''${target:-}" >&2
           exit 1
       fi
 

@@ -3,7 +3,15 @@
 # The warm-toned dark variant of Catppuccin. Bright ANSI mappings use
 # neighboring Mocha colors so bold/bright text looks intentionally
 # distinct rather than just "louder".
+{ pkgs }:
 {
+  upstream = {
+    nvim = { name = "catppuccin"; settings.flavour = "mocha"; };
+    bat = "Catppuccin Mocha";
+  };
+
+  wallpaper = "${pkgs.nixos-artwork.wallpapers.nineish-catppuccin-mocha-alt}/share/backgrounds/nixos/nix-wallpaper-nineish-catppuccin-mocha-alt.png";
+
   meta = {
     name = "Catppuccin Mocha";
     variant = "dark";

@@ -2,11 +2,11 @@
 # Uses home-manager's `services.mako` module which generates the INI
 # config and installs a systemd user service.
 
-{ config, lib, pkgs, ... }:
+{ config, osConfig, lib, pkgs, ... }:
 
 let
   cfg = config.myRice;
-  c   = cfg.colors;
+  c   = osConfig.myTheme.colors;
 in
 {
   config = lib.mkIf cfg.enable {

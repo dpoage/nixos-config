@@ -10,6 +10,7 @@
     ./myUser.nix
     ./nvidia.nix
     ./compliance.nix
+    ./theme
     # Profiles in ./profiles/ and ./desktop.nix (hosts with a screen) are
     # imported directly by each host — not from here.
   ];

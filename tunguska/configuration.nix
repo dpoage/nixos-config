@@ -31,7 +31,9 @@
   services.greetd.settings.default_session.command = lib.mkForce
     "${pkgs.tuigreet}/bin/tuigreet --time --cmd niri-session";
 
-  # Primary user + rice preferences for this host.
+  myTheme.palette = "gruvbox";
+
+  # Primary user + desktop bundle for this host.
   myUser = {
     name = "dustin";
     fullName = "dustin";
@@ -39,7 +41,6 @@
       imports = [ ../common/home ];
       myRice = {
         enable = true;
-        palette = "gruvbox";
         compositor = "niri";
         wallpaperDir = "/home/dustin/Pictures/Wallpapers/gruvbox/wallpapers";
       };

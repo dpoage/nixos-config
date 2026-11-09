@@ -11,11 +11,11 @@
 # layouts, gaming workarounds, etc.) since niri reads that directory
 # automatically.
 
-{ config, lib, pkgs, ... }:
+{ config, osConfig, lib, pkgs, ... }:
 
 let
   cfg = config.myRice;
-  c   = cfg.colors;
+  c   = osConfig.myTheme.colors;
   isNiri = cfg.enable && cfg.compositor == "niri";
 
   # Autostart line for the selected bar; empty when `myRice.bar = "none"`.

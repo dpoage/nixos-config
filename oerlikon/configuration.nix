@@ -21,6 +21,8 @@
   # no-op under 6.12; on 6.18 it means constant max fans, so stay on balanced.
   services.tlp.settings.PLATFORM_PROFILE_ON_AC = "balanced";
 
+  myTheme.palette = "gruvbox";
+
   myUser = {
     name = "dpoage";
     fullName = "Dustin";
@@ -48,11 +50,8 @@
           build --disk_cache=/data/cache/build
           build --experimental_disk_cache_gc_max_size=100G
         '';
-        # Gruvbox palette on the Hyprland stack. The palette themes the base
-        # components (kitty, waybar, hyprland, hyprlock, starship) without
-        # the rice bundle. To go fully gruvbox+niri, add `enable = true;
-        # compositor = "niri";` and import niri-stack.nix.
-        myRice.palette = "gruvbox";
+        # Desktop bundle not enabled yet; for gruvbox+niri add `myRice = {
+        # enable = true; compositor = "niri"; };` and import niri-stack.nix.
       };
   };
 

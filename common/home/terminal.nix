@@ -1,10 +1,10 @@
-{ config, lib, pkgs, ... }:
+{ config, osConfig, lib, pkgs, ... }:
 
 let
   cfg = config.myPrompt;
-  rice = config.myRice;
-  c = rice.colors; # resolved palette; always defined (default catppuccin)
-  named = import ./rice/named.nix c; # shared semantic color names
+  t = osConfig.myTheme;
+  c = t.colors;
+  named = t.named;
 
   # --- Badge generation ---
   # Badges appear between the username and directory segments,
@@ -67,12 +67,12 @@ in
   };
 
   config = {
-    # Kitty terminal, themed from the active palette (myRice.colors).
+    # Kitty terminal, themed from the active palette.
     programs.kitty = {
       enable = true;
       font = {
-        name = rice.fonts.mono;
-        size = rice.fonts.monoSize;
+        name = t.fonts.mono;
+        size = t.fonts.monoSize;
       };
       settings = {
         foreground = "#${c.fg}";
@@ -82,25 +82,9 @@ in
         cursor = "#${c.fg2}";
         cursor_text_color = "#${c.bg}";
         url_color = "#${c.fg2}";
-
-        # Normal (0-7) / bright (8-15) ANSI, matching alacritty's mapping.
-        color0 = "#${c.bg0}";
-        color8 = "#${c.gray}";
-        color1 = "#${c.red}";
-        color9 = "#${c.redBr}";
-        color2 = "#${c.green}";
-        color10 = "#${c.greenBr}";
-        color3 = "#${c.yellow}";
-        color11 = "#${c.yellowBr}";
-        color4 = "#${c.blue}";
-        color12 = "#${c.blueBr}";
-        color5 = "#${c.purple}";
-        color13 = "#${c.purpleBr}";
-        color6 = "#${c.aqua}";
-        color14 = "#${c.aquaBr}";
-        color7 = "#${c.fg4}";
-        color15 = "#${c.fg}";
-
+      }
+      // lib.listToAttrs (lib.imap0 (i: hex: lib.nameValuePair "color${toString i}" "#${hex}") t.ansi)
+      // {
         # Tab bar
         active_tab_foreground = "#${c.promptFg}";
         active_tab_background = "#${c.purple}";
@@ -109,7 +93,7 @@ in
         tab_bar_background = "#${c.promptFg}";
 
         # Window
-        background_opacity = toString rice.terminal.opacity;
+        background_opacity = toString t.terminal.opacity;
         window_padding_width = "8";
         # kitty >= 0.49 restores the last window state (incl. maximized) on
         # Wayland; under Hyprland that opens every new kitty maximized
@@ -293,8 +277,7 @@ in
       };
     };
 
-    # Starship prompt — palette is generated from myRice.colors when rice is
-    # enabled, otherwise falls back to hardcoded Catppuccin Mocha.
+    # Starship prompt, colored from the active palette's semantic names.
     programs.starship = {
       enable = true;
       settings = {

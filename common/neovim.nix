@@ -1,4 +1,4 @@
-  { pkgs, ... }:
+  { config, pkgs, ... }:
 
   let
     tla-nvim = pkgs.vimUtils.buildVimPlugin {
@@ -48,9 +48,9 @@
         mouse = "a";                                                                                                      
       };                                                                                                                    
    
-      colorschemes.catppuccin = {                                                                                           
-        enable = true;                                                                                                    
-        settings.flavour = "mocha";
+      colorschemes.${config.myTheme.upstream.nvim.name} = {
+        enable = true;
+        inherit (config.myTheme.upstream.nvim) settings;
       };
                                                                                                                             
       # Keymaps (LazyVim-style)

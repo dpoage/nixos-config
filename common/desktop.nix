@@ -1,7 +1,7 @@
 # Everything a machine with a screen and a person at it needs: compositor,
 # greeter, audio, fonts, graphics, peripherals. Hosts with a display import
 # this directly; headless hosts (bofors) leave it out.
-{ pkgs, ... }:
+{ config, pkgs, ... }:
 
 {
   programs.firefox.enable = true;
@@ -112,7 +112,7 @@
       defaultFonts = {
         serif = [ "Noto Serif" ];
         sansSerif = [ "Noto Sans" ];
-        monospace = [ "JetBrainsMono Nerd Font" ];
+        monospace = [ config.myTheme.fonts.mono ];
         emoji = [ "Noto Color Emoji" ];
       };
     };

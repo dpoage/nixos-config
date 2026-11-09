@@ -1,6 +1,6 @@
 # Two GitHub Actions runner microVMs, one per CCD: each gets a whole CCD's
 # 8 cores / 16 threads and its own L3, so timings stay comparable.
-{ lib, pkgs, ... }:
+{ config, lib, pkgs, ... }:
 
 let
   keys = import ./ssh-keys.nix;
@@ -137,16 +137,24 @@ let
     };
 in
 {
-  microvm.vms = lib.mapAttrs (name: vm: { config = guest name vm; }) vms;
+  options.bofors.ciVms.enable = lib.mkEnableOption "the two CI runner microVMs";
 
-  # Pin each VM's qemu and virtiofsd to its CCD.
-  systemd.services = lib.concatMapAttrs (name: vm: {
-    "microvm@${name}".serviceConfig.CPUAffinity = vm.cpus;
-    "microvm-virtiofsd@${name}".serviceConfig.CPUAffinity = vm.cpus;
-  }) vms;
+  config = lib.mkMerge [
+    # The host module defaults on; without VMs it would still add the microvm@ units.
+    { microvm.host.enable = config.bofors.ciVms.enable; }
+    (lib.mkIf config.bofors.ciVms.enable {
+      microvm.vms = lib.mapAttrs (name: vm: { config = guest name vm; }) vms;
 
-  networking.networkmanager.unmanaged = [ "interface-name:vm-*" ];
+      # Pin each VM's qemu and virtiofsd to its CCD.
+      systemd.services = lib.concatMapAttrs (name: vm: {
+        "microvm@${name}".serviceConfig.CPUAffinity = vm.cpus;
+        "microvm-virtiofsd@${name}".serviceConfig.CPUAffinity = vm.cpus;
+      }) vms;
 
-  # VM disk images on btrfs: no copy-on-write (inherited by new files).
-  systemd.tmpfiles.rules = [ "h /var/lib/microvms - - - - +C" ];
+      networking.networkmanager.unmanaged = [ "interface-name:vm-*" ];
+
+      # VM disk images on btrfs: no copy-on-write (inherited by new files).
+      systemd.tmpfiles.rules = [ "h /var/lib/microvms - - - - +C" ];
+    })
+  ];
 }

@@ -1,6 +1,5 @@
-# bofors: headless CI host (Ryzen 9 8945HX, 16c/32t, 32 GB). The host only
-# runs the CI microVMs in ./ci-vms.nix; no desktop, nothing interactive.
-{ lib, ... }:
+# bofors: headless sar_build gate host (Ryzen 9 8945HX, 16c/32t, 32 GB).
+{ ... }:
 
 let
   keys = import ./ssh-keys.nix;
@@ -22,9 +21,6 @@ in
   };
   users.users.root.openssh.authorizedKeys.keys = keys;
   networking.firewall.trustedInterfaces = [ "tailscale0" ];
-
-  # No checkout lives on this box, so the daily upgrade reads the public repo.
-  system.autoUpgrade.flake = lib.mkForce "github:dpoage/nixos-config#bofors";
 
   myUser = {
     name = "dustin";

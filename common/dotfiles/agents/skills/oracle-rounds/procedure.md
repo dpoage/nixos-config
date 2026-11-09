@@ -6,6 +6,7 @@ rules; a step here never overrides a rule. Rule numbers (R1–R9) refer to `SKIL
 ## Contents
 
 - Steps (1–12)
+- Round board
 - Necessity checks
 - Brief checklist, with the skill table
 - Tiers and seats
@@ -15,10 +16,12 @@ rules; a step here never overrides a rule. Rule numbers (R1–R9) refer to `SKIL
 
 ## Steps
 
-1. **Scope.** Run `bd ready` from the main checkout and `bd show` every candidate. Fold
-   each dependency chain into its blocker's slice. The bead list fixed here is the
-   round's scope (R2). Start the round's handoff file (`skill://handoff`) and keep it
-   current for the whole round.
+1. **Scope.** Run `bd ready` from the main checkout and `bd show` every candidate.
+   `bd ready` also lists the open slice beads of other rounds (`<round> S<n>: …`); a
+   slice bead is never a candidate. Fold each dependency chain into its blocker's
+   slice. The bead list fixed here is the round's scope (R2). Start the round's handoff
+   file (`skill://handoff`) and keep it current for the whole round. Create the round
+   bead, and keep the round board current from here to step 11 (Round board, below).
 2. **Module map** (`skill://module-design`). Write what modules exist after the round,
    what each hides, its interface, and which beads land where. A boundary the round adds
    or moves gets the five-part record as `--design` on its owning bead. Otherwise, write
@@ -55,7 +58,7 @@ rules; a step here never overrides a rule. Rule numbers (R1–R9) refer to `SKIL
    PLAN-BLOCKING item before step 4.
 4. **Branch and worktrees.** Branch the feature branch off main. Create one branch and
    one worktree per slice under `../<repo>-wt/`. Touch the user's main checkout only with
-   `bd`. Mark the beads in_progress.
+   `bd`. Mark the beads in_progress. Create one slice bead per slice (Round board).
 5. **Dispatch implementers** (`agent: "implementer"`). A slice dispatches when the
    slices it depends on have merged, never when its wave finishes; a wave waits for its
    slowest member. A slice may branch from an approved, unmerged hash if its brief names
@@ -153,6 +156,91 @@ rules; a step here never overrides a rule. Rule numbers (R1–R9) refer to `SKIL
     the round wrote into project notes, lane docs, or handoff files. For each, draft the
     edit it implies to a skill or agent def, citing the ledger lines, or file it in the
     casebook as a one-off. The list goes in the report; the arbiter or user applies it.
+
+## Round board
+
+The user reads the state of a round from the round board, in a board UI (`b9s`), without
+opening a transcript. One round bead, an epic, stands for the round. One slice bead, a
+child of the round bead, stands for each slice. Scope beads are not board beads: they
+stay in_progress until their work is on main.
+
+A board bead carries two facts:
+
+- Its status says whether the work moves. `in_progress` moves. `blocked` waits for a
+  ruling. `open` is not yet dispatched. `closed` is merged.
+- Its `dispatch:<stage>` label says where the work is. The label `needs-human` says
+  that the ruling must come from the user.
+
+Write the board from the main checkout with these commands:
+
+```bash
+# Round bead, at step 1.
+bd create "Round <round>: <goal>" -t epic -s in_progress -l dispatch:planning \
+  -d "Scope: <bead IDs>. Branch: <name for the feature branch>" --silent
+# Slice bead, at step 4. Add --deps <slice bead> for each slice that this slice waits on.
+bd create "<round> S<n>: <module> (<tier>)" --parent <round bead> --no-inherit-labels \
+  -l dispatch:planned -d "Beads: <bead IDs>. Worktree: <path>" --silent
+# Every later change: one command sets the status and the stage.
+bd update <bead> --status <status> --set-labels dispatch:<stage>
+```
+
+`--set-labels` replaces every label on the bead. To set or keep the `needs-human` label,
+repeat the option: `--set-labels dispatch:<stage> --set-labels needs-human`. Without
+`--no-inherit-labels`, a slice bead copies the labels of the round bead.
+
+Write each change when its event happens, before the next dispatch or report. Run board
+writes one at a time: the order of the comments is the timeline.
+
+| Slice event | Status | Stage |
+|---|---|---|
+| Step 4: the slice bead is created | `open` | `planned` |
+| Step 5: the implementer is dispatched | `in_progress` | `implementing` |
+| Step 6: the reply passes the audit, and the gate or the seats run | `in_progress` | `gating` |
+| Step 7: a fix list is sent | `in_progress` | `fixing` |
+| Step 7: the loop cap fires, and the triage waits for a ruling | `blocked` | `triage` |
+| Step 8: every seat APPROVEs, and the merge waits for the arbiter's authorization | `blocked` | `approved` |
+| Step 8: the slice is merged | `closed` | `merged` |
+
+Skip the `approved` row when the merge waits for nobody: under a standing
+authorization, or with no arbiter. To write the `merged` row, set the stage and then
+close the bead:
+
+```bash
+bd update <slice bead> --set-labels dispatch:merged
+bd close <slice bead> -r "merged <hash>"
+```
+
+| Round event | Status | Stage |
+|---|---|---|
+| Steps 1 to 3a | `in_progress` | `planning` |
+| CP1 is sent (under an arbiter) | `blocked` | `cp1` |
+| Steps 4 to 8 | `in_progress` | `building` |
+| Step 9 | `in_progress` | `composition` |
+| Step 10 | `in_progress` | `polish` |
+| CP3 is sent (under an arbiter) | `blocked` | `cp3` |
+| The branch is PR-ready and waits for the user: at step 11 with no arbiter, or when the CP3 reply reconciles | `blocked`, with `needs-human` | `pr-ready` |
+
+- If a checkpoint reply bounces, set the round bead to `in_progress` at the stage of
+  the step that the bounce reopens.
+- A bead that waits for any other ruling keeps its stage and takes `blocked`. For a
+  `SCOPE:` item, a product decision, or a contract escalation, that bead is the slice
+  bead the item fired on. A ruling that stops every slice, such as a mid-round scope
+  change, blocks the round bead. When the ruling arrives, set the bead back to
+  `in_progress`.
+- If the ruling must come from the user and no arbiter runs, add the `needs-human`
+  label in the same write. Under an arbiter, the arbiter adds the label; the `pr-ready`
+  row is the one write where you add it.
+- On each seat verdict, add one line to the slice bead:
+  `bd comments add <slice bead> "<seat> (<model>) <verdict> on <hash>: <history:// link>"`.
+  On each merge, add `bd comments add <slice bead> "merged <hash>"`. A verdict from
+  step 9 or step 10 on a merged slice goes on its closed slice bead the same way; the
+  round bead keeps its stage.
+- If a slice is re-tiered, change the tier in its title:
+  `bd update <slice bead> --title "<round> S<n>: <module> (<tier>)"`.
+- Close a slice that leaves the round: `bd close <slice bead> -r "pulled: <reason>"`.
+- Once the work is on main, close the round bead with the scope beads.
+- The board is a view for the user. The board is never evidence (R5): no gate and no
+  ruling reads it.
 
 ## Necessity checks
 
@@ -326,7 +414,7 @@ NEVER substitute `task`.
 
 Pre-merge gates are proxies. What escapes them is the only measure of which gates pay.
 
-1. Label every round bead `round:<round-id>`.
+1. Label every scope bead `round:<round-id>`.
 2. When a defect is later filed against code a round shipped, label the new bead
    `escaped-from:<round-id>`.
 3. In that bead's body, name the gate that should have caught the defect (brief,

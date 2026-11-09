@@ -117,7 +117,7 @@ closing lines; the merged report takes the union and the worst `PLAN:` line:
 - **RISK** — a hazard the plan may accept: trigger, blast radius, available mitigation,
   owner. Accepted risks go into the rollout notes and the draft PR body.
 - **NEW-BEAD** — a pre-existing defect the probes found. Never round work unless it
-  blocks a criterion a round bead already carries. Bead format, owned by `bug-hunt`:
+  blocks a criterion a scope bead already carries. Bead format, owned by `bug-hunt`:
   "One bead per finding, `--type=bug` (wrong behavior) or `--type=task` (coverage
   gap), with: impact class — `wire-invalid`, `silent-data-loss`, `wrong-output`,
   `coverage-gap`; family; reproduction (stub shape, inputs, command); base-vs-current

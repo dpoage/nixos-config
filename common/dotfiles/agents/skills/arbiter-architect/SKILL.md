@@ -144,7 +144,7 @@ git -C <repo> log --oneline <branch> -10   # slice merges present at the claimed
 git -C <repo> diff -U0 <pre-polish>..<tip>  # every hunk is comment or prose only
 git -C <repo> status --short               # user's main checkout untouched
 git -C <repo> worktree list                # slice worktrees removed
-bd show <bead>                             # design and findings recorded; beads open until on main
+bd show <bead>                             # design and findings recorded; scope beads open until on main
 ```
 
 - A code hunk in the polish diff bounces CP3. The architect reverts it and, if the change
@@ -159,13 +159,30 @@ the user the PR-ready branch and the draft PR text.
 file. Apply the skill and def edits that meet R9's bar, or hand them to the user. A
 ruling you leave in project notes is lost when the epic ends.
 
+## Round board
+
+The user watches each round on the round board, which the `oracle-rounds` procedure
+owns: "One round bead, an epic, stands for the round. One slice bead, a child of the
+round bead, stands for each slice." "Its status says whether the work moves.
+`in_progress` moves. `blocked` waits for a ruling. `open` is not yet dispatched.
+`closed` is merged." "The label `needs-human` says that the ruling must come from the
+user." The architect writes the board. You do two things:
+
+- When a ruling must come from the user, add the label before you ask:
+  `bd update <bead> --add-label needs-human`. When the user answers, remove the label:
+  `bd update <bead> --remove-label needs-human`.
+- At each checkpoint, list the board:
+  `bd list --parent <round bead> --all --flat --long`. Send the architect every bead
+  that is `blocked` on a ruling you already sent, and every slice bead that the ledger
+  shows merged and that is not `closed`.
+
 ## Arbiter conduct
 
 - Act at rulings, gates, and escalations. If you dispatch implementers or re-run probes
   an oracle already ran, you have reverted to direct mode. Decide that explicitly.
 - While the architect runs, do not read worktrees, diffs, or transcripts. Per round, read
-  the three checkpoint summaries, one CP2 sample, and the CP3 command output. If a ruling
-  needs more, ask the architect over the hub.
+  the three checkpoint summaries, one CP2 sample, the CP3 command output, and the board
+  list at each checkpoint. If a ruling needs more, ask the architect over the hub.
 - Record every deviation and its ruling in the round summary. Normally accept a
   self-reported deviation that survives oracle re-review.
 - Keep the epic's handoff file (`skill://handoff`). List each running architect and the

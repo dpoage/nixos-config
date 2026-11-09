@@ -61,6 +61,7 @@
     claude-code
     beads
     dolt # beads' storage backend (`bd dolt push`)
+    b9s # board and tree over beads: `b9s` (TUI), `b9s web` (browser)
 
     # Core utilities
     wget

@@ -99,6 +99,34 @@ in
     subPackages = [ "cmd/gcx" ];
   };
 
+  # b9s: board, tree and dependency graph over beads, as a TUI (`b9s`) and a
+  # browser UI (`b9s web`). It reads and writes only through `bd`. The repo
+  # vendors its Go modules and commits the built web assets, so no Node step.
+  b9s = unstable.buildGoModule rec {
+    pname = "b9s";
+    version = "1.3.5";
+    src = unstable.fetchFromGitHub {
+      owner = "vanderheijden86";
+      repo = "b9s";
+      tag = "v${version}";
+      hash = "sha256-l1KAB5dpOWYdici0g+j975K1dES6Q8nwx7YnUs19FFE=";
+    };
+    vendorHash = null;
+    subPackages = [ "cmd/b9s" ];
+    ldflags = [
+      "-s"
+      "-w"
+      "-X"
+      "github.com/vanderheijden86/b9s/pkg/version.Version=v${version}"
+    ];
+    meta = {
+      description = "Terminal and browser UI for the Beads issue tracker";
+      homepage = "https://github.com/vanderheijden86/b9s";
+      license = final.lib.licenses.mit;
+      mainProgram = "b9s";
+    };
+  };
+
   # Official slackapi CLI (nixpkgs' slack-cli is an unrelated tool). Renamed to
   # avoid clashing with desktop `slack`; self-update can't write the store.
   slack-cli =

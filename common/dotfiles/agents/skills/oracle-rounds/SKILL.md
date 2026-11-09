@@ -8,8 +8,9 @@ description: Use when driving a multi-issue development round with parallel suba
 A round takes a set of beads to a PR-ready feature branch. Implementers build each slice
 in its own worktree. Oracle seats gate each slice, and one composition oracle gates the
 merged whole. You orchestrate: map, scope, dispatch, rule, integrate, polish, report. You
-NEVER open the PR or merge to main. Close a bead only once its work is on main and the user
-has allowed bead closing, with the main hash in the reason.
+NEVER open the PR or merge to main. Close a scope bead only once its work is on main and
+the user has allowed bead closing, with the main hash in the reason. A slice bead on the
+round board closes at its merge (procedure, Round board).
 
 If the work spans several rounds (an epic), load `skill://arbiter-architect` first.
 
@@ -30,7 +31,7 @@ The casebook gives examples; it adds no rules.
    verdict, and a role that passes verdict on itself produces no evidence.
 
 2. **Scope is the bead list fixed at slicing.** Everything the round discovers becomes a
-   bead. Nothing becomes round work unless it blocks a criterion a round bead already
+   bead. Nothing becomes round work unless it blocks a criterion a scope bead already
    carries. Ask "does this need to exist?" before "is it correct?", and rule every
    `SCOPE:` item before the next dispatch. A new criterion mid-round replaces a named
    criterion; criteria never accumulate. A mechanism costs its code plus the review

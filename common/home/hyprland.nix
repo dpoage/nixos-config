@@ -75,6 +75,10 @@ in
           enabled = true;
           range = 8;
           render_power = 2;
+          # Stylix's target paints the shadow in base00, which on light palettes
+          # is a cream glow, not a shadow; use the (dark) text color there.
+          color = lib.mkIf (config.stylix.polarity == "light")
+            (lib.mkForce "rgba(${config.lib.stylix.colors.base05}66)");
         };
       };
 

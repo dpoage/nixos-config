@@ -161,6 +161,13 @@ in
   # gh-dash — PR/issue TUI dashboard (`gh-dash`)
   programs.gh-dash.enable = true;
 
+  # Lazygit; colors come from the Stylix lazygit target. No `lg` zsh wrapper:
+  # the system package it replaces had none.
+  programs.lazygit = {
+    enable = true;
+    enableZshIntegration = false;
+  };
+
   # Jujutsu — git-compatible VCS. Try it on an existing repo with
   # `jj git init --colocate`; git and jj stay in sync in the same worktree.
   programs.jujutsu = {

@@ -70,7 +70,6 @@
   # Compositor-agnostic desktop packages. Compositor-specific tools live
   # in profiles/hyprland-stack.nix (hyprlock/hypridle/hyprpicker, etc.).
   environment.systemPackages = with pkgs; [
-    rofi
     brightnessctl
     # Generic wayland utilities — used by both hyprland and niri.
     wl-clipboard

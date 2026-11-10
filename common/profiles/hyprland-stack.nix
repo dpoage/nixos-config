@@ -19,9 +19,8 @@
   programs.dconf.enable = true;
 
   environment.systemPackages = with pkgs; [
-    # Default launcher + notifier for Hyprland
+    # Default launcher for Hyprland (notifier: HM services.dunst in common/home/hyprland.nix)
     wofi
-    dunst
 
     # Hyprland-native ecosystem utilities
     hyprpicker

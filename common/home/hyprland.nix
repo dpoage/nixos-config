@@ -13,6 +13,17 @@ in
   # Stylix's hyprpaper target owns the wallpaper; with myRice, awww does.
   stylix.targets.hyprland.hyprpaper.enable = !(config.myRice.enable or false);
 
+  # Launcher and notifier; Stylix themes both (rofi/dunst targets). The
+  # keybind below runs rofi. dunst runs only without the myRice bundle,
+  # whose mako owns notifications: one daemon per host, never both.
+  programs.rofi.enable = true;
+  services.dunst.enable = !config.myRice.enable;
+  # HM's dunst unit is only dbus-activated; start it with the session, as
+  # the exec-once it replaces did.
+  systemd.user.services = lib.mkIf config.services.dunst.enable {
+    dunst.Install.WantedBy = [ config.wayland.systemd.target ];
+  };
+
   wayland.windowManager.hyprland = {
     enable = true;
     xwayland.enable = true;
@@ -88,9 +99,7 @@ in
       };
 
       # Autostart
-      exec-once = [
-        "dunst"
-      ] ++ barExec;
+      exec-once = barExec;
 
       # Key bindings
       "$mod" = "SUPER";

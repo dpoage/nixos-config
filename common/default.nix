@@ -91,7 +91,6 @@
     tmux
 
     # Development tools
-    lazygit
     opencode
     bun
     omp

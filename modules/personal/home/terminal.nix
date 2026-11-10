@@ -4,7 +4,6 @@ let
   cfg = config.myPrompt;
   stylix = config.stylix;
   colors = config.lib.stylix.colors;
-  ansi = import ../theme/ansi.nix colors;
 
   # Rounded pill around `body`; the body styles itself and must carry bg:`color`.
   pill = color: body: "[](fg:${color})${body}[](fg:${color}) ";
@@ -44,6 +43,102 @@ let
     subtle = hash (mix.mixHex { from = colors.base00; toward = colors.${lc.ink}; pct = lc.hint; });
   };
 
+  kittyColors = import ../theme/kitty-colors.nix { inherit lib; };
+
+  # One kitty color file per palette; kitty-palette pushes them over kitty's socket.
+  paletteConfs = pkgs.linkFarm "kitty-palettes" (lib.mapAttrsToList
+    (name: theme: {
+      name = "${name}.conf";
+      path = pkgs.writeText "kitty-${name}.conf"
+        (lib.concatStrings (lib.mapAttrsToList (k: v: "${k} ${v}\n") (kittyColors theme)));
+    })
+    config.myTheme.palettes);
+
+  # Recolors every running kitty window; nothing persists past a kitty restart.
+  kittyPalette = pkgs.writeShellApplication {
+    name = "kitty-palette";
+    runtimeInputs = [ config.programs.kitty.package pkgs.fzf pkgs.coreutils ];
+    text = ''
+      confs=${paletteConfs}
+
+      usage() {
+        cat <<EOF
+      Usage: kitty-palette [PALETTE | --list | --reset]
+
+      Live-preview myTheme palettes in every running kitty window.
+        (none)    pick with fzf; moving the cursor recolors, Enter keeps, Esc resets
+        PALETTE   apply PALETTE
+        --list    list palettes
+        --reset   restore the colors kitty started with
+      Colors last until kitty restarts; set myTheme.palette to keep one.
+      EOF
+      }
+
+      # $1: color file, or empty to reset. Stale sockets from dead kittys fail quietly.
+      apply() {
+        local sock ok=0
+        shopt -s nullglob
+        for sock in "''${XDG_RUNTIME_DIR:?}"/kitty-*; do
+          [ -S "$sock" ] || continue
+          if [ -n "$1" ]; then
+            kitten @ --to "unix:$sock" set-colors --all --configured "$1" 2>/dev/null && ok=1
+          else
+            kitten @ --to "unix:$sock" set-colors --reset 2>/dev/null && ok=1
+          fi
+        done
+        if [ "$ok" = 0 ]; then
+          echo "kitty-palette: no kitty listening in $XDG_RUNTIME_DIR (kittys started before the switch need a restart)" >&2
+          return 1
+        fi
+      }
+
+      list() {
+        for f in "$confs"/*.conf; do basename "$f" .conf; done
+      }
+
+      # fzf preview: ANSI 0-15 and sample text, drawn in the live colors.
+      swatch() {
+        local i
+        printf '%s\n\n' "$1"
+        for i in 0 1 2 3 4 5 6 7; do printf '\e[48;5;%sm    ' "$i"; done
+        printf '\e[0m\n'
+        for i in 8 9 10 11 12 13 14 15; do printf '\e[48;5;%sm    ' "$i"; done
+        printf '\e[0m\n\n'
+        printf 'plain text \e[2mdim text\e[0m \e[90mcomment\e[0m\n'
+        printf '\e[31merror\e[0m \e[33mwarning\e[0m \e[32mok\e[0m \e[34minfo\e[0m \e[35mkeyword\e[0m \e[36mstring\e[0m\n'
+        printf '\e[91merror\e[0m \e[93mwarning\e[0m \e[92mok\e[0m \e[94minfo\e[0m \e[95mkeyword\e[0m \e[96mstring\e[0m\n'
+        printf '\e[1;37mbold white\e[0m \e[1;97mbold bright white\e[0m\n'
+      }
+
+      pick() {
+        local choice
+        # The Stylix fzf colors are the active palette's hex; ANSI colors follow the preview.
+        if choice=$(list | FZF_DEFAULT_OPTS="" fzf --color=16 --prompt 'palette> ' \
+          --bind "focus:execute-silent($0 {})" \
+          --preview "$0 --swatch {}" --preview-window right,60%); then
+          echo "kitty-palette: $choice applies until kitty restarts; to keep it, set myTheme.palette = \"$choice\";"
+        else
+          apply ""
+        fi
+      }
+
+      case "''${1:-}" in
+        "") pick ;;
+        -h | --help) usage ;;
+        --list) list ;;
+        --reset) apply "" ;;
+        --swatch) swatch "$2" ;;
+        -*) usage >&2; exit 2 ;;
+        *)
+          if [ ! -f "$confs/$1.conf" ]; then
+            echo "kitty-palette: unknown palette '$1' (see --list)" >&2
+            exit 2
+          fi
+          apply "$confs/$1.conf"
+          ;;
+      esac
+    '';
+  };
 in
 {
   options.myPrompt = {
@@ -75,32 +170,19 @@ in
 
   config = {
     # Stylix's kitty target only emits base16 colors and is off (see
-    # modules/personal/theme); colors come from the base24 ANSI list, fonts from stylix.*.
+    # modules/personal/theme); colors come from ../theme/kitty-colors.nix, fonts from stylix.*.
     programs.kitty = {
       enable = true;
       font = {
         name = stylix.fonts.monospace.name;
         size = stylix.fonts.sizes.terminal;
       };
-      settings = with colors.withHashtag; {
-        foreground = base05;
-        background = base00;
-        selection_foreground = base00;
-        # base06 is rosewater on latte (2.3:1 vs base00); light selections are the
-        # inverse chip, and cursor/url follow.
-        selection_background = if light then base05 else base06;
-        cursor = if light then base05 else base06;
-        cursor_text_color = base00;
-        url_color = if light then accent "base0D" else base06;
-      }
-      // lib.listToAttrs (lib.imap0 (i: hex: lib.nameValuePair "color${toString i}" "#${hex}") ansi)
+      settings = kittyColors { inherit colors; lightContrast = lc; }
       // {
-        # Tab bar
-        active_tab_foreground = base00;
-        active_tab_background = base0E;
-        inactive_tab_foreground = base05;
-        inactive_tab_background = base01;
-        tab_bar_background = base00;
+        # kitty-palette recolors over this socket (kitty appends -<pid>);
+        # $XDG_RUNTIME_DIR is 0700, and socket-only refuses escape-code requests.
+        allow_remote_control = "socket-only";
+        listen_on = "unix:\${XDG_RUNTIME_DIR}/kitty";
 
         # Window
         background_opacity = toString stylix.opacity.terminal;
@@ -122,6 +204,7 @@ in
         open_url_with = "default";
       };
     };
+    home.packages = [ kittyPalette ];
 
     # Zsh
     programs.zsh = {

@@ -70,10 +70,10 @@ let
   p = palettes.${cfg.palette};
   # Stylix's YAML parser fails on comment-only lines, which some upstream schemes
   # (dracula) have; drop them before handing the scheme over.
-  schemeFile = builtins.toFile "${cfg.palette}.yaml" (builtins.unsafeDiscardStringContext
+  schemeFile = name: builtins.toFile "${name}.yaml" (builtins.unsafeDiscardStringContext
     (lib.concatMapStrings (line: line + "\n")
       (builtins.filter (line: builtins.match " *#.*" line == null)
-        (lib.splitString "\n" (builtins.readFile "${config.stylix.inputs.tinted-schemes}/${p.scheme}.yaml")))));
+        (lib.splitString "\n" (builtins.readFile "${config.stylix.inputs.tinted-schemes}/${palettes.${name}.scheme}.yaml")))));
 
   # Stylix fills a base16 scheme's missing base12-17 with the normal colors, so
   # ANSI 9-14 would equal 1-6. Derive them a quarter of the way toward white
@@ -94,6 +94,19 @@ let
         base16 = "base0D";
         base17 = "base0E";
       };
+
+  schemeOverride = name:
+    lib.optionalAttrs (lib.hasPrefix "base16/" palettes.${name}.scheme) (brights (config.stylix.base16.mkSchemeAttrs (schemeFile name)))
+    // lib.optionalAttrs (name == "gruvbox-dark") { base00 = "1d2021"; };
+
+  # What Stylix's lib.stylix.colors would be with each palette active, for the
+  # kitty-palette live preview.
+  paletteThemes = lib.mapAttrs
+    (name: palette: {
+      colors = (config.stylix.base16.mkSchemeAttrs (schemeFile name)).override (schemeOverride name);
+      lightContrast = lightContrastDefaults // (palette.contrast or { });
+    })
+    palettes;
 
   generatedWallpaper = pkgs.runCommand "wallpaper-${cfg.palette}.png"
     { nativeBuildInputs = [ pkgs.imagemagick ]; } ''
@@ -117,10 +130,8 @@ in
   config = {
     stylix = {
       enable = true;
-      base16Scheme = schemeFile;
-      override =
-        lib.optionalAttrs (lib.hasPrefix "base16/" p.scheme) (brights (config.stylix.base16.mkSchemeAttrs schemeFile))
-        // lib.optionalAttrs (cfg.palette == "gruvbox-dark") { base00 = "1d2021"; };
+      base16Scheme = schemeFile cfg.palette;
+      override = schemeOverride cfg.palette;
       polarity = colors.variant;
       image = lib.mkIf graphical (p.wallpaper or generatedWallpaper);
 
@@ -176,12 +187,22 @@ in
         gtk.colorScheme = lib.mkIf graphical config.stylix.polarity;
       }
       {
-        options.myTheme.lightContrast = lib.mkOption {
-          type = lib.types.attrs;
-          readOnly = true;
-          description = "Ink slot, red slot and accent mix percentages for the active palette when it is light.";
+        options.myTheme = {
+          lightContrast = lib.mkOption {
+            type = lib.types.attrs;
+            readOnly = true;
+            description = "Ink slot, red slot and accent mix percentages for the active palette when it is light.";
+          };
+          palettes = lib.mkOption {
+            type = lib.types.attrsOf lib.types.attrs;
+            readOnly = true;
+            description = "Every selectable palette's Stylix colors set and lightContrast, keyed by myTheme.palette name.";
+          };
         };
-        config.myTheme.lightContrast = lightContrastDefaults // (p.contrast or { });
+        config.myTheme = {
+          lightContrast = paletteThemes.${cfg.palette}.lightContrast;
+          palettes = paletteThemes;
+        };
       }
     ];
   };

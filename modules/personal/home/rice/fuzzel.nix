@@ -7,10 +7,9 @@ let
   cfg = config.myRice;
   colors = config.lib.stylix.colors;
   light = config.stylix.polarity == "light";
+  lc = config.myTheme.lightContrast;
   mix = import ../../theme/mix.nix { inherit lib; };
-  # On the selection (base02): 4.5:1 from 36 (gruvbox-light), CIEDE2000 >= 10
-  # vs selection-text up to 86 (latte); a new light palette needs re-probing.
-  selectionMatchPct = 60;
+  red = pct: "${mix.mixHex { from = colors.${lc.red}; toward = colors.${lc.ink}; inherit pct; }}ff";
 in
 {
   config = lib.mkIf cfg.enable {
@@ -37,11 +36,11 @@ in
           radius = 14;
         };
         # The Stylix fuzzel target's match color is base0A, 2.2-2.3:1 on the
-        # light backgrounds; light palettes take base08, pulled toward the text
-        # color for matches in the selected row.
+        # light backgrounds; light palettes take their red, pulled toward the ink.
         colors = lib.mkIf light {
-          match = lib.mkForce "${colors.base08}ff";
-          selection-match = lib.mkForce "${mix.mixHex { from = colors.base08; toward = colors.base05; pct = selectionMatchPct; }}ff";
+          match = lib.mkForce (red lc.match);
+          selection-text = lib.mkForce "${colors.${lc.ink}}ff";
+          selection-match = lib.mkForce (red lc.selectionMatch);
         };
         dmenu = {
           exit-immediately-if-empty = "yes";

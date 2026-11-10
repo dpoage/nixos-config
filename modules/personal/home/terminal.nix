@@ -21,17 +21,12 @@ let
     else "(${pill "neutral" "${gap}$username$hostname${gap}"})";
 
   # Light palettes: most accents give base00 text under 4.5:1 (catppuccin-latte
-  # pastels 2.3-3.0:1), so the segments are the accent mixed toward the text
-  # color base05 (see ../theme/mix.nix) and keep base00 text. Dark palettes
-  # keep the plain slots.
+  # pastels 2.3-3.0:1), so segments mix toward the palette's ink and keep base00 text.
   light = stylix.polarity == "light";
+  lc = config.myTheme.lightContrast;
   mix = import ../theme/mix.nix { inherit lib; };
-  # Lowest passing pct per use, measured on gruvbox-light and catppuccin-latte;
-  # a new light palette needs re-probing.
-  segmentPct = 70; # starship segments 4.5:1 from 61 (latte); kitty url from 19
-  hintPct = 70; # autosuggest hint 3:1 from 64 (latte)
   hash = hex: "#${hex}";
-  accent = slot: hash (mix.mixHex { from = colors.${slot}; toward = colors.base05; pct = segmentPct; });
+  accent = slot: hash (mix.mixHex { from = colors.${slot}; toward = colors.${lc.ink}; pct = lc.segment; });
   seg = slot: if light then accent slot else colors.withHashtag.${slot};
 
   # Semantic prompt colors; pills put base00 text on them, other text sits on base00.
@@ -45,8 +40,8 @@ let
     toolchain = seg "base15";
     cloud = seg "base17";
     # Dark base08 is 2.7:1 on gruvbox-dark; its bright red clears 4.3:1.
-    danger = if light then accent "base08" else colors.withHashtag.base12;
-    subtle = hash (mix.mixHex { from = colors.base00; toward = colors.base05; pct = hintPct; });
+    danger = if light then accent lc.red else colors.withHashtag.base12;
+    subtle = hash (mix.mixHex { from = colors.base00; toward = colors.${lc.ink}; pct = lc.hint; });
   };
 
 in
@@ -134,8 +129,8 @@ in
       autosuggestion = {
         enable = true;
         # Default hint is ANSI 8 (base04), 1.9:1 on catppuccin-latte; light
-        # palettes get a text-color mix that clears 3:1 as a dim hint.
-        highlight = lib.mkIf light "fg=${hash (mix.mixHex { from = colors.base00; toward = colors.base05; pct = hintPct; })}";
+        # palettes get an ink mix that clears 3:1 as a dim hint.
+        highlight = lib.mkIf light "fg=${promptColors.subtle}";
       };
       syntaxHighlighting.enable = true;
       enableCompletion = true;

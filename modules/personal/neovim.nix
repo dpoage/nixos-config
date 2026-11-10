@@ -1,4 +1,4 @@
-  { config, pkgs, ... }:
+  { config, lib, pkgs, ... }:
 
   let
     tla-nvim = pkgs.vimUtils.buildVimPlugin {
@@ -13,13 +13,47 @@
       dependencies = [ pkgs.vimPlugins.plenary-nvim ];
     };
 
+    # Each entry sets colorschemes.<name>; light/dark follows `background` below.
+    tokyonight = style: { name = "tokyonight"; settings.style = style; };
+    rosePine = variant: { name = "rose-pine"; settings.variant = variant; };
+    kanagawa = theme: { name = "kanagawa"; settings.background.dark = theme; };
+    everforest = c: { name = "everforest"; settings.background = c; };
+    gruvboxMaterial = c: { name = "gruvbox-material-nvim"; settings.contrast = c; };
+    # <family>-hard/-medium/-soft palettes.
+    contrasts = family: mk:
+      lib.listToAttrs (map (c: lib.nameValuePair "${family}-${c}" (mk c)) [ "hard" "medium" "soft" ]);
+
     nvimScheme = {
       gruvbox-dark = { name = "gruvbox"; settings.contrast = "hard"; };
       catppuccin-mocha = { name = "catppuccin"; settings.flavour = "mocha"; };
       # The scheme's own base00 is gruvbox.nvim's default (medium) light background.
       gruvbox-light = { name = "gruvbox"; settings = { }; };
       catppuccin-latte = { name = "catppuccin"; settings.flavour = "latte"; };
-    }.${config.myTheme.palette};
+      tokyo-night-dark = tokyonight "night";
+      tokyo-night-storm = tokyonight "storm";
+      tokyo-night-moon = tokyonight "moon";
+      tokyo-night-light = tokyonight "day";
+      kanagawa = kanagawa "wave";
+      kanagawa-dragon = kanagawa "dragon";
+      rose-pine = rosePine "main";
+      rose-pine-moon = rosePine "moon";
+      rose-pine-dawn = rosePine "dawn";
+      nord = { name = "nord"; settings = { }; };
+      # nord.nvim has no light variant; paint the Stylix palette with base16-nvim.
+      nord-light = {
+        name = "base16";
+        colorscheme = lib.mapAttrs (_: c: "#${c}") (lib.getAttrs
+          (map (i: "base0${i}") [ "0" "1" "2" "3" "4" "5" "6" "7" "8" "9" "A" "B" "C" "D" "E" "F" ])
+          config.lib.stylix.colors);
+      };
+      dracula = { name = "dracula"; settings = { }; };
+      # solarized-osaka defaults to a transparent background; the others paint theirs.
+      solarized-dark = { name = "solarized-osaka"; settings.transparent = false; };
+      solarized-light = { name = "solarized-osaka"; settings.transparent = false; };
+    }
+    // contrasts "everforest-dark" everforest // contrasts "everforest-light" everforest
+    // contrasts "gruvbox-material-dark" gruvboxMaterial // contrasts "gruvbox-material-light" gruvboxMaterial;
+    activeScheme = nvimScheme.${config.myTheme.palette};
   in
   {
     programs.nixvim = {
@@ -57,10 +91,7 @@
         background = config.stylix.polarity;
       };                                                                                                                    
    
-      colorschemes.${nvimScheme.name} = {
-        enable = true;
-        inherit (nvimScheme) settings;
-      };
+      colorschemes.${activeScheme.name} = { enable = true; } // removeAttrs activeScheme [ "name" ];
                                                                                                                             
       # Keymaps (LazyVim-style)
       keymaps = [                                                                                                           

@@ -6,25 +6,17 @@ let
   colors = config.lib.stylix.colors.withHashtag;
 
   # Light palettes: most accents are too pale for 4.5:1 text on the islands
-  # (base01; all of them on catppuccin-latte), so label colors are the accent
-  # mixed toward the text color base05 (../theme/mix.nix); dim labels (base04)
-  # mix further. Dark palettes keep the plain slots.
+  # (base01), so labels mix toward the palette's ink; dim labels (base04) mix further.
   light = stylix.polarity == "light";
+  lc = config.myTheme.lightContrast;
   mix = import ../theme/mix.nix { inherit lib; };
-  pulled = pct: slot: "#${mix.mixHex { from = config.lib.stylix.colors.${slot}; toward = config.lib.stylix.colors.base05; inherit pct; }}";
-  # Lowest passing pct per use, measured on gruvbox-light and catppuccin-latte;
-  # a new light palette needs re-probing.
-  labelPct = 70; # 4.5:1 from 67 (latte)
-  dimPct = 80; # 4.5:1 from 75 (latte)
-  # States mix less than labels so they keep their hue next to the pulled labels.
-  warningPct = 60; # 4.5:1 from 57 (latte); CIEDE2000 >= 10 vs #disk up to 62 (gruvbox-light)
-  criticalPct = 25; # 4.5:1 from 13, CIEDE2000 >= 15 vs the same module's label up to 37 (gruvbox-light)
-  css = slot: if light then pulled labelPct slot else "@${slot}";
-  cssDim = slot: if light then pulled dimPct slot else "@${slot}";
-  pango = slot: if light then pulled labelPct slot else colors.${slot};
-  warning = if light then pulled warningPct "base09" else "@base09";
-  # On catppuccin-latte's islands base12 is 3.2:1 and base08 4.46:1, so base08 needs the smaller pull.
-  critical = if light then pulled criticalPct "base08" else "@base12";
+  pulled = pct: slot: "#${mix.mixHex { from = config.lib.stylix.colors.${slot}; toward = config.lib.stylix.colors.${lc.ink}; inherit pct; }}";
+  css = slot: if light then pulled lc.label slot else "@${slot}";
+  cssDim = slot: if light then pulled lc.dim slot else "@${slot}";
+  pango = slot: if light then pulled lc.label slot else colors.${slot};
+  warning = if light then pulled lc.warning "base09" else "@base09";
+  # On catppuccin-latte's islands base12 is 3.2:1 and base08 4.46:1, so light takes the normal red.
+  critical = if light then pulled lc.critical lc.red else "@base12";
 
   # The Stylix waybar target defines @base00..@base0F; the bright half is added here.
   brightDefs = lib.concatMapStringsSep "\n"

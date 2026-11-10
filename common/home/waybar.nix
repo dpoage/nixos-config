@@ -11,10 +11,20 @@ let
   # mix further. Dark palettes keep the plain slots.
   light = stylix.polarity == "light";
   mix = import ../theme/mix.nix { inherit lib; };
-  pulled = pct: slot: "#${mix.mixHex config.lib.stylix.colors.${slot} config.lib.stylix.colors.base05 pct}";
-  css = slot: if light then pulled 70 slot else "@${slot}";
-  cssDim = slot: if light then pulled 80 slot else "@${slot}";
-  pango = slot: if light then pulled 70 slot else colors.${slot};
+  pulled = pct: slot: "#${mix.mixHex { from = config.lib.stylix.colors.${slot}; toward = config.lib.stylix.colors.base05; inherit pct; }}";
+  # Lowest passing pct per use, measured on gruvbox-light and catppuccin-latte;
+  # a new light palette needs re-probing.
+  labelPct = 70; # 4.5:1 from 67 (latte)
+  dimPct = 80; # 4.5:1 from 75 (latte)
+  # States mix less than labels so they keep their hue next to the pulled labels.
+  warningPct = 60; # 4.5:1 from 57 (latte); CIEDE2000 >= 10 vs #disk up to 62 (gruvbox-light)
+  criticalPct = 25; # 4.5:1 from 13, CIEDE2000 >= 15 vs the same module's label up to 37 (gruvbox-light)
+  css = slot: if light then pulled labelPct slot else "@${slot}";
+  cssDim = slot: if light then pulled dimPct slot else "@${slot}";
+  pango = slot: if light then pulled labelPct slot else colors.${slot};
+  warning = if light then pulled warningPct "base09" else "@base09";
+  # On catppuccin-latte's islands base12 is 3.2:1 and base08 4.46:1, so base08 needs the smaller pull.
+  critical = if light then pulled criticalPct "base08" else "@base12";
 
   # The Stylix waybar target defines @base00..@base0F; the bright half is added here.
   brightDefs = lib.concatMapStringsSep "\n"
@@ -323,7 +333,7 @@ in
       }
 
       #workspaces button.urgent {
-          background-color: ${css "base12"};
+          background-color: ${critical};
           color: @base00;
       }
 
@@ -401,7 +411,7 @@ in
       }
 
       #battery.warning {
-          color: ${css "base09"};
+          color: ${warning};
       }
 
       #clock {
@@ -410,7 +420,7 @@ in
       }
 
       #disk.warning {
-          color: ${css "base09"};
+          color: ${warning};
       }
 
       #network.disconnected,
@@ -418,7 +428,7 @@ in
       #temperature.critical,
       #memory.critical,
       #disk.critical {
-          color: ${css "base12"};
+          color: ${critical};
       }
 
       @keyframes blink {
@@ -428,7 +438,7 @@ in
       }
 
       #battery.critical:not(.charging) {
-          color: ${css "base12"};
+          color: ${critical};
           animation-name: blink;
           animation-duration: 0.5s;
           animation-timing-function: steps(12);

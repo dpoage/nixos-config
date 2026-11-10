@@ -31,9 +31,12 @@ let
   # keep the plain slots.
   light = stylix.polarity == "light";
   mix = import ../theme/mix.nix { inherit lib; };
-  pct = 70;
+  # Lowest passing pct per use, measured on gruvbox-light and catppuccin-latte;
+  # a new light palette needs re-probing.
+  segmentPct = 70; # starship segments 4.5:1 from 61 (latte); kitty url from 19
+  hintPct = 70; # autosuggest hint 3:1 from 64 (latte)
   hash = hex: "#${hex}";
-  accent = slot: hash (mix.mixHex colors.${slot} colors.base05 pct);
+  accent = slot: hash (mix.mixHex { from = colors.${slot}; toward = colors.base05; pct = segmentPct; });
   seg = slot: if light then accent slot else colors.withHashtag.${slot};
 
   # Segment names the prompt format already uses, added to Stylix's
@@ -137,7 +140,7 @@ in
         enable = true;
         # Default hint is ANSI 8 (base04), 1.9:1 on catppuccin-latte; light
         # palettes get a text-color mix that clears 3:1 as a dim hint.
-        highlight = lib.mkIf light "fg=${hash (mix.mixHex colors.base00 colors.base05 pct)}";
+        highlight = lib.mkIf light "fg=${hash (mix.mixHex { from = colors.base00; toward = colors.base05; pct = hintPct; })}";
       };
       syntaxHighlighting.enable = true;
       enableCompletion = true;

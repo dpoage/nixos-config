@@ -11,7 +11,7 @@ let
 in
 {
   # Stylix's hyprpaper target owns the wallpaper; with myRice, awww does.
-  stylix.targets.hyprland.hyprpaper.enable = !(config.myRice.enable or false);
+  stylix.targets.hyprland.hyprpaper.enable = !config.myRice.enable;
 
   # Launcher and notifier; Stylix themes both (rofi/dunst targets). The
   # keybind below runs rofi. dunst runs only without the myRice bundle,

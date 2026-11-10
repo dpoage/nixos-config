@@ -182,9 +182,12 @@ in
 
     # LS_COLORS (read by eza and ls) is `vivid generate` of the theme the
     # Stylix vivid target defines; the zsh integration exports it.
+    # Directories use base0D: the target's base0F is unreadable on gruvbox-dark.
     programs.vivid = {
       enable = true;
       enableZshIntegration = true;
+      themes.${config.programs.vivid.activeTheme}.core.directory.foreground =
+        lib.mkForce "base0D";
     };
 
     # Zoxide (smart cd). Managed via the home-manager module rather than a

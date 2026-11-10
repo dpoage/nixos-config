@@ -1,4 +1,4 @@
-{ config, lib, ... }:
+{ config, lib, osConfig, ... }:
 
 let
   rice = config.myRice;
@@ -157,7 +157,7 @@ in
 
         clock = {
           interval = 60;
-          timezone = "America/Denver";
+          timezone = osConfig.time.timeZone;
           format = "${i.clock} {:%F %R}";
           tooltip-format = "<tt><small>{calendar}</small></tt>";
           calendar = {

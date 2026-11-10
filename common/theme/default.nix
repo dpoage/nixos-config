@@ -69,6 +69,9 @@ in
         console.enable = false;
         # Upstream gruvbox/catppuccin plugins are configured in neovim.nix.
         nixvim.enable = false;
+        # Enables programs.chromium and writes /etc/{brave,chromium,opt/chrome}
+        # policies/managed/extra.json, so browsers show "managed by your organisation".
+        chromium.enable = false;
       };
     };
 
@@ -82,6 +85,9 @@ in
           alacritty.enable = false;
           # Installs a GNOME Shell extension; gtk.colorScheme below carries polarity.
           gnome.enable = false;
+          # No Plasma here; installs a KDE theme activator (autostart entry and
+          # activation script). Qt apps are themed by the qt target.
+          kde.enable = false;
         } // lib.genAttrs terminalTargets (_: { enable = true; });
 
         gtk.colorScheme = lib.mkIf graphical config.stylix.polarity;

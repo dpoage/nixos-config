@@ -16,9 +16,33 @@ let
   wsModule = if isNiri then "niri/workspaces" else "hyprland/workspaces";
   winModule = if isNiri then "niri/window" else "hyprland/window";
 
+  # Nerd Font codepoints as escapes: literal private-use glyphs get stripped by editors and tools.
+  g = cp: builtins.fromJSON ''"\u${cp}"'';
+  i = {
+    urgent = g "f06a";
+    bt = g "f293";
+    eye = g "f06e";
+    eyeOff = g "f070";
+    clock = g "f017";
+    cpu = g "f2db";
+    mem = g "efc5";
+    disk = g "f0a0";
+    temp = map g [ "f2cb" "f2c9" "f2c7" ];
+    wifi = g "f1eb";
+    eth = g "f0e8";
+    sun = g "f185";
+    vol = map g [ "f026" "f027" "f028" ];
+    headphone = g "f025";
+    mic = g "f130";
+    micOff = g "f131";
+    bolt = g "f0e7";
+    plug = g "f1e6";
+    battery = map g [ "f244" "f243" "f242" "f241" "f240" ];
+  };
+
   workspacesSettings = {
     format = "{icon}";
-    format-icons.urgent = "";
+    format-icons.urgent = i.urgent;
   } // lib.optionalAttrs (!isNiri) {
     on-scroll-up = "hyprctl dispatch workspace e+1";
     on-scroll-down = "hyprctl dispatch workspace e-1";
@@ -33,8 +57,11 @@ in
       mainBar = {
         layer = "top";
         position = "top";
-        height = 30;
-        spacing = 1;
+        height = 34;
+        spacing = 0;
+        margin-top = 6;
+        margin-left = 8;
+        margin-right = 8;
 
         modules-left = [
           wsModule
@@ -67,10 +94,10 @@ in
         };
 
         bluetooth = {
-          format-on = "bt ";
-          format-off = "bt ({status}) ";
-          format-connected = "{device_alias} ";
-          format-connected-battery = "{device_alias} [{device_battery_percentage}%] ";
+          format-on = i.bt;
+          format-off = "${i.bt} {status}";
+          format-connected = "${i.bt} {device_alias}";
+          format-connected-battery = "${i.bt} {device_alias} {device_battery_percentage}%";
           tooltip-format = "{controller_alias}\t{controller_address}\n\n{num_connections} connected";
           tooltip-format-connected = "{controller_alias}\t{controller_address}\n\n{num_connections} connected\n\n{device_enumerate}";
           tooltip-format-enumerate-connected = "{device_alias}\t{device_address}";
@@ -94,8 +121,8 @@ in
         idle_inhibitor = {
           format = "{icon}";
           format-icons = {
-            activated = "";
-            deactivated = "";
+            activated = i.eye;
+            deactivated = i.eyeOff;
           };
         };
 
@@ -107,7 +134,7 @@ in
         clock = {
           interval = 60;
           timezone = "America/Denver";
-          format = "{:%F %R }";
+          format = "${i.clock} {:%F %R}";
           tooltip-format = "<tt><small>{calendar}</small></tt>";
           calendar = {
             mode = "year";
@@ -134,13 +161,13 @@ in
 
         cpu = {
           interval = 3;
-          format = "{usage}% ";
+          format = "${i.cpu} {usage}%";
           on-click = "kitty htop";
         };
 
         memory = {
           interval = 3;
-          format = "{}% ";
+          format = "${i.mem} {}%";
           on-click = "kitty htop";
           tooltip-format = "Used: {used:0.1f}G/{total:0.1f}G. Swap: {swapUsed:0.1f}G/{swapTotal:0.1f}G";
           states = {
@@ -151,14 +178,14 @@ in
         temperature = {
           interval = 3;
           critical-threshold = 90;
-          format-critical = "{temperatureC}°C {icon}";
-          format = "{temperatureC}°C {icon}";
-          format-icons = [ "" "" "" ];
+          format-critical = "{icon} {temperatureC}°C";
+          format = "{icon} {temperatureC}°C";
+          format-icons = i.temp;
         };
 
         "disk#root" = {
           interval = 60;
-          format = "/ {free} ";
+          format = "${i.disk} {free}";
           path = "/";
           tooltip = true;
           warning = 80;
@@ -167,17 +194,16 @@ in
 
         network = {
           interval = 60;
-          format-ethernet = "eth ";
-          format-wifi = "{essid} ({signalStrength}%) ";
-          tooltip-format-ethernet = "{ifname}: {ipaddr}/{cidr} ";
-          tooltip-format-wifi = "{ifname}: {ipaddr}/{cidr} ";
-          format-linked = "(No IP) ";
-          format-disconnected = "Disconnected ⚠";
+          format-ethernet = i.eth;
+          format-wifi = "${i.wifi} {essid} {signalStrength}%";
+          tooltip-format-ethernet = "{ifname}: {ipaddr}/{cidr}";
+          tooltip-format-wifi = "{ifname}: {ipaddr}/{cidr}";
+          format-linked = "${i.eth} no IP";
+          format-disconnected = "⚠ Disconnected";
         };
 
         backlight = {
-          format = "{percent}% {icon}";
-          format-icons = [ "" "" "" "" "" "" "" "" "" ];
+          format = "${i.sun} {percent}%";
           scroll-step = 5;
           on-scroll-up = "brightnessctl set +5%";
           on-scroll-down = "brightnessctl set 5%-";
@@ -186,20 +212,14 @@ in
 
         pulseaudio = {
           scroll-step = 2;
-          format = "{volume}% {icon} {format_source}";
-          format-bluetooth = "{volume}% {icon} {format_source}";
-          format-bluetooth-muted = " {icon} {format_source}";
-          format-muted = " {format_source}";
-          format-source = "{volume}% ";
-          format-source-muted = "";
+          format = "{icon} {volume}% {format_source}";
+          format-muted = "${builtins.head i.vol} muted {format_source}";
+          format-source = "${i.mic} {volume}%";
+          format-source-muted = i.micOff;
           format-icons = {
-            headphone = " ";
-            hands-free = "";
-            headset = "";
-            phone = "";
-            portable = "";
-            car = "";
-            default = [ "" "" "" ];
+            headphone = i.headphone;
+            headset = i.headphone;
+            default = i.vol;
           };
           on-click = "pavucontrol";
         };
@@ -210,10 +230,10 @@ in
             warning = 30;
             critical = 15;
           };
-          format = "{capacity}% {icon}";
-          format-charging = "{capacity}% ";
-          format-plugged = "{capacity}% ";
-          format-icons = [ "" "" "" "" "" ];
+          format = "{icon} {capacity}%";
+          format-charging = "${i.bolt} {capacity}%";
+          format-plugged = "${i.plug} {capacity}%";
+          format-icons = i.battery;
           tooltip-format = "{timeTo}\n{power}W";
         };
       };
@@ -224,14 +244,14 @@ in
 
       * {
           border: none;
-          border-radius: 1px;
+          border-radius: 0;
           font-family: JetBrainsMono Nerd Font, Font Awesome;
           font-size: 13px;
           min-height: 0;
       }
 
       window#waybar {
-          background-color: @mantle;
+          background: transparent;
           color: @text;
       }
 
@@ -239,50 +259,63 @@ in
           opacity: 0.2;
       }
 
+      .modules-left,
+      .modules-center,
+      .modules-right {
+          background-color: @mantle;
+          border: 1px solid @surface1;
+          border-radius: 12px;
+          padding: 0 6px;
+      }
+
+      window#waybar.empty .modules-center {
+          background-color: transparent;
+          border-color: transparent;
+      }
+
       tooltip {
           background-color: @base;
           border: 1px solid @surface1;
+          border-radius: 8px;
       }
 
       tooltip label {
           color: @text;
       }
 
-      button {
-          box-shadow: inset 0 -3px transparent;
-          border: none;
-          border-radius: 1px;
-      }
-
-      button:hover {
-          background: inherit;
-          box-shadow: inset 0 -3px @text;
+      #workspaces {
+          margin: 0 2px 0 0;
       }
 
       #workspaces button {
-          padding: 0 0;
-          background-color: @mantle;
-          color: @text;
+          padding: 0 7px;
+          margin: 5px 2px;
+          border-radius: 8px;
+          background: transparent;
+          color: @subtext0;
+          box-shadow: none;
+          text-shadow: none;
+          transition: background-color 150ms ease, color 150ms ease;
       }
 
       #workspaces button:hover {
-          box-shadow: inherit;
-          text-shadow: inherit;
-          background-image: linear-gradient(0deg, @surface1, @mantle);
+          background-color: @surface1;
+          color: @text;
       }
 
       #workspaces button.active {
-          background-image: linear-gradient(0deg, @mauve, @surface1);
-          box-shadow: inset 0 -3px @text;
+          background-color: @mauve;
+          color: @mantle;
       }
 
       #workspaces button.urgent {
-          background-image: linear-gradient(0deg, @red, @mantle);
+          background-color: @red;
+          color: @mantle;
       }
 
-      #mode {
-          background-color: @base;
-          box-shadow: inset 0 -2px @text;
+      #window {
+          padding: 0 10px;
+          color: @subtext1;
       }
 
       #mpris,
@@ -298,127 +331,95 @@ in
       #battery,
       #idle_inhibitor,
       #tray {
-          padding: 0 10px;
-          margin: 5px 1px;
+          padding: 0 9px;
+          background: transparent;
           color: @text;
       }
 
-      #window,
-      #workspaces {
-          margin: 0 4px;
+      #mpris {
+          color: @subtext1;
       }
 
-      .modules-left > widget:first-child > #workspaces {
-          margin-left: 0;
+      #idle_inhibitor {
+          color: @overlay1;
       }
 
-      .modules-right > widget:last-child > #workspaces {
-          margin-right: 0;
+      #idle_inhibitor.activated {
+          color: @yellow;
       }
 
-      #clock {
-          background-color: @green;
-          color: @mantle;
+      #disk {
+          color: @flamingo;
       }
 
-      @keyframes blink {
-          to {
-              background-color: @mantle;
-              color: @text;
-          }
-      }
-
-      label:focus {
-          background-color: @mantle;
+      #temperature {
+          color: @pink;
+          min-width: 37px;
       }
 
       #cpu {
-          background-color: @mauve;
-          color: @mantle;
+          color: @mauve;
           min-width: 45px;
       }
 
       #memory {
-          background-color: @red;
-          color: @mantle;
-      }
-
-      #disk {
-          background-color: @flamingo;
-          color: @mantle;
-      }
-
-      #network {
-          background-color: @peach;
-          color: @mantle;
-      }
-
-      #network.disconnected {
-          background-color: @red;
-          color: @mantle;
+          color: @blue;
       }
 
       #bluetooth {
-          background-color: @maroon;
-          color: @mantle;
-          min-width: 40px;
+          color: @sapphire;
+      }
+
+      #network {
+          color: @peach;
       }
 
       #backlight {
-          background-color: @lavender;
-          color: @mantle;
+          color: @lavender;
       }
 
       #pulseaudio {
-          background-color: @yellow;
-          color: @mantle;
-      }
-
-      #pulseaudio.muted {
-          background-color: @red;
-          color: @mantle;
-      }
-
-      #temperature {
-          background-color: @pink;
-          color: @mantle;
-          min-width: 37px;
-      }
-
-      #temperature.critical {
-          background-color: @red;
-          color: @mantle;
-          min-width: 37px;
+          color: @yellow;
       }
 
       #battery {
-          background-color: @sky;
-          color: @mantle;
+          color: @sky;
       }
 
       #battery.warning {
-          background-color: @peach;
-          color: @mantle;
+          color: @peach;
+      }
+
+      #clock {
+          color: @green;
+          font-weight: bold;
+      }
+
+      #disk.warning {
+          color: @peach;
+      }
+
+      #network.disconnected,
+      #pulseaudio.muted,
+      #temperature.critical,
+      #memory.critical,
+      #disk.critical {
+          color: @red;
+      }
+
+      @keyframes blink {
+          to {
+              color: @mantle;
+          }
       }
 
       #battery.critical:not(.charging) {
-          background-color: @red;
-          color: @mantle;
+          color: @red;
           animation-name: blink;
           animation-duration: 0.5s;
           animation-timing-function: steps(12);
           animation-iteration-count: infinite;
           animation-direction: alternate;
-      }
-
-      #mpris {
-          background-color: @base;
-          color: @text;
-      }
-
-      #tray {
-          background-color: @overlay0;
-          color: @text;
       }
 
       #tray > .passive {
@@ -427,18 +428,6 @@ in
 
       #tray > .needs-attention {
           -gtk-icon-effect: highlight;
-          background-color: @mantle;
-      }
-
-      #idle_inhibitor {
-          background-color: @base;
-          color: @text;
-          font-family: Inter;
-      }
-
-      #idle_inhibitor.activated {
-          background-color: @text;
-          color: @base;
       }
     '';
   };

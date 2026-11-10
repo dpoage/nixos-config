@@ -38,7 +38,7 @@ in
         Which status bar / desktop shell to run in the Wayland session.
 
           - "waybar"    : the themed Waybar config (common/home/waybar.nix).
-          - "noctalia"  : the Noctalia Quickshell shell (noctalia-shell).
+          - "noctalia"  : the Noctalia desktop shell (noctalia v5).
           - "quickshell": a custom Quickshell config from `quickshellConfig`.
           - "none"      : no bar is autostarted (the host wires its own).
 
@@ -81,7 +81,7 @@ in
     # config from ~/.config/quickshell (linked by the quickshell module).
     myRice.barCommand = {
       waybar     = "waybar";
-      noctalia   = "noctalia-shell";
+      noctalia   = "noctalia";
       quickshell = "quickshell";
       none       = null;
     }.${cfg.bar};

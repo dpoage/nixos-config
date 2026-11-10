@@ -4,6 +4,9 @@
 { config, pkgs, ... }:
 
 {
+  # Theme and package come from Stylix's plymouth target (common/theme).
+  boot.plymouth.enable = true;
+
   programs.firefox.enable = true;
 
   services.printing.enable = true;

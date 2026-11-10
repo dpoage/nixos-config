@@ -57,7 +57,7 @@
 
         myPrompt = {
           badges = [
-            { icon = ""; label = "Pattern"; }
+            { icon = ""; label = "Pattern"; }
           ];
           kubernetes = true;
           gcloud = true;

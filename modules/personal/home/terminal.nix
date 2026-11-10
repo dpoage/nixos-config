@@ -6,24 +6,19 @@ let
   colors = config.lib.stylix.colors;
   ansi = import ../theme/ansi.nix colors;
 
-  # --- Badge generation ---
-  # Badges appear between the username and directory segments,
-  # on a distinctive background.
-  badgeTexts = map (b:
-    let text = if b.label != "" then "${b.icon} ${b.label}" else b.icon;
-    in "[ ${text} ](bg:flamingo fg:crust)"
-  ) cfg.badges;
+  # Rounded pill around `body`; the body styles itself and must carry bg:`color`.
+  pill = color: body: "[](fg:${color})${body}[](fg:${color}) ";
 
-  hasBadges = cfg.badges != [];
+  badgeText = b: if b.label != "" then "${b.icon} ${b.label}" else b.icon;
+  badges = lib.concatMapStringsSep " " badgeText cfg.badges;
 
-  badgeSegment = lib.optionalString hasBadges
-    ("[](bg:flamingo fg:mauve)" + builtins.concatStringsSep "" badgeTexts);
-
-  # The powerline arrow between badges (or username) and directory must
-  # transition from the correct color.
-  afterBadge = if hasBadges
-    then "[](fg:flamingo bg:peach)"
-    else "[](bg:peach fg:mauve)";
+  # Identity pill: static badges plus user@host, which starship shows only over
+  # SSH or as another user. Without badges the pill exists only when they do.
+  gap = "[ ](bg:neutral)";
+  identity =
+    if cfg.badges != [ ]
+    then pill "neutral" "[ ${badges}](bg:neutral fg:neutral_fg)(${gap}$username$hostname)${gap}"
+    else "(${pill "neutral" "${gap}$username$hostname${gap}"})";
 
   # Light palettes: most accents give base00 text under 4.5:1 (catppuccin-latte
   # pastels 2.3-3.0:1), so the segments are the accent mixed toward the text
@@ -39,20 +34,20 @@ let
   accent = slot: hash (mix.mixHex { from = colors.${slot}; toward = colors.base05; pct = segmentPct; });
   seg = slot: if light then accent slot else colors.withHashtag.${slot};
 
-  # Segment names the prompt format already uses, added to Stylix's
-  # starship palette (which owns green, blue and purple; mkForce moves them
-  # on light palettes).
-  starshipSegments = {
-    mauve = seg "base17";
-    flamingo = seg "base09";
-    peach = seg "base13";
-    teal = seg "base15";
-    crust = colors.withHashtag.base00;
-  } // lib.optionalAttrs light (lib.mapAttrs (_: lib.mkForce) {
-    green = seg "base0B";
-    blue = seg "base0D";
-    purple = seg "base0E";
-  });
+  # Semantic prompt colors; pills put base00 text on them, other text sits on base00.
+  promptColors = {
+    neutral = colors.withHashtag.base02;
+    neutral_fg = colors.withHashtag.base05;
+    pill_text = colors.withHashtag.base00;
+    path = seg "base16";
+    branch = seg "base0B";
+    dirty = seg "base0A";
+    toolchain = seg "base15";
+    cloud = seg "base17";
+    # Dark base08 is 2.7:1 on gruvbox-dark; its bright red clears 4.3:1.
+    danger = if light then accent "base08" else colors.withHashtag.base12;
+    subtle = hash (mix.mixHex { from = colors.base00; toward = colors.base05; pct = hintPct; });
+  };
 
 in
 {
@@ -301,140 +296,161 @@ in
       };
     };
 
-    # Starship prompt, colored from the active palette's semantic names.
+    # Starship prompt. Pills: identity, directory, git; plain text: toolchain
+    # and cloud context. Right side: exit status, duration, jobs, time.
     programs.starship = {
       enable = true;
       settings = {
         format = builtins.concatStringsSep "" [
-          "[](mauve)"
-          "$os"
-          "$username"
-          badgeSegment
-          afterBadge
+          identity
           "$directory"
-          "[](fg:peach bg:green)"
-          "$git_branch"
-          "$git_status"
-          "[](fg:green bg:teal)"
-          "$rust"
-          "$golang"
-          "$python"
-          "$nodejs"
-          "[](fg:teal bg:blue)"
-          "$docker_context"
-          "$kubernetes"
-          "$gcloud"
-          "$aws"
-          "[](fg:blue bg:purple)"
-          "$time"
-          "[ ](fg:purple)"
-          "$line_break"
-          "$character"
+          "$git_branch$git_commit$git_state$git_status"
+          "$nix_shell$python$rust$golang$nodejs"
+          "$docker_context$kubernetes$gcloud$aws"
+          "$line_break$character"
         ];
+        right_format = "$status$cmd_duration$jobs$time";
 
-        palettes.base16 = starshipSegments;
-
-        os = {
-          disabled = false;
-          style = "bg:mauve fg:crust";
-          symbols.NixOS = " ";
-        };
+        palettes.base16 = promptColors;
 
         username = {
-          show_always = true;
-          style_user = "bg:mauve fg:crust";
-          style_root = "bg:mauve fg:crust";
-          format = "[ $user ]($style)";
+          style_user = "bg:neutral fg:neutral_fg";
+          style_root = "bg:danger fg:pill_text bold";
+          format = "[$user]($style)";
         };
 
-        directory = {
-          style = "fg:crust bg:peach";
-          format = "[ $path ]($style)";
-          truncation_length = 3;
-          truncation_symbol = ".../";
-          substitutions = {
-            Documents = " ";
-            Downloads = " ";
-            Music = " ";
-            Pictures = " ";
-          };
+        hostname = {
+          style = "bg:neutral fg:neutral_fg bold";
+          format = "[@$hostname]($style)";
+        };
+
+        # Inside a repo: bold repo name, then the path below it.
+        directory = let
+          tail = "[$path]($style)[$read_only]($read_only_style)[ ]($style)";
+        in {
+          style = "bg:path fg:pill_text";
+          repo_root_style = "bg:path fg:pill_text bold";
+          read_only_style = "bg:path fg:pill_text";
+          read_only = " 󰌾";
+          format = pill "path" "[ ]($style)${tail}";
+          repo_root_format = pill "path" "[ $repo_root]($repo_root_style)${tail}";
+          truncation_length = 4;
+          truncation_symbol = "…/";
         };
 
         git_branch = {
-          symbol = "";
-          style = "bg:green fg:crust";
-          format = "[ $symbol $branch ]($style)";
+          only_attached = true;
+          format = pill "branch" "[  $branch ](bg:branch fg:pill_text)";
         };
 
+        git_commit.format = pill "branch" "[  $hash$tag ](bg:branch fg:pill_text)";
+
+        git_state.format = pill "danger"
+          "[ $state( $progress_current/$progress_total) ](bg:danger fg:pill_text bold)";
+
+        # Shown only when the tree is dirty, stashed, or out of sync with upstream.
         git_status = {
-          style = "bg:green fg:crust";
-          format = "[$all_status$ahead_behind ]($style)";
+          format = "(${pill "dirty" "[ $all_status$ahead_behind](bg:dirty fg:pill_text)"})";
+          conflicted = "✘$count ";
+          staged = "+$count ";
+          modified = "~$count ";
+          renamed = "»$count ";
+          deleted = "-$count ";
+          typechanged = "";
+          untracked = "?$count ";
+          stashed = "≡$count ";
+          ahead = "⇡$count ";
+          behind = "⇣$count ";
+          diverged = "⇡$ahead_count⇣$behind_count ";
         };
 
-        rust = {
-          symbol = "";
-          style = "bg:teal fg:crust";
-          format = "[ $symbol ($version) ]($style)";
-        };
-
-        golang = {
-          symbol = "";
-          style = "bg:teal fg:crust";
-          format = "[ $symbol ($version) ]($style)";
+        nix_shell = {
+          symbol = "❄ ";
+          style = "fg:toolchain";
+          format = "[$symbol$name]($style) ";
         };
 
         python = {
-          symbol = "";
-          style = "bg:teal fg:crust";
-          format = "[ $symbol ($version) ]($style)";
+          symbol = " ";
+          style = "fg:toolchain";
+          format = "[$symbol$version( \\($virtualenv\\))]($style) ";
+        };
+
+        rust = {
+          symbol = " ";
+          style = "fg:toolchain";
+          format = "[$symbol$version]($style) ";
+        };
+
+        golang = {
+          symbol = " ";
+          style = "fg:toolchain";
+          format = "[$symbol$version]($style) ";
         };
 
         nodejs = {
-          symbol = "";
-          style = "bg:teal fg:crust";
-          format = "[ $symbol ($version) ]($style)";
+          symbol = " ";
+          style = "fg:toolchain";
+          format = "[$symbol$version]($style) ";
         };
 
         docker_context = {
-          symbol = "";
-          style = "bg:blue fg:crust";
-          format = "[ $symbol $context ]($style)";
+          symbol = " ";
+          style = "fg:cloud";
+          format = "[$symbol$context]($style) ";
         };
 
         kubernetes = {
           disabled = !cfg.kubernetes;
           symbol = "☸ ";
-          style = "bg:blue fg:crust";
-          format = "[ $symbol$context( \\($namespace\\)) ]($style)";
+          style = "fg:cloud";
+          format = "[$symbol$context( \\($namespace\\))]($style) ";
         };
 
+        # Literal symbols: a conditional group hides only when all its variables are empty.
         gcloud = {
           disabled = !cfg.gcloud;
-          symbol = "☁ ";
-          style = "bg:blue fg:crust";
-          format = "[ $symbol$project ]($style)";
+          style = "fg:cloud";
+          format = "([☁ $project]($style) )";
         };
 
         aws = {
           disabled = !cfg.aws;
-          symbol = " ";
-          style = "bg:blue fg:crust";
-          format = "[ $symbol$profile(\\($region\\)) ]($style)";
+          style = "fg:cloud";
+          format = "([ $profile( \\($region\\))]($style) )";
+        };
+
+        status = {
+          disabled = false;
+          style = "fg:danger bold";
+          format = "[✘ $status( $signal_name)]($style) ";
+        };
+
+        cmd_duration = {
+          min_time = 2000;
+          style = "fg:subtle";
+          format = "[took $duration]($style) ";
+        };
+
+        jobs = {
+          symbol = "✦ ";
+          number_threshold = 1;
+          style = "fg:dirty";
+          format = "[$symbol$number]($style) ";
         };
 
         time = {
           disabled = false;
           time_format = "%R";
-          style = "bg:purple fg:crust";
-          format = "[ $time ]($style)";
+          style = "fg:subtle";
+          format = "[$time]($style)";
         };
 
         character = {
-          success_symbol = "[❯](bold green)";
-          error_symbol = "[❯](bold red)";
+          success_symbol = "[❯](bold fg:branch)";
+          error_symbol = "[❯](bold fg:danger)";
+          vimcmd_symbol = "[❮](bold fg:branch)";
         };
-
-        line_break.disabled = false;
       };
     };
   };

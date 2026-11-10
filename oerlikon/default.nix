@@ -7,7 +7,7 @@
     ./configuration.nix
     ./storage.nix
     ./nvidia.nix
-    ../modules/pattern/desktop.nix
-    ../modules/pattern/cuda-dev.nix
+    ../modules/core/desktop.nix
+    ../modules/dev/cuda.nix
   ];
 }

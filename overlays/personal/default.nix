@@ -1,4 +1,4 @@
-# dpoage's packages. Requires overlays/pattern for `pkgs.unstable`.
+# dpoage's packages. Requires overlays/core for `pkgs.unstable`.
 { inputs }:
 
 final: prev:

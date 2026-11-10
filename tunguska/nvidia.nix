@@ -1,5 +1,5 @@
 # NVIDIA config for ASUS ROG Zephyrus G14 (AMD iGPU + RTX 5080 Max-Q).
-# Options and the actual wiring live in ../modules/pattern/nvidia.nix.
+# Options and the actual wiring live in ../modules/core/nvidia.nix.
 
 { ... }:
 

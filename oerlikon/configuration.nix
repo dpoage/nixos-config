@@ -2,11 +2,11 @@
 
 {
   imports = [
-    ../modules/pattern/profiles/laptop.nix
+    ../modules/core/profiles/laptop.nix
     ../modules/pattern/profiles/work.nix
     # oerlikon runs hyprland only; switch to niri-stack alongside myRice
     # when you migrate this host.
-    ../modules/pattern/profiles/hyprland-stack.nix
+    ../modules/core/profiles/hyprland-stack.nix
   ];
 
   networking.hostName = "oerlikon";
@@ -14,6 +14,10 @@
   # Pattern CLI + netrc wiring (see modules/pattern/cli.nix for the bootstrap
   # dance the first rebuild after a reinstall needs).
   patternlabs.cli.enable = true;
+
+  # Recipients in .sops.yaml.
+  patternlabs.cli.netrcFile = ../secrets/netrc;
+  patternlabs.compliance.rootPasswordFile = ../secrets/root-password;
 
   # Since kernel 6.18, alienware-wmi exposes this Alienware's thermal modes as
   # platform_profile, and its "performance" mode pins both fans at full boost
@@ -50,6 +54,16 @@
           build --disk_cache=/data/cache/build
           build --experimental_disk_cache_gc_max_size=100G
         '';
+
+        myPrompt = {
+          badges = [
+            { icon = ""; label = "Pattern"; }
+          ];
+          kubernetes = true;
+          gcloud = true;
+          aws = true;
+        };
+
         # Desktop bundle not enabled yet; for gruvbox+niri add `myRice = {
         # enable = true; compositor = "niri"; };` and import niri-stack.nix.
       };

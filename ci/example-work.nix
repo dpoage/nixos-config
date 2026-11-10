@@ -1,4 +1,4 @@
-# Host stub for checks.patternlabs-example: a non-dpoage user, no personal layer.
+# Host stub for checks.patternlabs-example: a non-dpoage user, shared layers only.
 { ... }:
 
 {

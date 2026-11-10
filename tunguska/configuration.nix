@@ -2,12 +2,12 @@
 
 {
   imports = [
-    ../modules/pattern/profiles/laptop.nix
+    ../modules/core/profiles/laptop.nix
     ../modules/personal/profiles/personal.nix
     # tunguska keeps both compositors installed so greetd can offer either
     # at login. niri is the daily-driver per myRice below.
-    ../modules/pattern/profiles/hyprland-stack.nix
-    ../modules/pattern/profiles/niri-stack.nix
+    ../modules/core/profiles/hyprland-stack.nix
+    ../modules/core/profiles/niri-stack.nix
   ];
 
   networking.hostName = "tunguska";
@@ -26,7 +26,7 @@
 
   # System-level niri: provides the session entry that greetd lists, plus
   # the xdg-desktop-portal-gnome wiring that niri needs. Hyprland from
-  # modules/pattern/desktop.nix stays installed; greetd's default switches below.
+  # modules/core/desktop.nix stays installed; greetd's default switches below.
   programs.niri.enable = true;
   services.greetd.settings.default_session.command = lib.mkForce
     "${pkgs.tuigreet}/bin/tuigreet --time --cmd niri-session";
@@ -45,7 +45,7 @@
         wallpaperDir = "/home/dustin/Pictures/Wallpapers/gruvbox/wallpapers";
       };
     };
-    # Hyprland tooling now lives in modules/pattern/desktop.nix so it's available
+    # Hyprland tooling now lives in modules/core/desktop.nix so it's available
     # whether the host runs Hyprland or niri; no host-level extras needed.
     extraPackages = [ ];
   };

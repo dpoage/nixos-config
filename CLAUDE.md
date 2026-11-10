@@ -57,18 +57,27 @@ ci/check.sh    # evaluate every host and checks.patternlabs-example (stubbed pat
 
 ## Architecture Overview
 
-- `modules/pattern/`: the Pattern Labs layer, exported as `nixosModules.patternlabs`
-  plus role modules (`patternlabs-desktop`, `-laptop`, `-workstation`, `-work`,
-  `-hyprland`, `-cuda-dev`) and `overlays.patternlabs`. Options live under
-  `patternlabs.*`, alongside `myUser` and `myNvidia`.
+Layers, each a `nixosModules` export that brings its overlay and imports what it
+builds on:
+
+- `modules/core/` (`nixosModules.core`): baseline OS, `myUser`, `myNvidia`,
+  `myScreenLock` (home-manager). Role modules: `core-desktop`, `core-laptop`,
+  `core-workstation`, `core-hyprland`.
+- `modules/dev/` (`dev`, needs core): language toolchains, bazel; `dev-cuda` per NVIDIA host.
+- `modules/dev-cloud/` (`dev-cloud`, needs core): AWS/GCP CLIs, Kubernetes, HashiCorp.
+- `modules/pattern/` (`patternlabs`, imports core + dev + dev-cloud): Pattern CLI,
+  compliance (`patternlabs.*`); `patternlabs-work` adds the work apps and enables compliance.
 - `modules/personal/`: dpoage's layer: theme, nixvim, agent tooling, home-manager
-  config (`home/`), dotfiles, timezone, and this repo's secret paths.
-- `overlays/pattern/` and `overlays/personal/`: matching package overlays.
-- `<host>/`: hardware and per-host choices; `flake.nix` composes pattern + personal + host.
+  config (`home/`), dotfiles, timezone.
+- `overlays/<layer>/`: matching package overlays; `overlays/core` provides `pkgs.unstable`.
+- `<host>/`: hardware and per-host choices. `flake.nix` `mkHost` composes chosen
+  layers + core + personal + host; only oerlikon takes `patternlabs`.
 
 ## Conventions & Patterns
 
-- Nothing in `modules/pattern/` may reference the personal layer, a person, or a
-  repo-local path. `checks.patternlabs-example` (a non-dpoage work laptop) enforces this.
+- A layer may reference only the layers it imports; none may reference the personal
+  layer, a person, or a repo-local path. Personal hosts (tunguska, bofors) build
+  without `patternlabs`; `checks.patternlabs-example` (a non-dpoage work laptop)
+  builds without the personal layer.
 - Compliance controls are assertions in `modules/pattern/compliance.nix`; satisfy
   them instead of overriding them.

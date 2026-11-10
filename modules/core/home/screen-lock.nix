@@ -1,5 +1,6 @@
-# Hyprland session lock: hyprlock + hypridle, plus the dconf mirror Drata reads
-# via gsettings. Unlock needs programs.hyprlock.enable (profiles/hyprland-stack.nix).
+# Hyprland session lock: hyprlock + hypridle, plus a dconf mirror for tools that
+# audit screen lock via gsettings (Drata). Unlock needs programs.hyprlock.enable
+# (profiles/hyprland-stack.nix).
 
 { config, lib, ... }:
 
@@ -10,9 +11,9 @@ in
 {
   # hypridle starts with any graphical-session.target, so keep it off under
   # other compositors.
-  options.patternlabs.screenLock.enable = lib.mkEnableOption "the Hyprland idle lock";
+  options.myScreenLock.enable = lib.mkEnableOption "the Hyprland idle lock";
 
-  config = lib.mkIf config.patternlabs.screenLock.enable {
+  config = lib.mkIf config.myScreenLock.enable {
     programs.hyprlock = {
       enable = true;
       settings = {

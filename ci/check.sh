@@ -27,7 +27,7 @@ for host in $hosts; do
   eval_drv "$host" "nixosConfigurations.$host.config.system.build.toplevel"
 done
 
-# Fails if modules/pattern depends on the personal layer or on dpoage.
+# Fails if a shared layer depends on the personal layer or on dpoage.
 eval_drv patternlabs-example checks.x86_64-linux.patternlabs-example
 
 echo ">> building beads and omp"

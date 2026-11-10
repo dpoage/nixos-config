@@ -1,5 +1,5 @@
-# dpoage's layer on top of modules/pattern: editor, theme, agent tooling,
-# shell, timezone. Home-manager config lives in ./home.
+# dpoage's layer on top of core, dev and dev-cloud: editor, theme, agent
+# tooling, shell, timezone. Home-manager config lives in ./home.
 { config, lib, pkgs, ... }:
 
 {
@@ -9,10 +9,6 @@
   ];
 
   time.timeZone = "America/Denver";
-
-  # Recipients in .sops.yaml.
-  patternlabs.cli.netrcFile = ../../secrets/netrc;
-  patternlabs.compliance.rootPasswordFile = ../../secrets/root-password;
 
   # programs.neovim conflicts with nixvim's wrapped binary.
   programs.nixvim.viAlias = true;
@@ -40,20 +36,6 @@
     ffmpeg
     imagemagick
   ];
-
-  myUser.home = lib.mkIf config.patternlabs.compliance.enable (
-    { ... }:
-    {
-      myPrompt = {
-        badges = [
-          { icon = ""; label = "Pattern"; }
-        ];
-        kubernetes = true;
-        gcloud = true;
-        aws = true;
-      };
-    }
-  );
 
   # mkAfter: must run after overlays/personal, which defines bend.
   nixpkgs.overlays = lib.mkIf config.myNvidia.enable (

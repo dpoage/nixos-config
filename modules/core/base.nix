@@ -1,6 +1,6 @@
-# Baseline for every Pattern machine: nix daemon policy, boot, networking,
-# locale, firewall, patching, and the core CLI set. Toolchains live in
-# ./devtools.nix; personal tooling stays out of this layer.
+# Baseline for every machine: nix daemon policy, boot, networking, locale,
+# firewall, patching, and the core CLI set. Toolchains live in modules/dev;
+# personal tooling stays out of this layer.
 { config, lib, pkgs, ... }:
 
 {

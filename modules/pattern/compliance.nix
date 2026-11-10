@@ -49,7 +49,7 @@ in
       lib.optional cfg.drataAgent pkgs.drata-agent
       ++ lib.optional cfg.passwordManager pkgs.bitwarden-desktop;
 
-    myUser.home.patternlabs.screenLock.enable = true;
+    myUser.home.myScreenLock.enable = true;
 
     assertions =
       let
@@ -70,7 +70,7 @@ in
         }
         {
           assertion = config.programs.hyprlock.enable && hm.services.hypridle.enable;
-          message = "patternlabs.compliance: screen lock needs programs.hyprlock.enable (profiles/hyprland-stack.nix) and the user's hypridle.";
+          message = "patternlabs.compliance: screen lock needs programs.hyprlock.enable (nixosModules.core-hyprland) and the user's hypridle.";
         }
       ];
 

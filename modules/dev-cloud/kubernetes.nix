@@ -7,7 +7,7 @@
     kind
     kubectx
     # Resource-usage analysis: recommends requests/limits from Prometheus
-    # metrics. Patched via overlays/pattern (broken prometrix dep).
+    # metrics. Patched via overlays/dev-cloud (broken prometrix dep).
     krr
   ];
 

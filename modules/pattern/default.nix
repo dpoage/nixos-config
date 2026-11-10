@@ -1,20 +1,10 @@
-# Pattern Labs layer. Hosts additionally import ./desktop.nix, ./cuda-dev.nix
-# and ./profiles/* as their hardware and role require.
+# Pattern Labs layer, on top of core, dev and dev-cloud. Work hosts
+# additionally import ./profiles/work.nix.
 { ... }:
 
 {
   imports = [
-    ./base.nix
-    ./user.nix
-    ./devtools.nix
-    ./bazel.nix
-    ./cloud.nix
-    ./kubernetes.nix
-    ./hashicorp.nix
-    ./nvidia.nix
     ./cli.nix
     ./compliance.nix
   ];
-
-  home-manager.sharedModules = [ ./home/screen-lock.nix ];
 }

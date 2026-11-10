@@ -15,7 +15,7 @@
 #                                            # sentinels, build loop fills them in
 #   tools/update-hashes.sh --full            # sweep host toplevels (catches pins
 #                                            # not covered by the default targets)
-#   tools/update-hashes.sh .#nixosConfigurations.tunguska.pkgs.gcx
+#   tools/update-hashes.sh .#nixosConfigurations.oerlikon.pkgs.gcx
 #                                            # explicit installables only
 #
 # Bumping a pin by hand (e.g. the tla-nvim rev in modules/personal/neovim.nix): change the
@@ -36,9 +36,9 @@ EMPTY_HASH="sha256-47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU="
 
 # Default targets: every attr in this repo that carries a pinned FOD hash.
 DEFAULT_TARGETS=(
-  ".#nixosConfigurations.tunguska.pkgs.gcx"
-  ".#nixosConfigurations.tunguska.pkgs.pattern"
-  ".#nixosConfigurations.tunguska.pkgs.slack-cli"
+  ".#nixosConfigurations.oerlikon.pkgs.gcx"
+  ".#nixosConfigurations.oerlikon.pkgs.pattern"
+  ".#nixosConfigurations.oerlikon.pkgs.slack-cli"
   ".#nixosConfigurations.tunguska.pkgs.bend"
   ".#nixosConfigurations.tunguska.config.hardware.nvidia.package"
   ".#nixosConfigurations.tunguska.config.programs.nixvim.build.package"

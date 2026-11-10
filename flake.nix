@@ -55,27 +55,62 @@
       system = "x86_64-linux";
 
       overlays = {
+        core = import ./overlays/core { inherit inputs; };
+        dev = import ./overlays/dev;
+        dev-cloud = import ./overlays/dev-cloud;
         patternlabs = import ./overlays/pattern { inherit inputs; };
         personal = import ./overlays/personal { inherit inputs; };
       };
 
-      # The Pattern Labs layer: everything modules/pattern needs, nothing personal.
-      patternlabs = {
+      # Layers. Each brings its overlay and imports the layers it builds on;
+      # `key` dedupes a layer reached through several imports.
+      core = {
+        key = "nixos-config#core";
         imports = [
           home-manager.nixosModules.home-manager
           inputs.sops-nix.nixosModules.sops
+          ./modules/core
+        ];
+        nixpkgs.overlays = [ overlays.core ];
+      };
+
+      dev = {
+        key = "nixos-config#dev";
+        imports = [
+          core
+          ./modules/dev
+        ];
+        nixpkgs.overlays = [ overlays.dev ];
+      };
+
+      dev-cloud = {
+        key = "nixos-config#dev-cloud";
+        imports = [
+          core
+          ./modules/dev-cloud
+        ];
+        nixpkgs.overlays = [ overlays.dev-cloud ];
+      };
+
+      patternlabs = {
+        key = "nixos-config#patternlabs";
+        imports = [
+          core
+          dev
+          dev-cloud
           ./modules/pattern
         ];
         nixpkgs.overlays = [ overlays.patternlabs ];
       };
 
       personalModules = [
+        core
         nixvim.nixosModules.nixvim
         inputs.stylix.nixosModules.stylix
         { home-manager.sharedModules = [ nix-index-database.homeModules.nix-index ]; }
         { nixpkgs.overlays = [ overlays.personal ]; }
         # Keep every input's source alive as long as the generation is: the
-        # unattended root upgrade (modules/pattern/base.nix) cannot refetch the
+        # unattended root upgrade (modules/core/base.nix) cannot refetch the
         # git+ssh pattern-cli input once nix.gc has collected it.
         {
           system.extraDependencies = map (i: i.outPath) (
@@ -86,30 +121,32 @@
       ];
 
       mkHost =
-        hostModule:
+        layers: hostModule:
         nixpkgs.lib.nixosSystem {
           inherit system;
-          modules = [ patternlabs ] ++ personalModules ++ [ hostModule ];
+          modules = layers ++ personalModules ++ [ hostModule ];
         };
     in
     {
-      overlays.patternlabs = overlays.patternlabs;
+      overlays = {
+        inherit (overlays) core dev dev-cloud patternlabs;
+      };
 
-      # Role modules are imported on top of `patternlabs` per host.
+      # Layer modules, plus role modules imported on top of them per host.
       nixosModules = {
-        inherit patternlabs;
-        patternlabs-desktop = ./modules/pattern/desktop.nix;
-        patternlabs-cuda-dev = ./modules/pattern/cuda-dev.nix;
-        patternlabs-laptop = ./modules/pattern/profiles/laptop.nix;
-        patternlabs-workstation = ./modules/pattern/profiles/workstation.nix;
+        inherit core dev dev-cloud patternlabs;
+        core-desktop = ./modules/core/desktop.nix;
+        core-laptop = ./modules/core/profiles/laptop.nix;
+        core-workstation = ./modules/core/profiles/workstation.nix;
+        core-hyprland = ./modules/core/profiles/hyprland-stack.nix;
+        dev-cuda = ./modules/dev/cuda.nix;
         patternlabs-work = ./modules/pattern/profiles/work.nix;
-        patternlabs-hyprland = ./modules/pattern/profiles/hyprland-stack.nix;
       };
 
       nixosConfigurations = {
-        tunguska = mkHost ./tunguska;
-        oerlikon = mkHost ./oerlikon;
-        bofors = mkHost {
+        tunguska = mkHost [ dev dev-cloud ] ./tunguska;
+        oerlikon = mkHost [ patternlabs ] ./oerlikon;
+        bofors = mkHost [ dev dev-cloud ] {
           imports = [
             ./bofors
             inputs.microvm.nixosModules.host
@@ -117,16 +154,16 @@
         };
       };
 
-      # A work laptop for someone else, built from the Pattern layer alone.
+      # A work laptop for someone else, built from the shared layers alone.
       checks.${system}.patternlabs-example =
         (nixpkgs.lib.nixosSystem {
           inherit system;
           modules = with self.nixosModules; [
             patternlabs
-            patternlabs-desktop
-            patternlabs-laptop
+            core-desktop
+            core-laptop
             patternlabs-work
-            patternlabs-hyprland
+            core-hyprland
             ./ci/example-work.nix
           ];
         }).config.system.build.toplevel;

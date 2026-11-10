@@ -1,5 +1,5 @@
 # Single source of truth for the primary user on each host. Drives
-# users.users.<name>, home-manager.users.<name>, and patternlabs.cli.primaryUser.
+# users.users.<name> and home-manager.users.<name>.
 #
 # Example:
 #   myUser = {

@@ -1,4 +1,4 @@
-# Styling and compositor gate for the pattern screen lock (modules/pattern/home/screen-lock.nix).
+# Styling and compositor gate for the core screen lock (modules/core/home/screen-lock.nix).
 { config, lib, ... }:
 
 let
@@ -6,9 +6,9 @@ let
 in
 {
   config = lib.mkMerge [
-    { patternlabs.screenLock.enable = lib.mkDefault (config.myRice.compositor == "hyprland"); }
+    { myScreenLock.enable = lib.mkDefault (config.myRice.compositor == "hyprland"); }
 
-    (lib.mkIf config.patternlabs.screenLock.enable {
+    (lib.mkIf config.myScreenLock.enable {
       programs.hyprlock.settings.label = [
         {
           monitor = "";

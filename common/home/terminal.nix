@@ -2,9 +2,9 @@
 
 let
   cfg = config.myPrompt;
-  t = osConfig.myTheme;
-  c = t.colors;
-  named = t.named;
+  stylix = config.stylix;
+  colors = config.lib.stylix.colors;
+  ansi = import ../theme/ansi.nix colors;
 
   # --- Badge generation ---
   # Badges appear between the username and directory segments,
@@ -25,17 +25,15 @@ let
     then "[](fg:flamingo bg:peach)"
     else "[](bg:peach fg:mauve)";
 
-  # Starship named colors, derived once from the active palette via the shared
-  # semantic map. The format string references these names (mauve, peach, ...).
-  starshipPalette = lib.mapAttrs (_: v: "#${v}") named;
-
-  # --- FZF colors (derived from the active palette) ---
-  fzfColorOpts = builtins.concatStringsSep " " [
-    "--color=bg+:#${c.bg1},bg:#${c.bg},spinner:#${c.fg2},hl:#${c.redBr}"
-    "--color=fg:#${c.fg},header:#${c.redBr},info:#${c.accent},pointer:#${c.fg2}"
-    "--color=marker:#${c.promptMuted},fg+:#${c.fg},prompt:#${c.accent},hl+:#${c.redBr}"
-    "--color=selected-bg:#${c.bg2}"
-  ];
+  # Segment names the prompt format already uses, added to Stylix's
+  # starship palette (which owns green, blue and purple).
+  starshipSegments = with colors.withHashtag; {
+    mauve = bright-magenta;
+    flamingo = orange;
+    peach = bright-yellow;
+    teal = bright-cyan;
+    crust = base00;
+  };
 
 in
 {
@@ -67,33 +65,34 @@ in
   };
 
   config = {
-    # Kitty terminal, themed from the active palette.
+    # Stylix's kitty target only emits base16 colors and is off (see
+    # common/theme); colors come from the base24 ANSI list, fonts from stylix.*.
     programs.kitty = {
       enable = true;
       font = {
-        name = t.fonts.mono;
-        size = t.fonts.monoSize;
+        name = stylix.fonts.monospace.name;
+        size = stylix.fonts.sizes.terminal;
       };
-      settings = {
-        foreground = "#${c.fg}";
-        background = "#${c.bg}";
-        selection_foreground = "#${c.bg}";
-        selection_background = "#${c.fg2}";
-        cursor = "#${c.fg2}";
-        cursor_text_color = "#${c.bg}";
-        url_color = "#${c.fg2}";
+      settings = with colors.withHashtag; {
+        foreground = base05;
+        background = base00;
+        selection_foreground = base00;
+        selection_background = base06;
+        cursor = base06;
+        cursor_text_color = base00;
+        url_color = base06;
       }
-      // lib.listToAttrs (lib.imap0 (i: hex: lib.nameValuePair "color${toString i}" "#${hex}") t.ansi)
+      // lib.listToAttrs (lib.imap0 (i: hex: lib.nameValuePair "color${toString i}" "#${hex}") ansi)
       // {
         # Tab bar
-        active_tab_foreground = "#${c.promptFg}";
-        active_tab_background = "#${c.purple}";
-        inactive_tab_foreground = "#${c.fg}";
-        inactive_tab_background = "#${c.bg0}";
-        tab_bar_background = "#${c.promptFg}";
+        active_tab_foreground = base00;
+        active_tab_background = base0E;
+        inactive_tab_foreground = base05;
+        inactive_tab_background = base01;
+        tab_bar_background = base00;
 
         # Window
-        background_opacity = toString t.terminal.opacity;
+        background_opacity = toString stylix.opacity.terminal;
         window_padding_width = "8";
         # kitty >= 0.49 restores the last window state (incl. maximized) on
         # Wayland; under Hyprland that opens every new kitty maximized
@@ -169,11 +168,17 @@ in
           source "$(fzf-share)/key-bindings.zsh"
           source "$(fzf-share)/completion.zsh"
         fi
-
-        # FZF theme (generated from palette when myRice is enabled)
-        export FZF_DEFAULT_OPTS="${fzfColorOpts} --multi"
       '';
     };
+
+    # Colors come from the Stylix fzf/bat/btop targets.
+    programs.fzf = {
+      enable = true;
+      enableZshIntegration = false;
+      defaultOptions = [ "--multi" ];
+    };
+    programs.bat.enable = true;
+    programs.btop.enable = true;
 
     # Zoxide (smart cd). Managed via the home-manager module rather than a
     # manual `eval "$(zoxide init zsh)"` so initialization stays in sync with the
@@ -308,8 +313,7 @@ in
           "$character"
         ];
 
-        palette = "prompt";
-        palettes.prompt = starshipPalette;
+        palettes.base16 = starshipSegments;
 
         os = {
           disabled = false;

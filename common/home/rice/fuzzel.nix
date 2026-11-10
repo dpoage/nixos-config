@@ -1,12 +1,10 @@
-# Fuzzel app launcher, themed from the active palette.
-# Uses home-manager's `programs.fuzzel` module which writes
-# ~/.config/fuzzel/fuzzel.ini from a typed `settings` attrset.
+# Fuzzel app launcher; fonts, colors and icon theme come from the Stylix
+# fuzzel target. `programs.fuzzel` writes ~/.config/fuzzel/fuzzel.ini.
 
-{ config, osConfig, lib, pkgs, ... }:
+{ config, lib, pkgs, ... }:
 
 let
   cfg = config.myRice;
-  c   = osConfig.myTheme.colors;
 in
 {
   config = lib.mkIf cfg.enable {
@@ -14,9 +12,7 @@ in
       enable = true;
       settings = {
         main = {
-          font = "FantasqueSansM Nerd Font Mono:weight=medium:size=13";
           prompt = "\">  \"";
-          icon-theme = if config.gtk.iconTheme != null then config.gtk.iconTheme.name else "hicolor";
           icons-enabled = "yes";
           terminal = "alacritty";
           fields = "name,generic,comment,categories,filename,keywords";
@@ -33,20 +29,6 @@ in
         border = {
           width = 2;
           radius = 14;
-        };
-        # Colors take an 8-char RRGGBBAA hex (no leading #).
-        colors = {
-          background      = "${c.bg}ee";
-          text            = "${c.fg}ff";
-          match           = "${c.accentSecond}ff";
-          selection       = "${c.bg1}ff";
-          selection-text  = "${c.accentSecond}ff";
-          selection-match = "${c.accent}ff";
-          border          = "${c.accentSecond}ff";
-          prompt          = "${c.accent}ff";
-          input           = "${c.fg}ff";
-          placeholder     = "${c.gray}ff";
-          counter         = "${c.gray}ff";
         };
         dmenu = {
           exit-immediately-if-empty = "yes";

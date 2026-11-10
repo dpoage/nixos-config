@@ -21,7 +21,7 @@
   # no-op under 6.12; on 6.18 it means constant max fans, so stay on balanced.
   services.tlp.settings.PLATFORM_PROFILE_ON_AC = "balanced";
 
-  myTheme.palette = "gruvbox";
+  myTheme.palette = "gruvbox-dark";
 
   myUser = {
     name = "dpoage";

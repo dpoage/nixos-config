@@ -1,6 +1,6 @@
 # Wallpaper daemon (awww, formerly swww) + set-wallpaper helper script.
 
-{ config, osConfig, lib, pkgs, ... }:
+{ config, lib, pkgs, ... }:
 
 let
   cfg = config.myRice;
@@ -36,7 +36,7 @@ let
           pick=$(find "$WALLPAPER_DIR" -type f \
             \( -iname '*.jpg' -o -iname '*.jpeg' -o -iname '*.png' \) \
             2>/dev/null | shuf -n 1 || true)
-          echo "''${pick:-${osConfig.myTheme.wallpaper}}"
+          echo "''${pick:-${config.stylix.image}}"
       }
 
       mode="''${1:-random}"

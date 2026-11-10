@@ -10,7 +10,7 @@
     ./quickshell.nix
     ./dotfiles.nix
     ./dev.nix
-    # Opt-in desktop bundle (myRice.enable); colors come from system myTheme.
+    # Opt-in desktop bundle (myRice.enable); colors come from Stylix.
     ./rice
   ];
 

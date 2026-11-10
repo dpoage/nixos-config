@@ -1,9 +1,6 @@
-{ config, osConfig, lib, pkgs, ... }:
+{ config, lib, pkgs, ... }:
 
 let
-  c = osConfig.myTheme.colors;
-  wallpaper = osConfig.myTheme.wallpaper;
-
   # Autostart for the selected bar. Only waybar needs the monitor-hotplug
   # restart shim; quickshell-based bars (noctalia, custom) handle hotplug
   # internally. `barCommand` is null when `myRice.bar = "none"`.
@@ -13,15 +10,8 @@ let
       "socat -U - UNIX-CONNECT:$XDG_RUNTIME_DIR/hypr/$HYPRLAND_INSTANCE_SIGNATURE/.socket2.sock | while read -r line; do case $line in monitoradded*|monitorremoved*) pkill waybar; sleep 0.5; waybar & ;; esac; done";
 in
 {
-  # Wallpaper via hyprpaper. Disabled when myRice owns the wallpaper —
-  # rice runs awww and the two daemons fight over the layer surface.
-  services.hyprpaper = lib.mkIf (!(config.myRice.enable or false)) {
-    enable = true;
-    settings = {
-      preload = [ wallpaper ];
-      wallpaper = [ ", ${wallpaper}" ];
-    };
-  };
+  # Stylix's hyprpaper target owns the wallpaper; with myRice, awww does.
+  stylix.targets.hyprland.hyprpaper.enable = !(config.myRice.enable or false);
 
   wayland.windowManager.hyprland = {
     enable = true;
@@ -59,8 +49,6 @@ in
         gaps_in = 4;
         gaps_out = 8;
         border_size = 2;
-        "col.active_border" = "rgba(${c.accent}ff) rgba(${c.accentTri}ff) 45deg";
-        "col.inactive_border" = "rgba(${c.bg2}ff)";
         layout = "dwindle";
       };
 
@@ -76,7 +64,6 @@ in
           enabled = true;
           range = 8;
           render_power = 2;
-          color = "rgba(${c.bg}ee)";
         };
       };
 

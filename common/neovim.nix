@@ -12,6 +12,11 @@
       };
       dependencies = [ pkgs.vimPlugins.plenary-nvim ];
     };
+
+    nvimScheme = {
+      gruvbox-dark = { name = "gruvbox"; settings.contrast = "hard"; };
+      catppuccin-mocha = { name = "catppuccin"; settings.flavour = "mocha"; };
+    }.${config.myTheme.palette};
   in
   {
     programs.nixvim = {
@@ -46,11 +51,12 @@
         completeopt = "menu,menuone,noselect";
         showmode = false;                                                                                                   
         mouse = "a";                                                                                                      
+        background = config.stylix.polarity;
       };                                                                                                                    
    
-      colorschemes.${config.myTheme.upstream.nvim.name} = {
+      colorschemes.${nvimScheme.name} = {
         enable = true;
-        inherit (config.myTheme.upstream.nvim) settings;
+        inherit (nvimScheme) settings;
       };
                                                                                                                             
       # Keymaps (LazyVim-style)

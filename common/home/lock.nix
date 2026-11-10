@@ -11,10 +11,10 @@
 # ...`; it has no effect on actual locking. Unlock needs a PAM service
 # NixOS-side: programs.hyprlock.enable in profiles/hyprland-stack.nix.
 
-{ config, osConfig, lib, ... }:
+{ config, lib, ... }:
 
 let
-  c = osConfig.myTheme.colors;
+  colors = config.lib.stylix.colors;
 
   # Lock after 5 min idle; screen off 30 s later. The dconf idle-delay
   # mirror below must equal this, so both read the same constant.
@@ -30,18 +30,11 @@ in
           ignore_empty_input = true;
         };
 
-        background = [
-          {
-            monitor = "";
-            color = "rgb(${c.bg})";
-          }
-        ];
-
         label = [
           {
             monitor = "";
             text = "$TIME";
-            color = "rgb(${c.fg})";
+            color = "rgb(${colors.base05})";
             font_size = 48;
             position = "0, 120";
             halign = "center";
@@ -49,24 +42,21 @@ in
           }
         ];
 
-        input-field = [
-          {
-            monitor = "";
-            size = "300, 48";
-            outline_thickness = 2;
-            outer_color = "rgb(${c.accent})";
-            inner_color = "rgb(${c.bg0})";
-            font_color = "rgb(${c.fg})";
-            check_color = "rgb(${c.yellow})";
-            fail_color = "rgb(${c.urgent})";
-            placeholder_text = "<i>Password...</i>";
-            position = "0, 0";
-            halign = "center";
-            valign = "center";
-          }
-        ];
+        # Background and input-field colors come from the Stylix hyprlock target.
+        input-field = {
+          monitor = "";
+          size = "300, 48";
+          outline_thickness = 2;
+          placeholder_text = "<i>Password...</i>";
+          position = "0, 0";
+          halign = "center";
+          valign = "center";
+        };
       };
     };
+
+    # Solid-color lock background, not the wallpaper.
+    stylix.targets.hyprlock.image.enable = false;
 
     services.hypridle = {
       enable = true;

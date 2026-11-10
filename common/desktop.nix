@@ -108,14 +108,6 @@
       nerd-fonts.inconsolata
       nerd-fonts.victor-mono
     ];
-    fontconfig = {
-      defaultFonts = {
-        serif = [ "Noto Serif" ];
-        sansSerif = [ "Noto Sans" ];
-        monospace = [ config.myTheme.fonts.mono ];
-        emoji = [ "Noto Color Emoji" ];
-      };
-    };
   };
 
   # Wayland environment

@@ -1,19 +1,16 @@
-# Mako notification daemon, themed from the active palette.
-# Uses home-manager's `services.mako` module which generates the INI
-# config and installs a systemd user service.
+# Mako notification daemon; font and colors come from the Stylix mako target.
+# `services.mako` generates the INI config and the systemd user service.
 
-{ config, osConfig, lib, pkgs, ... }:
+{ config, lib, pkgs, ... }:
 
 let
   cfg = config.myRice;
-  c   = osConfig.myTheme.colors;
 in
 {
   config = lib.mkIf cfg.enable {
     services.mako = {
       enable = true;
       settings = {
-        font = "Sarasa UI SC 11";
         max-visible = 10;
         layer = "overlay";
         anchor = "top-right";
@@ -24,27 +21,12 @@ in
         icon-location = "left";
         sort = "-time";
 
-        background-color = "#${c.bg}ee";
-        text-color = "#${c.fg}";
-        border-color = "#${c.accentSecond}";
         border-size = 2;
         border-radius = 12;
-        progress-color = "over #${c.accent}";
-
-        "urgency=low" = {
-          border-color = "#${c.blueBr}";
-          default-timeout = 4000;
-        };
-        "urgency=normal" = {
-          border-color = "#${c.accentSecond}";
-        };
-        "urgency=critical" = {
-          border-color = "#${c.urgent}";
-          text-color = "#${c.redBr}";
-          default-timeout = 0;
-        };
+        "urgency=low".default-timeout = 4000;
+        "urgency=critical".default-timeout = 0;
         "category=mpd" = {
-          border-color = "#${c.aquaBr}";
+          border-color = config.lib.stylix.colors.withHashtag.base15;
           default-timeout = 2000;
           group-by = "category";
         };

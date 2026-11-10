@@ -2,17 +2,18 @@
 # Note: this coexists with the existing programs.kitty config in
 # terminal.nix — both can be installed; the user picks at runtime.
 
-{ config, osConfig, lib, pkgs, ... }:
+{ config, lib, pkgs, ... }:
 
 let
   cfg = config.myRice;
-  t   = osConfig.myTheme;
-  c   = t.colors;
+  stylix = config.stylix;
+  colors = config.lib.stylix.colors;
+  ansi = import ../../theme/ansi.nix colors;
   # Alacritty wants colors as "0x" + hex.
   hex = v: "0x${v}";
   ansiNames = [ "black" "red" "green" "yellow" "blue" "magenta" "cyan" "white" ];
   ansiHalf = offset: lib.listToAttrs (lib.imap0
-    (i: name: lib.nameValuePair name (hex (builtins.elemAt t.ansi (offset + i)))) ansiNames);
+    (i: name: lib.nameValuePair name (hex (builtins.elemAt ansi (offset + i)))) ansiNames);
 in
 {
   config = lib.mkIf cfg.enable {
@@ -25,8 +26,8 @@ in
         window = {
           dynamic_padding = true;
           decorations = "full";
-          opacity = t.terminal.opacity;
-          decorations_theme_variant = if t.meta.variant == "dark" then "Dark" else "Light";
+          opacity = stylix.opacity.terminal;
+          decorations_theme_variant = if stylix.polarity == "dark" then "Dark" else "Light";
           dimensions = {
             columns = 100;
             lines = 30;
@@ -41,17 +42,17 @@ in
           multiplier = 3;
         };
         font = {
-          size = t.fonts.monoSize;
-          normal = { family = t.fonts.mono; style = "Regular"; };
-          bold   = { family = t.fonts.mono; style = "Bold"; };
-          italic = { family = t.fonts.mono; style = "Italic"; };
-          bold_italic = { family = t.fonts.mono; style = "Bold Italic"; };
+          size = stylix.fonts.sizes.terminal;
+          normal = { family = stylix.fonts.monospace.name; style = "Regular"; };
+          bold   = { family = stylix.fonts.monospace.name; style = "Bold"; };
+          italic = { family = stylix.fonts.monospace.name; style = "Italic"; };
+          bold_italic = { family = stylix.fonts.monospace.name; style = "Bold Italic"; };
         };
         colors = {
           draw_bold_text_with_bright_colors = true;
           primary = {
-            background = hex c.bg;
-            foreground = hex c.fg;
+            background = hex colors.base00;
+            foreground = hex colors.base05;
           };
           normal = ansiHalf 0;
           bright = ansiHalf 8;

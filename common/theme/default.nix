@@ -1,133 +1,91 @@
-# System-wide color scheme. Every themable surface, NixOS and home-manager,
-# reads `myTheme`; it is independent of the myRice desktop bundle.
 { config, lib, pkgs, ... }:
 
 let
   cfg = config.myTheme;
-  palettes = lib.mapAttrs (_: f: f { inherit pkgs; }) (import ./palettes);
-  p = palettes.${cfg.palette};
-  c = p.colors;
+  graphical = config.services.graphical-desktop.enable;
+  colors = config.lib.stylix.colors;
 
-  # Every key program modules may reference; each palette must define all of them.
-  hexStr = lib.types.strMatching "[0-9a-fA-F]{6}";
-  colorsType = lib.types.submodule {
-    options = lib.genAttrs [
-      "bg" "bg0" "bg1" "bg2" "bg3" "bg4"
-      "fg" "fg0" "fg1" "fg2" "fg3" "fg4"
-      "red" "redBr" "green" "greenBr" "yellow" "yellowBr"
-      "blue" "blueBr" "purple" "purpleBr" "aqua" "aquaBr"
-      "orange" "orangeBr" "gray"
-      "accent" "accentSecond" "accentTri" "urgent"
-      "promptUser" "promptBadge" "promptPath" "promptVcs"
-      "promptLang" "promptInfo" "promptMuted" "promptFg"
-    ] (key: lib.mkOption {
-      type = hexStr;
-      description = "Hex color (RRGGBB, no leading #) for palette key '${key}'.";
-    });
+  palettes = {
+    gruvbox-dark = { scheme = "gruvbox-dark"; };
+    catppuccin-mocha = {
+      scheme = "catppuccin-mocha";
+      wallpaper = "${pkgs.nixos-artwork.wallpapers.nineish-catppuccin-mocha-alt}/share/backgrounds/nixos/nix-wallpaper-nineish-catppuccin-mocha-alt.png";
+    };
   };
+  p = palettes.${cfg.palette};
 
   generatedWallpaper = pkgs.runCommand "wallpaper-${cfg.palette}.png"
     { nativeBuildInputs = [ pkgs.imagemagick ]; } ''
-      magick -size 3840x2160 'radial-gradient:#${c.bg1}-#${c.bg}' \
+      magick -size 3840x2160 'radial-gradient:#${colors.base01}-#${colors.base00}' \
         \( -background none -density 300 \
            ${pkgs.nixos-icons}/share/icons/hicolor/scalable/apps/nix-snowflake.svg \
-           -resize 900x900 -fill '#${c.accent}' -colorize 100 \) \
+           -resize 900x900 -fill '#${colors.base09}' -colorize 100 \) \
         -gravity center -composite $out
     '';
+
+  # Headless hosts run with autoEnable off and only these terminal targets.
+  terminalTargets = [ "bat" "btop" "fzf" "starship" "tmux" "yazi" "lazygit" "k9s" "vivid" ];
 in
 {
-  options.myTheme = {
-    palette = lib.mkOption {
-      type = lib.types.enum (lib.attrNames palettes);
-      default = "catppuccin";
-      description = "Named palette (from ./palettes) that themes every surface on the host.";
-    };
-
-    colors = lib.mkOption {
-      type = colorsType;
-      readOnly = true;
-      description = "Resolved palette colors, hex without #.";
-    };
-
-    named = lib.mkOption {
-      type = lib.types.attrsOf hexStr;
-      readOnly = true;
-      description = "Catppuccin-style semantic names (base, mauve, peach, ...) mapped onto `colors`.";
-    };
-
-    ansi = lib.mkOption {
-      type = lib.types.listOf hexStr;
-      readOnly = true;
-      description = "The 16 terminal colors in ANSI order: 0-7 normal, 8-15 bright.";
-    };
-
-    meta = lib.mkOption {
-      type = lib.types.submodule {
-        options = {
-          name = lib.mkOption { type = lib.types.str; };
-          variant = lib.mkOption { type = lib.types.enum [ "dark" "light" ]; };
-        };
-      };
-      readOnly = true;
-      description = "Palette name and dark/light variant.";
-    };
-
-    upstream = lib.mkOption {
-      type = lib.types.submodule {
-        options = {
-          nvim = {
-            name = lib.mkOption {
-              type = lib.types.str;
-              description = "nixvim `colorschemes.<name>` module.";
-            };
-            settings = lib.mkOption {
-              type = lib.types.attrs;
-              default = { };
-            };
-          };
-          bat = lib.mkOption {
-            type = lib.types.str;
-            description = "Built-in bat syntax theme; delta uses it too.";
-          };
-        };
-      };
-      readOnly = true;
-      description = "Upstream theme names matching the palette, for apps themed by name.";
-    };
-
-    fonts = {
-      mono = lib.mkOption { type = lib.types.str; };
-      monoSize = lib.mkOption { type = lib.types.int; };
-    };
-
-    terminal.opacity = lib.mkOption { type = lib.types.float; };
-
-    wallpaper = lib.mkOption {
-      type = lib.types.either lib.types.path lib.types.str;
-      description = ''
-        Default wallpaper image. Palettes may ship artwork; otherwise one is
-        generated from the palette colors.
-      '';
-    };
+  options.myTheme.palette = lib.mkOption {
+    type = lib.types.enum (lib.attrNames palettes);
+    default = "catppuccin-mocha";
+    description = "Palette Stylix themes the host with.";
   };
 
   config = {
-    myTheme = {
-      colors = c;
-      named = import ./named.nix c;
-      ansi = [
-        c.bg0 c.red c.green c.yellow c.blue c.purple c.aqua c.fg4
-        c.gray c.redBr c.greenBr c.yellowBr c.blueBr c.purpleBr c.aquaBr c.fg
-      ];
-      inherit (p) meta upstream;
-      fonts = lib.mapAttrs (_: lib.mkDefault) p.fonts;
-      terminal = lib.mapAttrs (_: lib.mkDefault) p.terminal;
-      wallpaper = lib.mkDefault "${p.wallpaper or generatedWallpaper}";
+    stylix = {
+      enable = true;
+      base16Scheme = "${config.stylix.inputs.tinted-schemes}/base24/${p.scheme}.yaml";
+      override = lib.mkIf (cfg.palette == "gruvbox-dark") { base00 = "1d2021"; };
+      polarity = colors.variant;
+      image = lib.mkIf graphical (p.wallpaper or generatedWallpaper);
+
+      fonts = {
+        monospace = { package = pkgs.nerd-fonts.jetbrains-mono; name = "JetBrainsMono Nerd Font"; };
+        sansSerif = { package = pkgs.noto-fonts; name = "Noto Sans"; };
+        serif = { package = pkgs.noto-fonts; name = "Noto Serif"; };
+        emoji = { package = pkgs.noto-fonts-color-emoji; name = "Noto Color Emoji"; };
+        sizes.terminal = 12;
+      };
+      opacity.terminal = 0.92;
+
+      cursor = lib.mkIf graphical {
+        package = pkgs.bibata-cursors;
+        name = "Bibata-Modern-Classic";
+        size = 24;
+      };
+      icons = {
+        enable = graphical;
+        package = pkgs.papirus-icon-theme;
+        dark = "Papirus-Dark";
+        light = "Papirus-Light";
+      };
+
+      autoEnable = graphical;
+
+      targets = {
+        # Own the 16 ANSI colors: the target maps bright to normal.
+        console.enable = false;
+        # Upstream gruvbox/catppuccin plugins are configured in neovim.nix.
+        nixvim.enable = false;
+      };
     };
 
-    # Linux VT palette; tuigreet draws with it too.
-    console.colors = cfg.ansi;
+    console.colors = import ./ansi.nix colors;
 
-    home-manager.sharedModules = [ ./home.nix ];
+    home-manager.sharedModules = [
+      {
+        stylix.targets = {
+          # kitty/alacritty colors come from ./ansi.nix; fonts and opacity from stylix.*.
+          kitty.enable = false;
+          alacritty.enable = false;
+          # Installs a GNOME Shell extension; gtk.colorScheme below carries polarity.
+          gnome.enable = false;
+        } // lib.genAttrs terminalTargets (_: { enable = true; });
+
+        gtk.colorScheme = lib.mkIf graphical config.stylix.polarity;
+      }
+    ];
   };
 }

@@ -1,14 +1,14 @@
-{ config, osConfig, lib, ... }:
+{ config, lib, ... }:
 
 let
   rice = config.myRice;
-  c = osConfig.myTheme.colors;
-  named = osConfig.myTheme.named;
+  stylix = config.stylix;
+  colors = config.lib.stylix.colors.withHashtag;
 
-  # Waybar CSS @define-color block, generated from the shared semantic map so
-  # the bar re-themes with the active palette.
-  colorDefs = lib.concatStringsSep "\n"
-    (lib.mapAttrsToList (name: hex: "@define-color ${name} #${hex};") named);
+  # The Stylix waybar target defines @base00..@base0F; the bright half is added here.
+  brightDefs = lib.concatMapStringsSep "\n"
+    (n: "@define-color ${n} ${colors.${n}};")
+    [ "base12" "base13" "base14" "base15" "base16" "base17" ];
 
   # Compositor-aware workspace/window modules — waybar exposes distinct module
   # names per compositor, so pick them from myRice.compositor.
@@ -49,6 +49,9 @@ let
   };
 in
 {
+  # Our CSS below is the layout; the target contributes the @base00..@base0F defines and a default font.
+  stylix.targets.waybar.addCss = false;
+
   # Only the themed Waybar when `myRice.bar = "waybar"` (the default);
   # other bar choices activate their own module instead.
   programs.waybar = lib.mkIf (rice.bar == "waybar") {
@@ -143,11 +146,11 @@ in
             on-scroll = 1;
             on-click-right = "mode";
             format = {
-              months = "<span color='#${named.mauve}'><b>{}</b></span>";
-              days = "<span color='#${named.text}'><b>{}</b></span>";
-              weeks = "<span color='#${named.teal}'>W{}</span>";
-              weekdays = "<span color='#${named.yellow}'><b>{}</b></span>";
-              today = "<span color='#${named.rosewater}'><b><u>{}</u></b></span>";
+              months = "<span color='${colors.base17}'><b>{}</b></span>";
+              days = "<span color='${colors.base05}'><b>{}</b></span>";
+              weeks = "<span color='${colors.base15}'>W{}</span>";
+              weekdays = "<span color='${colors.base0A}'><b>{}</b></span>";
+              today = "<span color='${colors.base06}'><b><u>{}</u></b></span>";
             };
           };
           actions = {
@@ -240,19 +243,19 @@ in
     };
 
     style = ''
-      ${colorDefs}
+      ${brightDefs}
 
       * {
           border: none;
           border-radius: 0;
-          font-family: JetBrainsMono Nerd Font, Font Awesome;
+          font-family: ${stylix.fonts.monospace.name}, Font Awesome;
           font-size: 13px;
           min-height: 0;
       }
 
       window#waybar {
           background: transparent;
-          color: @text;
+          color: @base05;
       }
 
       window#waybar.hidden {
@@ -262,8 +265,8 @@ in
       .modules-left,
       .modules-center,
       .modules-right {
-          background-color: @mantle;
-          border: 1px solid @surface1;
+          background-color: @base01;
+          border: 1px solid @base02;
           border-radius: 12px;
           padding: 0 6px;
       }
@@ -274,13 +277,13 @@ in
       }
 
       tooltip {
-          background-color: @base;
-          border: 1px solid @surface1;
+          background-color: @base00;
+          border: 1px solid @base02;
           border-radius: 8px;
       }
 
       tooltip label {
-          color: @text;
+          color: @base05;
       }
 
       #workspaces {
@@ -292,30 +295,30 @@ in
           margin: 5px 2px;
           border-radius: 8px;
           background: transparent;
-          color: @subtext0;
+          color: @base04;
           box-shadow: none;
           text-shadow: none;
           transition: background-color 150ms ease, color 150ms ease;
       }
 
       #workspaces button:hover {
-          background-color: @surface1;
-          color: @text;
+          background-color: @base02;
+          color: @base05;
       }
 
       #workspaces button.active {
-          background-color: @mauve;
-          color: @mantle;
+          background-color: @base17;
+          color: @base00;
       }
 
       #workspaces button.urgent {
-          background-color: @red;
-          color: @mantle;
+          background-color: @base12;
+          color: @base00;
       }
 
       #window {
           padding: 0 10px;
-          color: @subtext1;
+          color: @base05;
       }
 
       #mpris,
@@ -333,70 +336,70 @@ in
       #tray {
           padding: 0 9px;
           background: transparent;
-          color: @text;
+          color: @base05;
       }
 
       #mpris {
-          color: @subtext1;
+          color: @base05;
       }
 
       #idle_inhibitor {
-          color: @overlay1;
+          color: @base04;
       }
 
       #idle_inhibitor.activated {
-          color: @yellow;
+          color: @base0A;
       }
 
       #disk {
-          color: @flamingo;
+          color: @base13;
       }
 
       #temperature {
-          color: @pink;
+          color: @base17;
           min-width: 37px;
       }
 
       #cpu {
-          color: @mauve;
+          color: @base0E;
           min-width: 45px;
       }
 
       #memory {
-          color: @blue;
+          color: @base16;
       }
 
       #bluetooth {
-          color: @sapphire;
+          color: @base0D;
       }
 
       #network {
-          color: @peach;
+          color: @base09;
       }
 
       #backlight {
-          color: @lavender;
+          color: @base0E;
       }
 
       #pulseaudio {
-          color: @yellow;
+          color: @base0A;
       }
 
       #battery {
-          color: @sky;
+          color: @base15;
       }
 
       #battery.warning {
-          color: @peach;
+          color: @base09;
       }
 
       #clock {
-          color: @green;
+          color: @base14;
           font-weight: bold;
       }
 
       #disk.warning {
-          color: @peach;
+          color: @base09;
       }
 
       #network.disconnected,
@@ -404,17 +407,17 @@ in
       #temperature.critical,
       #memory.critical,
       #disk.critical {
-          color: @red;
+          color: @base12;
       }
 
       @keyframes blink {
           to {
-              color: @mantle;
+              color: @base01;
           }
       }
 
       #battery.critical:not(.charging) {
-          color: @red;
+          color: @base12;
           animation-name: blink;
           animation-duration: 0.5s;
           animation-timing-function: steps(12);

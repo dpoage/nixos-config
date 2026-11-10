@@ -11,6 +11,11 @@ let
       scheme = "catppuccin-mocha";
       wallpaper = "${pkgs.nixos-artwork.wallpapers.nineish-catppuccin-mocha-alt}/share/backgrounds/nixos/nix-wallpaper-nineish-catppuccin-mocha-alt.png";
     };
+    gruvbox-light = { scheme = "gruvbox-light"; };
+    catppuccin-latte = {
+      scheme = "catppuccin-latte";
+      wallpaper = "${pkgs.nixos-artwork.wallpapers.nineish-catppuccin-latte-alt}/share/backgrounds/nixos/nix-wallpaper-nineish-catppuccin-latte-alt.png";
+    };
   };
   p = palettes.${cfg.palette};
 
@@ -52,7 +57,7 @@ in
 
       cursor = lib.mkIf graphical {
         package = pkgs.bibata-cursors;
-        name = "Bibata-Modern-Classic";
+        name = if config.stylix.polarity == "light" then "Bibata-Modern-Ice" else "Bibata-Modern-Classic";
         size = 24;
       };
       icons = {

@@ -2,18 +2,18 @@
 
 {
   imports = [
-    ../common/profiles/laptop.nix
-    ../common/profiles/work.nix
+    ../modules/pattern/profiles/laptop.nix
+    ../modules/pattern/profiles/work.nix
     # oerlikon runs hyprland only; switch to niri-stack alongside myRice
     # when you migrate this host.
-    ../common/profiles/hyprland-stack.nix
+    ../modules/pattern/profiles/hyprland-stack.nix
   ];
 
   networking.hostName = "oerlikon";
 
-  # Pattern CLI + netrc wiring (see common/pattern.nix for the bootstrap
+  # Pattern CLI + netrc wiring (see modules/pattern/cli.nix for the bootstrap
   # dance the first rebuild after a reinstall needs).
-  pattern.enable = true;
+  patternlabs.cli.enable = true;
 
   # Since kernel 6.18, alienware-wmi exposes this Alienware's thermal modes as
   # platform_profile, and its "performance" mode pins both fans at full boost
@@ -30,7 +30,7 @@
       { ... }:
       {
         imports = [
-          ../common/home
+          ../modules/personal/home
           ./monitors.nix
           ./bazel-prune.nix
         ];

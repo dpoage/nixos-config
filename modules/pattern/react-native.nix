@@ -4,7 +4,7 @@
 #   Gradle 8.13 wrapper, AGP 8.6 (needs JDK 17).
 # Node/TypeScript/yarn live in home/dev.nix; this module is only the
 # Android side, so it's imported from profiles/work.nix rather than
-# common/default.nix (the SDK closure is multi-GB).
+# the always-imported layer (the SDK closure is multi-GB).
 
 { config, pkgs, ... }:
 

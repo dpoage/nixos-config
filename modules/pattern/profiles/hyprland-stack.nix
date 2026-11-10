@@ -3,7 +3,7 @@
 # hosts that actually run Hyprland.
 #
 # This is intentionally separate from the compositor *enable* line in
-# common/desktop.nix because programs.hyprland.enable can stay on for
+# desktop.nix because programs.hyprland.enable can stay on for
 # the package while a host runs a different compositor at session time.
 
 { pkgs, ... }:
@@ -11,10 +11,10 @@
 {
   # hyprlock via the NixOS module so security.pam.services.hyprlock is
   # registered — without the PAM service, unlocking is impossible. The
-  # lockscreen config itself is home-manager (common/home/lock.nix).
+  # lockscreen config itself is home-manager (home/screen-lock.nix).
   programs.hyprlock.enable = true;
 
-  # dconf backing store for the lock-policy mirror in common/home/lock.nix
+  # dconf backing store for the lock-policy mirror in home/screen-lock.nix
   # (the Drata compliance agent audits screen lock via gsettings).
   programs.dconf.enable = true;
 

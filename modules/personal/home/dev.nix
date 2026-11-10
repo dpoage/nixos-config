@@ -202,13 +202,13 @@ in
     difftastic # structural diff, used by `git dft`
 
     # TypeScript / Node (frontend dev — e.g. the copilot React Native app;
-    # the Android SDK side lives in common/react-native.nix)
+    # the Android SDK side lives in modules/pattern/react-native.nix)
     nodejs # also provides npm + npx
     typescript
     typescript-language-server
     yarn-berry # yarn 4.x; delegates to a repo's pinned .yarn/releases via yarnPath
     watchman # metro file watcher (.watchmanconfig)
 
-    bend # Bend 2 language (overlays/default.nix)
+    bend # Bend 2 language (overlays/personal)
   ];
 }

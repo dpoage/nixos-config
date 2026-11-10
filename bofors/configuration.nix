@@ -5,7 +5,7 @@ let
   keys = import ./ssh-keys.nix;
 in
 {
-  imports = [ ../common/profiles/workstation.nix ];
+  imports = [ ../modules/pattern/profiles/workstation.nix ];
 
   networking.hostName = "bofors";
 
@@ -28,9 +28,9 @@ in
       { ... }:
       {
         imports = [
-          ../common/home/terminal.nix
-          ../common/home/dev.nix
-          ../common/home/rice
+          ../modules/personal/home/terminal.nix
+          ../modules/personal/home/dev.nix
+          ../modules/personal/home/rice
         ];
         home.stateVersion = "26.05";
       };

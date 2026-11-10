@@ -1,8 +1,8 @@
-{ lib, pkgs, ... }:
+{ pkgs, ... }:
 
 {
   # NVIDIA developer tooling: profilers + debugger.
-  # Imported per-host from each NVIDIA box's default.nix.
+  # Imported per-host by each NVIDIA box.
   environment.systemPackages = [
     pkgs.nsight-systems   # nsys CLI + nsys-ui visualizer
     pkgs.nsight-compute   # ncu CLI + ncu-ui visualizer
@@ -15,10 +15,5 @@
   nix.settings.extra-substituters = [ "https://cache.nixos-cuda.org" ];
   nix.settings.extra-trusted-public-keys = [
     "cache.nixos-cuda.org:74DUi4Ye579gUqzH4ziL9IyiJBlDpMRn9MBN8oNan9M="
-  ];
-
-  # mkAfter: must run after the base overlay that defines bend.
-  nixpkgs.overlays = lib.mkAfter [
-    (final: prev: { bend = prev.bend.override { cudaSupport = true; }; })
   ];
 }

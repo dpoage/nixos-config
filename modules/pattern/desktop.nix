@@ -4,7 +4,7 @@
 { config, pkgs, ... }:
 
 {
-  # Theme and package come from Stylix's plymouth target (common/theme).
+  # Theme comes from Stylix's plymouth target where the host enables Stylix.
   boot.plymouth.enable = true;
 
   programs.firefox.enable = true;

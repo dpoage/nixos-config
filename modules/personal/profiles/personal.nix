@@ -38,7 +38,7 @@
   networking.firewall.trustedInterfaces = [ "tailscale0" ];
 
   # System docker (group membership is root-equivalent). Work hosts use the
-  # rootless podman from common/default.nix instead.
+  # rootless podman from modules/pattern/base.nix instead.
   virtualisation.docker = {
     enable = true;
     enableOnBoot = true;

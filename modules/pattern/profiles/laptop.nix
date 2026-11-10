@@ -35,7 +35,7 @@
   };
 
   # Laptop diagnostics: power, thermal, sensors. brightnessctl is provided
-  # system-wide by common/desktop.nix (shared with compositor brightness binds).
+  # system-wide by desktop.nix (shared with compositor brightness binds).
   environment.systemPackages = with pkgs; [
     acpi
     powertop

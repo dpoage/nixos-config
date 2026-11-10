@@ -1,27 +1,18 @@
-# Screen locking stack for Hyprland sessions: hyprlock (locker) +
-# hypridle (idle daemon: lock on timeout, lock before sleep, dpms off).
-#
-# Gated on myRice.compositor == "hyprland": hyprland.nix's WM settings
-# are inert outside a Hyprland session, but hypridle's systemd user unit
-# starts with any graphical-session.target — under tunguska's niri it
-# would fight the rice swaylock convention (rice/niri.nix).
-#
-# The dconf block mirrors the lock policy into the GNOME keys the Drata
-# compliance agent reads via `gsettings get org.gnome.desktop.screensaver
-# ...`; it has no effect on actual locking. Unlock needs a PAM service
-# NixOS-side: programs.hyprlock.enable in profiles/hyprland-stack.nix.
+# Hyprland session lock: hyprlock + hypridle, plus the dconf mirror Drata reads
+# via gsettings. Unlock needs programs.hyprlock.enable (profiles/hyprland-stack.nix).
 
 { config, lib, ... }:
 
 let
-  colors = config.lib.stylix.colors;
-
-  # Lock after 5 min idle; screen off 30 s later. The dconf idle-delay
-  # mirror below must equal this, so both read the same constant.
+  # The dconf idle-delay mirror below must equal this.
   lockTimeout = 300;
 in
 {
-  config = lib.mkIf (config.myRice.compositor == "hyprland") {
+  # hypridle starts with any graphical-session.target, so keep it off under
+  # other compositors.
+  options.patternlabs.screenLock.enable = lib.mkEnableOption "the Hyprland idle lock";
+
+  config = lib.mkIf config.patternlabs.screenLock.enable {
     programs.hyprlock = {
       enable = true;
       settings = {
@@ -30,19 +21,7 @@ in
           ignore_empty_input = true;
         };
 
-        label = [
-          {
-            monitor = "";
-            text = "$TIME";
-            color = "rgb(${colors.base05})";
-            font_size = 48;
-            position = "0, 120";
-            halign = "center";
-            valign = "center";
-          }
-        ];
-
-        # Background and input-field colors come from the Stylix hyprlock target.
+        # Background and input-field colors come from the theme, if any.
         input-field = {
           monitor = "";
           size = "300, 48";
@@ -54,9 +33,6 @@ in
         };
       };
     };
-
-    # Solid-color lock background, not the wallpaper.
-    stylix.targets.hyprlock.image.enable = false;
 
     services.hypridle = {
       enable = true;

@@ -2,7 +2,7 @@
 # an Ubuntu deb (github.com/drata/agent-releases), so repackage it:
 #
 # * Keep the deb's bundled Electron. Stable nixpkgs electron is EOL and refused
-#   as insecure (see the heroic note in ./default.nix), and the bundled binary
+#   as insecure (see the bitwarden-desktop note in ./default.nix), and the bundled binary
 #   is what Drata QAs against.
 # * autoPatchelfHook fixes up the Electron binary and the bundled osqueryi.
 # * The load-bearing fix is the asar patch below. The agent resolves its

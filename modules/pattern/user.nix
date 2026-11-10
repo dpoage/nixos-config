@@ -1,12 +1,12 @@
 # Single source of truth for the primary user on each host. Drives
-# users.users.<name>, home-manager.users.<name>, and pattern.primaryUser.
+# users.users.<name>, home-manager.users.<name>, and patternlabs.cli.primaryUser.
 #
 # Example:
 #   myUser = {
 #     name = "dustin";
 #     fullName = "Dustin Poage";
 #     extraPackages = with pkgs; [ firefox slack ];
-#     home = { ... }: { imports = [ ../common/home ]; myRice.enable = true; };
+#     home = { ... }: { imports = [ ../modules/personal/home ]; myRice.enable = true; };
 #   };
 
 { config, lib, pkgs, ... }:
@@ -69,7 +69,7 @@ in
       default = { };
       description = ''
         Home-manager module evaluated for this user. Typically:
-          imports = [ ../common/home ]; myRice.enable = true;
+          imports = [ ../modules/personal/home ]; myRice.enable = true;
       '';
     };
   };

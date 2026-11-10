@@ -37,7 +37,7 @@ in
       description = ''
         Which status bar / desktop shell to run in the Wayland session.
 
-          - "waybar"    : the themed Waybar config (common/home/waybar.nix).
+          - "waybar"    : the themed Waybar config (home/waybar.nix).
           - "noctalia"  : the Noctalia desktop shell (noctalia v5).
           - "quickshell": a custom Quickshell config from `quickshellConfig`.
           - "none"      : no bar is autostarted (the host wires its own).

@@ -85,7 +85,7 @@ in
 
   config = {
     # Stylix's kitty target only emits base16 colors and is off (see
-    # common/theme); colors come from the base24 ANSI list, fonts from stylix.*.
+    # modules/personal/theme); colors come from the base24 ANSI list, fonts from stylix.*.
     programs.kitty = {
       enable = true;
       font = {

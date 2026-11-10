@@ -5,7 +5,7 @@
     ./hardware-configuration.nix
     ./configuration.nix
     ./nvidia.nix
-    ../common/desktop.nix
-    ../common/cuda-dev.nix
+    ../modules/pattern/desktop.nix
+    ../modules/pattern/cuda-dev.nix
   ];
 }

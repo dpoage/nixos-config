@@ -54,36 +54,58 @@
     let
       system = "x86_64-linux";
 
-      # All non-nixpkgs packages (flake inputs + pinned unstable builds) are
-      # injected via this overlay, so modules just reference `pkgs.<name>`.
-      overlay = import ./overlays { inherit inputs system; };
+      overlays = {
+        patternlabs = import ./overlays/pattern { inherit inputs; };
+        personal = import ./overlays/personal { inherit inputs; };
+      };
 
-      sharedModules = [
+      # The Pattern Labs layer: everything modules/pattern needs, nothing personal.
+      patternlabs = {
+        imports = [
+          home-manager.nixosModules.home-manager
+          inputs.sops-nix.nixosModules.sops
+          ./modules/pattern
+        ];
+        nixpkgs.overlays = [ overlays.patternlabs ];
+      };
+
+      personalModules = [
         nixvim.nixosModules.nixvim
-        home-manager.nixosModules.home-manager
-        inputs.sops-nix.nixosModules.sops
         inputs.stylix.nixosModules.stylix
         { home-manager.sharedModules = [ nix-index-database.homeModules.nix-index ]; }
-        { nixpkgs.overlays = [ overlay ]; }
+        { nixpkgs.overlays = [ overlays.personal ]; }
         # Keep every input's source alive as long as the generation is: the
-        # unattended root upgrade (common/default.nix) cannot refetch the
+        # unattended root upgrade (modules/pattern/base.nix) cannot refetch the
         # git+ssh pattern-cli input once nix.gc has collected it.
         {
           system.extraDependencies = map (i: i.outPath) (
             builtins.attrValues (builtins.removeAttrs inputs [ "self" ])
           );
         }
-        ./common
+        ./modules/personal
       ];
 
       mkHost =
         hostModule:
         nixpkgs.lib.nixosSystem {
           inherit system;
-          modules = sharedModules ++ [ hostModule ];
+          modules = [ patternlabs ] ++ personalModules ++ [ hostModule ];
         };
     in
     {
+      overlays.patternlabs = overlays.patternlabs;
+
+      # Role modules are imported on top of `patternlabs` per host.
+      nixosModules = {
+        inherit patternlabs;
+        patternlabs-desktop = ./modules/pattern/desktop.nix;
+        patternlabs-cuda-dev = ./modules/pattern/cuda-dev.nix;
+        patternlabs-laptop = ./modules/pattern/profiles/laptop.nix;
+        patternlabs-workstation = ./modules/pattern/profiles/workstation.nix;
+        patternlabs-work = ./modules/pattern/profiles/work.nix;
+        patternlabs-hyprland = ./modules/pattern/profiles/hyprland-stack.nix;
+      };
+
       nixosConfigurations = {
         tunguska = mkHost ./tunguska;
         oerlikon = mkHost ./oerlikon;
@@ -94,5 +116,19 @@
           ];
         };
       };
+
+      # A work laptop for someone else, built from the Pattern layer alone.
+      checks.${system}.patternlabs-example =
+        (nixpkgs.lib.nixosSystem {
+          inherit system;
+          modules = with self.nixosModules; [
+            patternlabs
+            patternlabs-desktop
+            patternlabs-laptop
+            patternlabs-work
+            patternlabs-hyprland
+            ./ci/example-work.nix
+          ];
+        }).config.system.build.toplevel;
     };
 }

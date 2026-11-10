@@ -1,31 +1,13 @@
+# Baseline for every Pattern machine: nix daemon policy, boot, networking,
+# locale, firewall, patching, and the core CLI set. Toolchains live in
+# ./devtools.nix; personal tooling stays out of this layer.
 { config, lib, pkgs, ... }:
 
 {
-  imports = [
-    ./neovim.nix
-    ./bazel.nix
-    ./cloud.nix
-    ./kubernetes.nix
-    ./hashicorp.nix
-    ./myUser.nix
-    ./nvidia.nix
-    ./compliance.nix
-    ./theme
-    # Profiles in ./profiles/ and ./desktop.nix (hosts with a screen) are
-    # imported directly by each host — not from here.
-  ];
 
   nix.settings.experimental-features = [ "nix-command" "flakes" ];
   nix.settings.trusted-users = [ "root" "@wheel" ];
 
-  # QEMU binfmt registration so nix can build aarch64/riscv64 derivations
-  # transparently. The binfmt module also adds these to
-  # nix.settings.extra-platforms (plus i686-linux) and wires up the
-  # extra-sandbox-paths the emulators need, so no manual extra-platforms here.
-  boot.binfmt.emulatedSystems = [
-    "aarch64-linux"
-    "riscv64-linux"
-  ];
   nixpkgs.config.allowUnfree = true;
 
   # Bootloader
@@ -35,8 +17,7 @@
   # Networking
   networking.networkmanager.enable = true;
 
-  # Timezone & locale
-  time.timeZone = "America/Denver";
+  # Locale. The timezone is per-person (time.timeZone).
   i18n.defaultLocale = "en_US.UTF-8";
   i18n.extraLocaleSettings = {
     LC_ADDRESS = "en_US.UTF-8";
@@ -52,18 +33,9 @@
 
   # Programs
   programs.zsh.enable = true;
-  # Neovim is configured via nixvim in neovim.nix
-  # programs.neovim is not used — it conflicts with nixvim's wrapped binary
-  programs.nixvim.viAlias = true;
-  programs.nixvim.vimAlias = true;
 
   # System packages
   environment.systemPackages = with pkgs; [
-    claude-code
-    beads
-    dolt # beads' storage backend (`bd dolt push`)
-    b9s # board and tree over beads: `b9s` (TUI), `b9s web` (browser)
-
     # Core utilities
     wget
     curl
@@ -84,52 +56,8 @@
     zip
     p7zip
 
-    # Terminal & shells
-    zsh
-    oh-my-zsh
-    starship
-    tmux
-
-    # Development tools
-    opencode
-    bun
-    omp
+    # Secrets
     sops
-    pkg-config
-    ninja
-
-    # Sandboxing — unprivileged namespace jails (`bwrap`); NixOS enables
-    # user namespaces by default, so no setuid wrapper is required
-    bubblewrap
-    landrun # Landlock CLI — unprivileged path/TCP restrictions (kernel 6.12 → ABI v6)
-    passt # user-mode net stack (`pasta`) for --unshare-net jails, outbound-only
-
-    # Python
-    python3
-    uv
-    ruff
-    pyright
-
-    # Go
-    go
-    gopls
-    golangci-lint
-    delve
-
-    # C/C++
-    gcc
-    gnumake
-    cmake
-    clang-tools
-    gdb
-
-    # Elixir
-    elixir
-    elixir-ls
-
-    # Rust
-    rustup
-    rust-analyzer
 
     # System monitoring
     iotop
@@ -150,10 +78,6 @@
     ncdu
     duf
 
-    # Media tools
-    ffmpeg
-    imagemagick
-
     # Archive tools
     atool
 
@@ -161,7 +85,7 @@
     killall
     pstree
     lsof
-    strace # syscall tracing — prerequisite for authoring sandbox policies
+    strace
   ];
 
   # Tailscale (outbound client; inbound trust on the tailnet is a per-profile
@@ -222,7 +146,8 @@
   # every input source alive as a system dependency).
   system.autoUpgrade = {
     enable = true;
-    flake = "/home/${config.myUser.name}/code/nixos-config#${config.networking.hostName}";
+    # Fleet hosts point this at a remote flake ref.
+    flake = lib.mkDefault "/home/${config.myUser.name}/code/nixos-config#${config.networking.hostName}";
     upgrade = false;
     flags = [
       "--update-input" "nixpkgs"

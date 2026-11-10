@@ -5,22 +5,8 @@
 
 {
   imports = [
-    ../pattern.nix
     ../react-native.nix
   ];
-
-  # Inject work-specific prompt badges and cloud context modules.
-  # These merge into terminal.nix's myPrompt options via deferredModule.
-  myUser.home = { ... }: {
-    myPrompt = {
-      badges = [
-        { icon = ""; label = "Pattern"; }
-      ];
-      kubernetes = true;
-      gcloud = true;
-      aws = true;
-    };
-  };
 
   myUser.extraPackages = with pkgs; [
     # Browsers
@@ -44,7 +30,6 @@
   ];
 
   # SOC2 compliance stack (Drata agent, ClamAV, Bitwarden) — defined in
-  # ../compliance.nix behind myCompliance flags so non-work hosts never
-  # carry it.
-  myCompliance.enable = true;
+  # ../compliance.nix so non-work hosts never carry it.
+  patternlabs.compliance.enable = true;
 }

@@ -18,7 +18,7 @@
 #   tools/update-hashes.sh .#nixosConfigurations.tunguska.pkgs.gcx
 #                                            # explicit installables only
 #
-# Bumping a pin by hand (e.g. the tla-nvim rev in common/neovim.nix): change the
+# Bumping a pin by hand (e.g. the tla-nvim rev in modules/personal/neovim.nix): change the
 # rev, set the hash to the sentinel below, then run this script. Do NOT leave the
 # old hash in place — Nix would reuse the cached store path and never refetch.
 # If one derivation has several hash fields, give each a DISTINCT sentinel
@@ -27,7 +27,7 @@
 set -euo pipefail
 
 REPO_ROOT=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)
-OVERLAY="$REPO_ROOT/overlays/default.nix"
+OVERLAY="$REPO_ROOT/overlays/pattern/default.nix"
 MAX_ITER=20
 
 FAKE_A="sha256-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="

@@ -1,7 +1,7 @@
 { config, lib, pkgs, ... }:
 
 let
-  cfg = config.pattern;
+  cfg = config.patternlabs.cli;
   # Nix daemon and sandbox need a real file at a path outside any home
   # directory: homes are mode 700 (invisible to nixbld sandbox users) and
   # sandbox-mounting a symlink into /run/secrets.d is not reliable, so the
@@ -9,11 +9,7 @@ let
   daemonNetrc = "/etc/nix/netrc";
 in
 {
-  imports = [
-    ./kubernetes.nix
-  ];
-
-  options.pattern.enable = lib.mkOption {
+  options.patternlabs.cli.enable = lib.mkOption {
     type = lib.types.bool;
     default = false;
     description = ''
@@ -23,27 +19,31 @@ in
         - an ssh key that can read Pattern-Labs/pattern_cli (the flake input
           is git+ssh, so eval itself fails without it), and
         - a netrc with a GitHub token, for the goModules FOD to fetch
-          github.com/Pattern-Labs/* under GOPRIVATE. Encrypted at
-          secrets/netrc (sops, age recipients in .sops.yaml); decrypted by
-          sops-nix via this host's ssh ed25519 key.
+          github.com/Pattern-Labs/* under GOPRIVATE. Encrypted at `netrcFile`
+          (sops binary); decrypted by sops-nix via this host's ssh ed25519 key.
 
       Bootstrap on a host enabling this for the first time (the pattern build
       needs ${daemonNetrc} *before* the first rebuild with this enabled, and
       after a reinstall the new host key must be added to .sops.yaml first):
-        sops decrypt --input-type binary secrets/netrc \
+        sops decrypt --input-type binary <netrcFile> \
           | sudo install -o root -g nixbld -m 0440 /dev/stdin ${daemonNetrc}
       Later rebuilds refresh it from the secret automatically.
     '';
   };
 
-  options.pattern.primaryUser = lib.mkOption {
+  options.patternlabs.cli.primaryUser = lib.mkOption {
     type = lib.types.str;
     default = config.myUser.name;
     description = "User who gets ~/.netrc (for bazel and other Pattern tooling outside the sandbox)";
   };
 
+  options.patternlabs.cli.netrcFile = lib.mkOption {
+    type = lib.types.path;
+    description = "sops-encrypted (binary) netrc holding the GitHub and cachix tokens.";
+  };
+
   config = lib.mkMerge [
-    {
+    (lib.mkIf cfg.enable {
       environment.systemPackages = [
         pkgs.gcx
       ];
@@ -54,7 +54,7 @@ in
       systemd.tmpfiles.rules = [
         "L+ /bin/bash - - - - ${pkgs.bashInteractive}/bin/bash"
       ];
-    }
+    })
 
     (lib.mkIf cfg.enable {
       environment.systemPackages = [ pkgs.pattern ];
@@ -62,14 +62,14 @@ in
       # Daemon-side netrc, decrypted from the repo by sops-nix (keyed to this
       # host's ssh ed25519 key — see .sops.yaml).
       sops.secrets."pattern-netrc" = {
-        sopsFile = ../secrets/netrc;
+        sopsFile = cfg.netrcFile;
         format = "binary";
       };
 
       # Pattern dev tooling (bazel et al.) reads ~/.netrc directly; expose the
       # same secret to the primary user.
       sops.secrets."pattern-netrc-user" = {
-        sopsFile = ../secrets/netrc;
+        sopsFile = cfg.netrcFile;
         format = "binary";
         owner = cfg.primaryUser;
         mode = "0400";

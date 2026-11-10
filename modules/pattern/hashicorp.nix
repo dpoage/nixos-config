@@ -3,7 +3,7 @@
 # HashiCorp suite. Nomad + Consul + Vault together form the k8s-alternative
 # stack; kubernetes.nix stays alongside for the k8s workflow.
 # Note: terraform/vault/consul/nomad are BSL-licensed (unfree in nixpkgs);
-# covered by the global allowUnfree in default.nix. Waypoint is omitted —
+# covered by the global allowUnfree in base.nix. Waypoint is omitted —
 # discontinued upstream and removed from nixpkgs.
 {
   environment.systemPackages = with pkgs; [

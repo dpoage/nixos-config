@@ -1,22 +1,13 @@
-# SOC2 + Cyber Essentials compliance stack (Pattern requirement), gated
-# behind myCompliance feature flags so only work hosts carry it — tunguska
-# never sees the Drata agent, clamd's ~1.2G resident signature DB, the
-# Bitwarden desktop app, or root-only administration. profiles/work.nix
-# flips the master switch; per-component flags exist to turn one piece off
-# without losing the rest.
-#
-# Not gated here: screen lock (compositor-gated in home/lock.nix), the
-# firewall/auto-upgrades (baseline for every host in ./default.nix),
-# "no inbound connections" (sshd and tailnet trust exist only in
-# profiles/personal.nix).
+# SOC2 + Cyber Essentials controls for work hosts; profiles/work.nix enables it.
+# Assertions fail the build if another module weakens a control.
 
 { config, lib, pkgs, ... }:
 
 let
-  cfg = config.myCompliance;
+  cfg = config.patternlabs.compliance;
 in
 {
-  options.myCompliance = {
+  options.patternlabs.compliance = {
     enable = lib.mkEnableOption "the compliance stack (Drata agent, ClamAV, Bitwarden, root-only administration)";
 
     drataAgent = lib.mkOption {
@@ -43,9 +34,13 @@ in
       description = ''
         Cyber Essentials user-access control: the daily user is not in
         wheel; administration elevates straight to root (run0, su, polkit
-        prompts) with root's own password, sops-encrypted at
-        secrets/root-password.
+        prompts) with root's own password from `rootPasswordFile`.
       '';
+    };
+
+    rootPasswordFile = lib.mkOption {
+      type = lib.types.path;
+      description = "sops-encrypted (binary) yescrypt hash for root.";
     };
   };
 
@@ -54,14 +49,35 @@ in
       lib.optional cfg.drataAgent pkgs.drata-agent
       ++ lib.optional cfg.passwordManager pkgs.bitwarden-desktop;
 
-    # Cyber Essentials: root is the separate admin account, behind a password
-    # distinct from the daily user's. neededForUsers decrypts before user
-    # setup, so root's password is never left unset. Create/rotate with:
-    #   mkpasswd -m yescrypt | sops encrypt --filename-override \
-    #     secrets/root-password --input-type binary --output-type binary \
-    #     /dev/stdin > secrets/root-password
+    myUser.home.patternlabs.screenLock.enable = true;
+
+    assertions =
+      let
+        hm = config.home-manager.users.${config.myUser.name};
+      in
+      [
+        {
+          assertion = config.networking.firewall.enable;
+          message = "patternlabs.compliance: networking.firewall must stay enabled.";
+        }
+        {
+          assertion = !config.services.openssh.enable;
+          message = "patternlabs.compliance: work hosts accept no inbound connections; disable services.openssh.";
+        }
+        {
+          assertion = lib.subtractLists [ "lo" ] config.networking.firewall.trustedInterfaces == [ ];
+          message = "patternlabs.compliance: networking.firewall.trustedInterfaces must hold only lo.";
+        }
+        {
+          assertion = config.programs.hyprlock.enable && hm.services.hypridle.enable;
+          message = "patternlabs.compliance: screen lock needs programs.hyprlock.enable (profiles/hyprland-stack.nix) and the user's hypridle.";
+        }
+      ];
+
+    # Rotate: mkpasswd -m yescrypt | sops encrypt --filename-override F \
+    #   --input-type binary --output-type binary /dev/stdin > F
     sops.secrets."root-password" = lib.mkIf cfg.rootAdmin {
-      sopsFile = ../secrets/root-password;
+      sopsFile = cfg.rootPasswordFile;
       format = "binary";
       neededForUsers = true;
     };

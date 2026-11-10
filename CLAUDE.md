@@ -51,18 +51,24 @@ bd close <id>         # Complete work
 
 ## Build & Test
 
-_Add your build and test commands here_
-
 ```bash
-# Example:
-# npm install
-# npm test
+ci/check.sh    # evaluate every host and checks.patternlabs-example (stubbed pattern-cli)
 ```
 
 ## Architecture Overview
 
-_Add a brief overview of your project architecture_
+- `modules/pattern/`: the Pattern Labs layer, exported as `nixosModules.patternlabs`
+  plus role modules (`patternlabs-desktop`, `-laptop`, `-workstation`, `-work`,
+  `-hyprland`, `-cuda-dev`) and `overlays.patternlabs`. Options live under
+  `patternlabs.*`, alongside `myUser` and `myNvidia`.
+- `modules/personal/`: dpoage's layer: theme, nixvim, agent tooling, home-manager
+  config (`home/`), dotfiles, timezone, and this repo's secret paths.
+- `overlays/pattern/` and `overlays/personal/`: matching package overlays.
+- `<host>/`: hardware and per-host choices; `flake.nix` composes pattern + personal + host.
 
 ## Conventions & Patterns
 
-_Add your project-specific conventions here_
+- Nothing in `modules/pattern/` may reference the personal layer, a person, or a
+  repo-local path. `checks.patternlabs-example` (a non-dpoage work laptop) enforces this.
+- Compliance controls are assertions in `modules/pattern/compliance.nix`; satisfy
+  them instead of overriding them.

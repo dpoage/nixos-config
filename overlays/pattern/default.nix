@@ -1,17 +1,11 @@
-# Package overlay: adds flake-input packages and selected unstable packages to
-# `pkgs`, so every module sees `pkgs.beads`, `pkgs.gcx`, `pkgs.unstable.<name>`
-# etc. without threading a `specialArgs.extraPkgs` set through every signature.
-#
-# Wired in flake.nix via `nixpkgs.overlays`. To expose a new tool flake-wide,
-# add it here — nothing else needs to change.
-#
-# Stale FOD hashes (goModules outputHash, release binaries, vendorHash)?
-# Run `tools/update-hashes.sh` — see its header for version-bump flags.
-{ inputs, system }:
+# Pattern Labs packages plus `pkgs.unstable`. System-independent so the flake
+# can export it. Stale FOD hashes: run `tools/update-hashes.sh`.
+{ inputs }:
 
 final: prev:
 
 let
+  inherit (prev.stdenv.hostPlatform) system;
   unstable = import inputs.nixpkgs-unstable {
     inherit system;
     config.allowUnfree = true;
@@ -21,8 +15,6 @@ in
   # Escape hatch: reach any unstable package as `pkgs.unstable.<name>`.
   inherit unstable;
 
-  # Flake-input packages
-  beads = inputs.beads.packages.${system}.default;
   # pattern shells out to `bazel`. Instead of installing real bazel, put a
   # `bazel` symlink to bazelisk on pattern's PATH (scoped to its wrapper, not
   # system-wide), so bazelisk fetches and runs the workspace-pinned version.
@@ -46,7 +38,7 @@ in
         vendorHash = "sha256-YaxaPA3SY96afL8LzJgo/WkWmJI4jZN0KDswIDMgd2E=";
         proxyVendor = true;
         # Private module access inside the goModules FOD (see upstream flake
-        # and common/pattern.nix for the sandbox netrc wiring).
+        # and modules/pattern/cli.nix for the sandbox netrc wiring).
         overrideModAttrs = old: {
           nativeBuildInputs = (old.nativeBuildInputs or [ ]) ++ [
             prev.git
@@ -54,7 +46,7 @@ in
           ];
           env.GOPRIVATE = "github.com/Pattern-Labs";
           env.GONOSUMCHECK = "github.com/Pattern-Labs/*";
-          # Must match the path common/pattern.nix sandbox-mounts.
+          # Must match the path modules/pattern/cli.nix sandbox-mounts.
           env.NETRC = "/etc/nix/netrc";
         };
         subPackages = [ "cmd/pattern" ];
@@ -80,10 +72,6 @@ in
       '';
     };
 
-  # Version pin and LD_LIBRARY_PATH wrapper live in the dpoage/omp-flake fork;
-  # bump with `nix flake update omp-flake`.
-  omp = inputs.omp-flake.packages.${system}.default;
-
   # Go 1.26: gcx 0.2.15's vendored grpc uses http2.TrailerPrefix, which
   # doesn't compile under Go 1.27. Drop the pin when bumping gcx.
   gcx = unstable.buildGo126Module rec {
@@ -97,34 +85,6 @@ in
     };
     vendorHash = "sha256-DxAqHLV7J2mu5x+rQ79NXtkcDkn48u35r7P6sKq2mrY=";
     subPackages = [ "cmd/gcx" ];
-  };
-
-  # b9s: board, tree and dependency graph over beads, as a TUI (`b9s`) and a
-  # browser UI (`b9s web`). It reads and writes only through `bd`. The repo
-  # vendors its Go modules and commits the built web assets, so no Node step.
-  b9s = unstable.buildGoModule rec {
-    pname = "b9s";
-    version = "1.3.5";
-    src = unstable.fetchFromGitHub {
-      owner = "vanderheijden86";
-      repo = "b9s";
-      tag = "v${version}";
-      hash = "sha256-l1KAB5dpOWYdici0g+j975K1dES6Q8nwx7YnUs19FFE=";
-    };
-    vendorHash = null;
-    subPackages = [ "cmd/b9s" ];
-    ldflags = [
-      "-s"
-      "-w"
-      "-X"
-      "github.com/vanderheijden86/b9s/pkg/version.Version=v${version}"
-    ];
-    meta = {
-      description = "Terminal and browser UI for the Beads issue tracker";
-      homepage = "https://github.com/vanderheijden86/b9s";
-      license = final.lib.licenses.mit;
-      mainProgram = "b9s";
-    };
   };
 
   # Official slackapi CLI (nixpkgs' slack-cli is an unrelated tool). Renamed to
@@ -159,9 +119,6 @@ in
         platforms = [ "x86_64-linux" "aarch64-linux" ];
       };
     };
-
-  # Bend 2; hosts with NVIDIA GPUs override cudaSupport (common/cuda-dev.nix).
-  bend = final.callPackage ./bend.nix { };
 
   # Local repackages: binaries with no nixpkgs derivation.
   # Drata SOC2 agent (Pattern compliance requirement), repacked from the
@@ -242,30 +199,7 @@ in
         '';
       });
 
-  # hyprsplit: nixpkgs 26.05 ships the v0.54.2 tag, which fails against its
-  # Hyprland 0.55.4 (g_pConfigManager removed). Upstream main builds against
-  # 0.55; no tagged release yet. Drop once nixpkgs' hyprsplit builds again.
-  hyprlandPlugins = prev.hyprlandPlugins // {
-    hyprsplit = prev.hyprlandPlugins.hyprsplit.overrideAttrs (_: {
-      version = "0.54.3-unstable-2026-06-11";
-      src = final.fetchFromGitHub {
-        owner = "shezdy";
-        repo = "hyprsplit";
-        rev = "6b00b677d8905fb38779c91e12d6294e0e586a44";
-        hash = "sha256-PaoUtmk+qIP/ESdxkxnY7mUMpMHjix88qu22R5GLQqE=";
-      };
-    });
-  };
-
-  # Unstable overrides: pin these to unstable's newer builds flake-wide.
-  claude-code = unstable.claude-code;
-  dolt = unstable.dolt;
-  opencode = unstable.opencode;
-  bun = unstable.bun;
-  # Stable heroic 2.20.1 bundles electron 39, now EOL and refused as insecure.
-  # Unstable's 2.22.0 moved to electron 41.7.1 (non-EOL); pin until stable bumps.
-  heroic = unstable.heroic;
-  # Same electron-EOL story: stable bitwarden-desktop bundles electron 39.
+  # Stable bitwarden-desktop bundles electron 39, now EOL and refused as insecure.
   bitwarden-desktop = unstable.bitwarden-desktop;
 
   # NVIDIA developer tooling — pulled from unstable for newer Nsight versions

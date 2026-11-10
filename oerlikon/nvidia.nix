@@ -1,5 +1,5 @@
 # NVIDIA config for Intel + RTX 4060 Max-Q hybrid graphics.
-# Options and the actual wiring live in ../common/nvidia.nix.
+# Options and the actual wiring live in ../modules/pattern/nvidia.nix.
 
 { ... }:
 

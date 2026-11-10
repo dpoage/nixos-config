@@ -18,7 +18,7 @@ A natural cutover point is a moment when the finished work no longer needs its r
 Roll over at a cutover point only if work remains in this session and the window holds earlier work that you no longer read. Skip the rollover in these cases:
 
 - You are about to give your final answer or yield. A checkpoint reminder that arrives after your final answer overrides this case.
-- The current window started in the last few turns.
+- This window holds fewer than about 20 of your turns, counted from the session start or the last rollover.
 - You are in the middle of a debug loop, or you have edits whose reasons are not recorded.
 
 ## Procedure

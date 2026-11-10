@@ -43,10 +43,10 @@ compaction:
   experimentalContextManagement: true
 
 # TTSR rules fire once per session by default. The context-rollover checkpoint
-# rule must fire at every checkpoint, so let rules re-fire after 10 turns.
+# rule must fire at every checkpoint; a 20-turn gap matches its small-window skip.
 ttsr:
   repeatMode: after-gap
-  repeatGap: 10
+  repeatGap: 20
 
 retry:
   fallbackChains:

@@ -8,7 +8,7 @@ Your last message closed a checkpoint: you recorded a decision and handed the ne
 
 Skip the rollover in these cases, and reply with one line that says why:
 
-- The current window started in the last few turns.
+- This window holds fewer than about 20 of your turns, counted from the session start or the last rollover. A rollover then frees little and drops raw detail.
 - You are a subagent and you already called `yield`.
 - The next checkpoint needs raw detail from this window that you cannot write into the notebook.
 

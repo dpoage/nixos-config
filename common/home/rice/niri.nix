@@ -17,6 +17,9 @@ let
   cfg = config.myRice;
   c   = config.lib.stylix.colors.withHashtag;
   isNiri = cfg.enable && cfg.compositor == "niri";
+  # The shadow is the background on dark palettes; on light ones that would be
+  # a cream glow, so it takes the dark text color instead.
+  light = config.stylix.polarity == "light";
 
   # Autostart line for the selected bar; empty when `myRice.bar = "none"`.
   barSpawn = lib.optionalString (cfg.barCommand != null)
@@ -75,7 +78,7 @@ in
               softness 40
               spread 4
               offset x=0 y=8
-              color "${c.base00}cc"
+              color "${if light then "${c.base05}66" else "${c.base00}cc"}"
           }
 
           struts { }

@@ -25,15 +25,31 @@ let
     then "[](fg:flamingo bg:peach)"
     else "[](bg:peach fg:mauve)";
 
+  # Light palettes: most accents give base00 text under 4.5:1 (catppuccin-latte
+  # pastels 2.3-3.0:1), so the segments are the accent mixed toward the text
+  # color base05 (see ../theme/mix.nix) and keep base00 text. Dark palettes
+  # keep the plain slots.
+  light = stylix.polarity == "light";
+  mix = import ../theme/mix.nix { inherit lib; };
+  pct = 70;
+  hash = hex: "#${hex}";
+  accent = slot: hash (mix.mixHex colors.${slot} colors.base05 pct);
+  seg = slot: if light then accent slot else colors.withHashtag.${slot};
+
   # Segment names the prompt format already uses, added to Stylix's
-  # starship palette (which owns green, blue and purple).
-  starshipSegments = with colors.withHashtag; {
-    mauve = bright-magenta;
-    flamingo = orange;
-    peach = bright-yellow;
-    teal = bright-cyan;
-    crust = base00;
-  };
+  # starship palette (which owns green, blue and purple; mkForce moves them
+  # on light palettes).
+  starshipSegments = {
+    mauve = seg "base17";
+    flamingo = seg "base09";
+    peach = seg "base13";
+    teal = seg "base15";
+    crust = colors.withHashtag.base00;
+  } // lib.optionalAttrs light (lib.mapAttrs (_: lib.mkForce) {
+    green = seg "base0B";
+    blue = seg "base0D";
+    purple = seg "base0E";
+  });
 
 in
 {
@@ -77,10 +93,12 @@ in
         foreground = base05;
         background = base00;
         selection_foreground = base00;
-        selection_background = base06;
-        cursor = base06;
+        # base06 is rosewater on latte (2.3:1 vs base00); light selections are the
+        # inverse chip, and cursor/url follow.
+        selection_background = if light then base05 else base06;
+        cursor = if light then base05 else base06;
         cursor_text_color = base00;
-        url_color = base06;
+        url_color = if light then accent "base0D" else base06;
       }
       // lib.listToAttrs (lib.imap0 (i: hex: lib.nameValuePair "color${toString i}" "#${hex}") ansi)
       // {
@@ -115,7 +133,12 @@ in
     # Zsh
     programs.zsh = {
       enable = true;
-      autosuggestion.enable = true;
+      autosuggestion = {
+        enable = true;
+        # Default hint is ANSI 8 (base04), 1.9:1 on catppuccin-latte; light
+        # palettes get a text-color mix that clears 3:1 as a dim hint.
+        highlight = lib.mkIf light "fg=${hash (mix.mixHex colors.base00 colors.base05 pct)}";
+      };
       syntaxHighlighting.enable = true;
       enableCompletion = true;
 

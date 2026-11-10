@@ -5,6 +5,8 @@
 
 let
   cfg = config.myRice;
+  colors = config.lib.stylix.colors;
+  light = config.stylix.polarity == "light";
 in
 {
   config = lib.mkIf cfg.enable {
@@ -29,6 +31,14 @@ in
         border = {
           width = 2;
           radius = 14;
+        };
+        # The Stylix fuzzel target's match color is base0A, 2.2-2.3:1 on the
+        # light backgrounds. On catppuccin-latte base05 is the only slot
+        # reaching 4.5:1 on the selection (base02). Light palettes take
+        # base08 for matches and base05 for matches in the selected row.
+        colors = lib.mkIf light {
+          match = lib.mkForce "${colors.base08}ff";
+          selection-match = lib.mkForce "${colors.base05}ff";
         };
         dmenu = {
           exit-immediately-if-empty = "yes";

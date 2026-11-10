@@ -16,6 +16,9 @@
     nvimScheme = {
       gruvbox-dark = { name = "gruvbox"; settings.contrast = "hard"; };
       catppuccin-mocha = { name = "catppuccin"; settings.flavour = "mocha"; };
+      # The scheme's own base00 is gruvbox.nvim's default (medium) light background.
+      gruvbox-light = { name = "gruvbox"; settings = { }; };
+      catppuccin-latte = { name = "catppuccin"; settings.flavour = "latte"; };
     }.${config.myTheme.palette};
   in
   {

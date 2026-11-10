@@ -11,12 +11,15 @@
 # layouts, gaming workarounds, etc.) since niri reads that directory
 # automatically.
 
-{ config, osConfig, lib, pkgs, ... }:
+{ config, lib, pkgs, ... }:
 
 let
   cfg = config.myRice;
-  c   = osConfig.myTheme.colors;
+  c   = config.lib.stylix.colors.withHashtag;
   isNiri = cfg.enable && cfg.compositor == "niri";
+  # The shadow is the background on dark palettes; on light ones that would be
+  # a cream glow, so it takes the dark text color instead.
+  light = config.stylix.polarity == "light";
 
   # Autostart line for the selected bar; empty when `myRice.bar = "none"`.
   barSpawn = lib.optionalString (cfg.barCommand != null)
@@ -58,16 +61,16 @@ in
 
           focus-ring {
               width 3
-              active-gradient from="#${c.accent}" to="#${c.accentTri}" angle=45 in="oklch longer hue"
-              inactive-color "#${c.bg1}"
+              active-gradient from="${c.base0D}" to="${c.base0E}" angle=45 in="oklch longer hue"
+              inactive-color "${c.base03}"
           }
 
           border {
               off
               width 1
-              active-color "#${c.accentSecond}"
-              inactive-color "#${c.bg2}"
-              urgent-color "#${c.urgent}"
+              active-color "${c.base0A}"
+              inactive-color "${c.base03}"
+              urgent-color "${c.base08}"
           }
 
           shadow {
@@ -75,7 +78,7 @@ in
               softness 40
               spread 4
               offset x=0 y=8
-              color "#${c.bg}cc"
+              color "${if light then "${c.base05}66" else "${c.base00}cc"}"
           }
 
           struts { }

@@ -1,10 +1,10 @@
-{ config, osConfig, lib, pkgs, ... }:
+{ config, lib, pkgs, ... }:
 
 let
   cfg = config.myPrompt;
-  t = osConfig.myTheme;
-  c = t.colors;
-  named = t.named;
+  stylix = config.stylix;
+  colors = config.lib.stylix.colors;
+  ansi = import ../theme/ansi.nix colors;
 
   # --- Badge generation ---
   # Badges appear between the username and directory segments,
@@ -25,17 +25,34 @@ let
     then "[](fg:flamingo bg:peach)"
     else "[](bg:peach fg:mauve)";
 
-  # Starship named colors, derived once from the active palette via the shared
-  # semantic map. The format string references these names (mauve, peach, ...).
-  starshipPalette = lib.mapAttrs (_: v: "#${v}") named;
+  # Light palettes: most accents give base00 text under 4.5:1 (catppuccin-latte
+  # pastels 2.3-3.0:1), so the segments are the accent mixed toward the text
+  # color base05 (see ../theme/mix.nix) and keep base00 text. Dark palettes
+  # keep the plain slots.
+  light = stylix.polarity == "light";
+  mix = import ../theme/mix.nix { inherit lib; };
+  # Lowest passing pct per use, measured on gruvbox-light and catppuccin-latte;
+  # a new light palette needs re-probing.
+  segmentPct = 70; # starship segments 4.5:1 from 61 (latte); kitty url from 19
+  hintPct = 70; # autosuggest hint 3:1 from 64 (latte)
+  hash = hex: "#${hex}";
+  accent = slot: hash (mix.mixHex { from = colors.${slot}; toward = colors.base05; pct = segmentPct; });
+  seg = slot: if light then accent slot else colors.withHashtag.${slot};
 
-  # --- FZF colors (derived from the active palette) ---
-  fzfColorOpts = builtins.concatStringsSep " " [
-    "--color=bg+:#${c.bg1},bg:#${c.bg},spinner:#${c.fg2},hl:#${c.redBr}"
-    "--color=fg:#${c.fg},header:#${c.redBr},info:#${c.accent},pointer:#${c.fg2}"
-    "--color=marker:#${c.promptMuted},fg+:#${c.fg},prompt:#${c.accent},hl+:#${c.redBr}"
-    "--color=selected-bg:#${c.bg2}"
-  ];
+  # Segment names the prompt format already uses, added to Stylix's
+  # starship palette (which owns green, blue and purple; mkForce moves them
+  # on light palettes).
+  starshipSegments = {
+    mauve = seg "base17";
+    flamingo = seg "base09";
+    peach = seg "base13";
+    teal = seg "base15";
+    crust = colors.withHashtag.base00;
+  } // lib.optionalAttrs light (lib.mapAttrs (_: lib.mkForce) {
+    green = seg "base0B";
+    blue = seg "base0D";
+    purple = seg "base0E";
+  });
 
 in
 {
@@ -67,33 +84,36 @@ in
   };
 
   config = {
-    # Kitty terminal, themed from the active palette.
+    # Stylix's kitty target only emits base16 colors and is off (see
+    # common/theme); colors come from the base24 ANSI list, fonts from stylix.*.
     programs.kitty = {
       enable = true;
       font = {
-        name = t.fonts.mono;
-        size = t.fonts.monoSize;
+        name = stylix.fonts.monospace.name;
+        size = stylix.fonts.sizes.terminal;
       };
-      settings = {
-        foreground = "#${c.fg}";
-        background = "#${c.bg}";
-        selection_foreground = "#${c.bg}";
-        selection_background = "#${c.fg2}";
-        cursor = "#${c.fg2}";
-        cursor_text_color = "#${c.bg}";
-        url_color = "#${c.fg2}";
+      settings = with colors.withHashtag; {
+        foreground = base05;
+        background = base00;
+        selection_foreground = base00;
+        # base06 is rosewater on latte (2.3:1 vs base00); light selections are the
+        # inverse chip, and cursor/url follow.
+        selection_background = if light then base05 else base06;
+        cursor = if light then base05 else base06;
+        cursor_text_color = base00;
+        url_color = if light then accent "base0D" else base06;
       }
-      // lib.listToAttrs (lib.imap0 (i: hex: lib.nameValuePair "color${toString i}" "#${hex}") t.ansi)
+      // lib.listToAttrs (lib.imap0 (i: hex: lib.nameValuePair "color${toString i}" "#${hex}") ansi)
       // {
         # Tab bar
-        active_tab_foreground = "#${c.promptFg}";
-        active_tab_background = "#${c.purple}";
-        inactive_tab_foreground = "#${c.fg}";
-        inactive_tab_background = "#${c.bg0}";
-        tab_bar_background = "#${c.promptFg}";
+        active_tab_foreground = base00;
+        active_tab_background = base0E;
+        inactive_tab_foreground = base05;
+        inactive_tab_background = base01;
+        tab_bar_background = base00;
 
         # Window
-        background_opacity = toString t.terminal.opacity;
+        background_opacity = toString stylix.opacity.terminal;
         window_padding_width = "8";
         # kitty >= 0.49 restores the last window state (incl. maximized) on
         # Wayland; under Hyprland that opens every new kitty maximized
@@ -116,7 +136,12 @@ in
     # Zsh
     programs.zsh = {
       enable = true;
-      autosuggestion.enable = true;
+      autosuggestion = {
+        enable = true;
+        # Default hint is ANSI 8 (base04), 1.9:1 on catppuccin-latte; light
+        # palettes get a text-color mix that clears 3:1 as a dim hint.
+        highlight = lib.mkIf light "fg=${hash (mix.mixHex { from = colors.base00; toward = colors.base05; pct = hintPct; })}";
+      };
       syntaxHighlighting.enable = true;
       enableCompletion = true;
 
@@ -169,10 +194,26 @@ in
           source "$(fzf-share)/key-bindings.zsh"
           source "$(fzf-share)/completion.zsh"
         fi
-
-        # FZF theme (generated from palette when myRice is enabled)
-        export FZF_DEFAULT_OPTS="${fzfColorOpts} --multi"
       '';
+    };
+
+    # Colors come from the Stylix fzf/bat/btop targets.
+    programs.fzf = {
+      enable = true;
+      enableZshIntegration = false;
+      defaultOptions = [ "--multi" ];
+    };
+    programs.bat.enable = true;
+    programs.btop.enable = true;
+
+    # LS_COLORS (read by eza and ls) is `vivid generate` of the theme the
+    # Stylix vivid target defines; the zsh integration exports it.
+    # Directories use base0D: the target's base0F is unreadable on gruvbox-dark.
+    programs.vivid = {
+      enable = true;
+      enableZshIntegration = true;
+      themes.${config.programs.vivid.activeTheme}.core.directory.foreground =
+        lib.mkForce "base0D";
     };
 
     # Zoxide (smart cd). Managed via the home-manager module rather than a
@@ -224,38 +265,21 @@ in
         setw -g monitor-activity off
         set -g bell-action none
 
-        # clock mode
-        setw -g clock-mode-colour yellow
-
-        # copy mode
-        setw -g mode-style 'fg=black bg=red bold'
-
-        # panes
-        set -g pane-border-style 'fg=red'
-        set -g pane-active-border-style 'fg=yellow'
+        # Colors: none set here. Styles for the status line, windows, panes,
+        # messages, copy mode and clock come from the Stylix tmux target.
 
         # statusbar
         set -g status-position bottom
         set -g status-justify left
-        set -g status-style 'fg=red'
 
         set -g status-left ""
         set -g status-left-length 10
 
-        set -g status-right-style 'fg=black bg=yellow'
         set -g status-right '%Y-%m-%d %H:%M '
         set -g status-right-length 50
 
-        setw -g window-status-current-style 'fg=black bg=red'
         setw -g window-status-current-format ' #I #W #F '
-
-        setw -g window-status-style 'fg=red bg=black'
-        setw -g window-status-format ' #I #[fg=white]#W #[fg=yellow]#F '
-
-        setw -g window-status-bell-style 'fg=yellow bg=red bold'
-
-        # messages
-        set -g message-style 'fg=yellow bg=red bold'
+        setw -g window-status-format ' #I #W #F '
       '';
     };
 
@@ -308,8 +332,7 @@ in
           "$character"
         ];
 
-        palette = "prompt";
-        palettes.prompt = starshipPalette;
+        palettes.base16 = starshipSegments;
 
         os = {
           disabled = false;

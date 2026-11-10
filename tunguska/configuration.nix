@@ -31,7 +31,7 @@
   services.greetd.settings.default_session.command = lib.mkForce
     "${pkgs.tuigreet}/bin/tuigreet --time --cmd niri-session";
 
-  myTheme.palette = "gruvbox";
+  myTheme.palette = "gruvbox-dark";
 
   # Primary user + desktop bundle for this host.
   myUser = {

@@ -12,6 +12,14 @@
       };
       dependencies = [ pkgs.vimPlugins.plenary-nvim ];
     };
+
+    nvimScheme = {
+      gruvbox-dark = { name = "gruvbox"; settings.contrast = "hard"; };
+      catppuccin-mocha = { name = "catppuccin"; settings.flavour = "mocha"; };
+      # The scheme's own base00 is gruvbox.nvim's default (medium) light background.
+      gruvbox-light = { name = "gruvbox"; settings = { }; };
+      catppuccin-latte = { name = "catppuccin"; settings.flavour = "latte"; };
+    }.${config.myTheme.palette};
   in
   {
     programs.nixvim = {
@@ -46,11 +54,12 @@
         completeopt = "menu,menuone,noselect";
         showmode = false;                                                                                                   
         mouse = "a";                                                                                                      
+        background = config.stylix.polarity;
       };                                                                                                                    
    
-      colorschemes.${config.myTheme.upstream.nvim.name} = {
+      colorschemes.${nvimScheme.name} = {
         enable = true;
-        inherit (config.myTheme.upstream.nvim) settings;
+        inherit (nvimScheme) settings;
       };
                                                                                                                             
       # Keymaps (LazyVim-style)

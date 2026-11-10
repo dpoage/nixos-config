@@ -1,12 +1,16 @@
-# Fuzzel app launcher, themed from the active palette.
-# Uses home-manager's `programs.fuzzel` module which writes
-# ~/.config/fuzzel/fuzzel.ini from a typed `settings` attrset.
+# Fuzzel app launcher; fonts, colors and icon theme come from the Stylix
+# fuzzel target. `programs.fuzzel` writes ~/.config/fuzzel/fuzzel.ini.
 
-{ config, osConfig, lib, pkgs, ... }:
+{ config, lib, pkgs, ... }:
 
 let
   cfg = config.myRice;
-  c   = osConfig.myTheme.colors;
+  colors = config.lib.stylix.colors;
+  light = config.stylix.polarity == "light";
+  mix = import ../../theme/mix.nix { inherit lib; };
+  # On the selection (base02): 4.5:1 from 36 (gruvbox-light), CIEDE2000 >= 10
+  # vs selection-text up to 86 (latte); a new light palette needs re-probing.
+  selectionMatchPct = 60;
 in
 {
   config = lib.mkIf cfg.enable {
@@ -14,9 +18,7 @@ in
       enable = true;
       settings = {
         main = {
-          font = "FantasqueSansM Nerd Font Mono:weight=medium:size=13";
           prompt = "\">  \"";
-          icon-theme = if config.gtk.iconTheme != null then config.gtk.iconTheme.name else "hicolor";
           icons-enabled = "yes";
           terminal = "alacritty";
           fields = "name,generic,comment,categories,filename,keywords";
@@ -34,19 +36,12 @@ in
           width = 2;
           radius = 14;
         };
-        # Colors take an 8-char RRGGBBAA hex (no leading #).
-        colors = {
-          background      = "${c.bg}ee";
-          text            = "${c.fg}ff";
-          match           = "${c.accentSecond}ff";
-          selection       = "${c.bg1}ff";
-          selection-text  = "${c.accentSecond}ff";
-          selection-match = "${c.accent}ff";
-          border          = "${c.accentSecond}ff";
-          prompt          = "${c.accent}ff";
-          input           = "${c.fg}ff";
-          placeholder     = "${c.gray}ff";
-          counter         = "${c.gray}ff";
+        # The Stylix fuzzel target's match color is base0A, 2.2-2.3:1 on the
+        # light backgrounds; light palettes take base08, pulled toward the text
+        # color for matches in the selected row.
+        colors = lib.mkIf light {
+          match = lib.mkForce "${colors.base08}ff";
+          selection-match = lib.mkForce "${mix.mixHex { from = colors.base08; toward = colors.base05; pct = selectionMatchPct; }}ff";
         };
         dmenu = {
           exit-immediately-if-empty = "yes";

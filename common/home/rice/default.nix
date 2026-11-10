@@ -1,5 +1,5 @@
 # Opt-in desktop bundle: compositor, bar, launcher, notifications, locker,
-# wallpaper daemon. Colors and fonts come from the system-level `myTheme`.
+# wallpaper daemon. Colors and fonts come from Stylix.
 
 { config, lib, ... }:
 

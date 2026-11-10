@@ -1,12 +1,11 @@
-# swaylock-effects lockscreen, themed from the active palette.
+# swaylock-effects lockscreen; colors come from the Stylix swaylock target.
 # home-manager's programs.swaylock supports `package` override, so we
 # swap in swaylock-effects to unlock blur/vignette/clock features.
 
-{ config, osConfig, lib, pkgs, ... }:
+{ config, lib, pkgs, ... }:
 
 let
   cfg = config.myRice;
-  c   = osConfig.myTheme.colors;
 in
 {
   config = lib.mkIf cfg.enable {
@@ -33,27 +32,10 @@ in
         indicator-radius = 140;
         indicator-thickness = 14;
         indicator-caps-lock = true;
-
-        ring-color = c.accentSecond;
-        ring-ver-color = c.blueBr;
-        ring-wrong-color = c.urgent;
-        ring-clear-color = c.accentTri;
-        key-hl-color = c.accent;
-        bs-hl-color = c.urgent;
-        line-color = "00000000";
-        separator-color = "00000000";
-        inside-color = "${c.bg}cc";
-        inside-ver-color = "${c.bg}cc";
-        inside-wrong-color = "${c.bg}cc";
-        inside-clear-color = "${c.bg}cc";
-        text-color = c.fg;
-        text-ver-color = c.fg;
-        text-wrong-color = c.redBr;
-        text-clear-color = c.fg;
-        layout-bg-color = "${c.bg0}aa";
-        layout-border-color = c.accentSecond;
-        layout-text-color = c.fg;
       };
     };
+
+    # The screenshots effect is the background, not the wallpaper.
+    stylix.targets.swaylock.image.enable = false;
   };
 }

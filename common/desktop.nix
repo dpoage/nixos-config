@@ -4,6 +4,9 @@
 { config, pkgs, ... }:
 
 {
+  # Theme and package come from Stylix's plymouth target (common/theme).
+  boot.plymouth.enable = true;
+
   programs.firefox.enable = true;
 
   services.printing.enable = true;
@@ -70,7 +73,6 @@
   # Compositor-agnostic desktop packages. Compositor-specific tools live
   # in profiles/hyprland-stack.nix (hyprlock/hypridle/hyprpicker, etc.).
   environment.systemPackages = with pkgs; [
-    rofi
     brightnessctl
     # Generic wayland utilities — used by both hyprland and niri.
     wl-clipboard
@@ -108,14 +110,6 @@
       nerd-fonts.inconsolata
       nerd-fonts.victor-mono
     ];
-    fontconfig = {
-      defaultFonts = {
-        serif = [ "Noto Serif" ];
-        sansSerif = [ "Noto Sans" ];
-        monospace = [ config.myTheme.fonts.mono ];
-        emoji = [ "Noto Color Emoji" ];
-      };
-    };
   };
 
   # Wayland environment

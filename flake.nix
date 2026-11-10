@@ -36,6 +36,10 @@
       url = "github:microvm-nix/microvm.nix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    stylix = {
+      url = "github:nix-community/stylix/release-26.05";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   outputs =
@@ -58,6 +62,7 @@
         nixvim.nixosModules.nixvim
         home-manager.nixosModules.home-manager
         inputs.sops-nix.nixosModules.sops
+        inputs.stylix.nixosModules.stylix
         { home-manager.sharedModules = [ nix-index-database.homeModules.nix-index ]; }
         { nixpkgs.overlays = [ overlay ]; }
         # Keep every input's source alive as long as the generation is: the

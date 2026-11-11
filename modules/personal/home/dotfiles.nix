@@ -83,12 +83,8 @@
     ../dotfiles/omp/rules/context-rollover-checkpoint.md;
   home.file.".omp/agent/rules/punted-work.md".source =
     ../dotfiles/omp/rules/punted-work.md;
-  home.file.".omp/agent/rules/deferred-without-bead.md".source =
-    ../dotfiles/omp/rules/deferred-without-bead.md;
   home.file.".omp/agent/rules/unverified-done.md".source =
     ../dotfiles/omp/rules/unverified-done.md;
-  home.file.".omp/agent/rules/silent-scope-shrink.md".source =
-    ../dotfiles/omp/rules/silent-scope-shrink.md;
   home.file.".omp/agent/rules/needless-question.md".source =
     ../dotfiles/omp/rules/needless-question.md;
   home.file.".omp/agent/rules/unpushed-session-end.md".source =

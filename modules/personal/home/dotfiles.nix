@@ -81,6 +81,34 @@
     ../dotfiles/omp/rules/context-rollover.md;
   home.file.".omp/agent/rules/context-rollover-checkpoint.md".source =
     ../dotfiles/omp/rules/context-rollover-checkpoint.md;
+  home.file.".omp/agent/rules/punted-work.md".source =
+    ../dotfiles/omp/rules/punted-work.md;
+  home.file.".omp/agent/rules/deferred-without-bead.md".source =
+    ../dotfiles/omp/rules/deferred-without-bead.md;
+  home.file.".omp/agent/rules/unverified-done.md".source =
+    ../dotfiles/omp/rules/unverified-done.md;
+  home.file.".omp/agent/rules/silent-scope-shrink.md".source =
+    ../dotfiles/omp/rules/silent-scope-shrink.md;
+  home.file.".omp/agent/rules/needless-question.md".source =
+    ../dotfiles/omp/rules/needless-question.md;
+  home.file.".omp/agent/rules/unpushed-session-end.md".source =
+    ../dotfiles/omp/rules/unpushed-session-end.md;
+  home.file.".omp/agent/rules/oracle-probe-evidence.md".source =
+    ../dotfiles/omp/rules/oracle-probe-evidence.md;
+  home.file.".omp/agent/rules/implementer-self-verdict.md".source =
+    ../dotfiles/omp/rules/implementer-self-verdict.md;
+  home.file.".omp/agent/rules/nix-silenced-error.md".source =
+    ../dotfiles/omp/rules/nix-silenced-error.md;
+  home.file.".omp/agent/rules/swallowed-error.md".source =
+    ../dotfiles/omp/rules/swallowed-error.md;
+  home.file.".omp/agent/rules/repinned-test.md".source =
+    ../dotfiles/omp/rules/repinned-test.md;
+  home.file.".omp/agent/rules/compat-shim.md".source =
+    ../dotfiles/omp/rules/compat-shim.md;
+  home.file.".omp/agent/rules/narrating-comment.md".source =
+    ../dotfiles/omp/rules/narrating-comment.md;
+  home.file.".omp/agent/rules/rationalized-shortcut.md".source =
+    ../dotfiles/omp/rules/rationalized-shortcut.md;
 
   # OMP model-role overlay: read-only layer over ~/.omp/agent/config.yml.
   # PI_CONFIG_FILES makes omp load it; per-key override, strict parse.

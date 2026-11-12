@@ -67,7 +67,6 @@ let
     gruvbox-material-light-medium = b16 "gruvbox-material-light-medium" // light { ink = "base07"; match = 5; };
     gruvbox-material-light-soft = b16 "gruvbox-material-light-soft" // light { ink = "base07"; match = 15; };
   };
-  p = palettes.${cfg.palette};
   # Stylix's YAML parser fails on comment-only lines, which some upstream schemes
   # (dracula) have; drop them before handing the scheme over.
   schemeFile = name: builtins.toFile "${name}.yaml" (builtins.unsafeDiscardStringContext
@@ -99,16 +98,19 @@ let
     lib.optionalAttrs (lib.hasPrefix "base16/" palettes.${name}.scheme) (brights (config.stylix.base16.mkSchemeAttrs (schemeFile name)))
     // lib.optionalAttrs (name == "gruvbox-dark") { base00 = "1d2021"; };
 
-  # What Stylix's lib.stylix.colors would be with each palette active, for the
-  # kitty-palette live preview.
+  # Each palette as Stylix's lib.stylix.colors would be with it active, plus its
+  # contrast tuning, semantic roles and wallpaper: what myTheme.apps render from.
+  mkRoles = import ./roles.nix { inherit lib; };
   paletteThemes = lib.mapAttrs
-    (name: palette: {
+    (name: palette: rec {
       colors = (config.stylix.base16.mkSchemeAttrs (schemeFile name)).override (schemeOverride name);
       lightContrast = lightContrastDefaults // (palette.contrast or { });
+      roles = mkRoles { inherit colors lightContrast; };
+      wallpaper = palette.wallpaper or (generatedWallpaper name colors);
     })
     palettes;
 
-  generatedWallpaper = pkgs.runCommand "wallpaper-${cfg.palette}.png"
+  generatedWallpaper = name: colors: pkgs.runCommand "wallpaper-${name}.png"
     { nativeBuildInputs = [ pkgs.imagemagick ]; } ''
       magick -size 3840x2160 'radial-gradient:#${colors.base01}-#${colors.base00}' \
         \( -background none -density 300 \
@@ -118,22 +120,35 @@ let
     '';
 
   # Headless hosts run with autoEnable off and only these terminal targets.
-  terminalTargets = [ "bat" "btop" "fzf" "starship" "tmux" "yazi" "lazygit" "k9s" "vivid" ];
+  # fzf, starship and tmux colors come from myTheme.apps instead.
+  terminalTargets = [ "bat" "btop" "yazi" "lazygit" "k9s" "vivid" ];
 in
 {
-  options.myTheme.palette = lib.mkOption {
-    type = lib.types.enum (lib.attrNames palettes);
-    default = "catppuccin-mocha";
-    description = "Palette Stylix themes the host with.";
+  options.myTheme = {
+    palette = lib.mkOption {
+      type = lib.types.enum (lib.attrNames palettes);
+      default = "catppuccin-mocha";
+      description = "Palette Stylix themes the host with.";
+    };
+    palettes = lib.mkOption {
+      type = lib.types.attrsOf lib.types.attrs;
+      readOnly = true;
+      description = ''
+        Every selectable palette, keyed by myTheme.palette name: its Stylix
+        colors set, lightContrast, semantic roles (./roles.nix) and wallpaper.
+      '';
+    };
   };
 
   config = {
+    myTheme.palettes = paletteThemes;
+
     stylix = {
       enable = true;
       base16Scheme = schemeFile cfg.palette;
       override = schemeOverride cfg.palette;
       polarity = colors.variant;
-      image = lib.mkIf graphical (p.wallpaper or generatedWallpaper);
+      image = lib.mkIf graphical paletteThemes.${cfg.palette}.wallpaper;
 
       fonts = {
         monospace = { package = pkgs.nerd-fonts.jetbrains-mono; name = "JetBrainsMono Nerd Font"; };
@@ -174,7 +189,7 @@ in
     home-manager.sharedModules = [
       {
         stylix.targets = {
-          # kitty/alacritty colors come from ./ansi.nix; fonts and opacity from stylix.*.
+          # kitty/alacritty colors come from myTheme.apps slots; fonts and opacity from stylix.*.
           kitty.enable = false;
           alacritty.enable = false;
           # Installs a GNOME Shell extension; gtk.colorScheme below carries polarity.
@@ -186,21 +201,22 @@ in
 
         gtk.colorScheme = lib.mkIf graphical config.stylix.polarity;
       }
+      ./apps.nix
       {
         options.myTheme = {
-          lightContrast = lib.mkOption {
-            type = lib.types.attrs;
+          palette = lib.mkOption {
+            type = lib.types.str;
             readOnly = true;
-            description = "Ink slot, red slot and accent mix percentages for the active palette when it is light.";
+            description = "The host's declared myTheme.palette.";
           };
           palettes = lib.mkOption {
             type = lib.types.attrsOf lib.types.attrs;
             readOnly = true;
-            description = "Every selectable palette's Stylix colors set and lightContrast, keyed by myTheme.palette name.";
+            description = "The host's myTheme.palettes.";
           };
         };
         config.myTheme = {
-          lightContrast = paletteThemes.${cfg.palette}.lightContrast;
+          palette = cfg.palette;
           palettes = paletteThemes;
         };
       }

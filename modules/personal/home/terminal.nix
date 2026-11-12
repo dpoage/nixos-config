@@ -3,7 +3,6 @@
 let
   cfg = config.myPrompt;
   stylix = config.stylix;
-  colors = config.lib.stylix.colors;
 
   # Rounded pill around `body`; the body styles itself and must carry bg:`color`.
   pill = color: body: "[](fg:${color})${body}[](fg:${color}) ";
@@ -19,126 +18,37 @@ let
     then pill "neutral" "[ ${badges}](bg:neutral fg:neutral_fg)(${gap}$username$hostname)${gap}"
     else "(${pill "neutral" "${gap}$username$hostname${gap}"})";
 
-  # Light palettes: most accents give base00 text under 4.5:1 (catppuccin-latte
-  # pastels 2.3-3.0:1), so segments mix toward the palette's ink and keep base00 text.
-  light = stylix.polarity == "light";
-  lc = config.myTheme.lightContrast;
-  mix = import ../theme/mix.nix { inherit lib; };
-  hash = hex: "#${hex}";
-  accent = slot: hash (mix.mixHex { from = colors.${slot}; toward = colors.${lc.ink}; pct = lc.segment; });
-  seg = slot: if light then accent slot else colors.withHashtag.${slot};
-
   # Semantic prompt colors; pills put base00 text on them, other text sits on base00.
-  promptColors = {
-    neutral = colors.withHashtag.base02;
-    neutral_fg = colors.withHashtag.base05;
-    pill_text = colors.withHashtag.base00;
-    path = seg "base16";
-    branch = seg "base0B";
-    dirty = seg "base0A";
-    toolchain = seg "base15";
-    cloud = seg "base17";
-    # Dark base08 is 2.7:1 on gruvbox-dark; its bright red clears 4.3:1.
-    danger = if light then accent lc.red else colors.withHashtag.base12;
-    subtle = hash (mix.mixHex { from = colors.base00; toward = colors.${lc.ink}; pct = lc.hint; });
+  promptColors = { colors, roles, ... }: lib.mapAttrs (_: hex: "#${hex}") {
+    neutral = colors.base02;
+    neutral_fg = colors.base05;
+    pill_text = colors.base00;
+    path = roles.fill "base16";
+    branch = roles.fill "base0B";
+    dirty = roles.fill "base0A";
+    toolchain = roles.fill "base15";
+    cloud = roles.fill "base17";
+    danger = roles.dangerFill;
+    subtle = roles.hint;
   };
 
   kittyColors = import ../theme/kitty-colors.nix { inherit lib; };
+  toml = pkgs.formats.toml { };
 
-  # One kitty color file per palette; kitty-palette pushes them over kitty's socket.
-  paletteConfs = pkgs.linkFarm "kitty-palettes" (lib.mapAttrsToList
-    (name: theme: {
-      name = "${name}.conf";
-      path = pkgs.writeText "kitty-${name}.conf"
-        (lib.concatStrings (lib.mapAttrsToList (k: v: "${k} ${v}\n") (kittyColors theme)));
-    })
-    config.myTheme.palettes);
-
-  # Recolors every running kitty window; nothing persists past a kitty restart.
-  kittyPalette = pkgs.writeShellApplication {
-    name = "kitty-palette";
-    runtimeInputs = [ config.programs.kitty.package pkgs.fzf pkgs.coreutils ];
-    text = ''
-      confs=${paletteConfs}
-
-      usage() {
-        cat <<EOF
-      Usage: kitty-palette [PALETTE | --list | --reset]
-
-      Live-preview myTheme palettes in every running kitty window.
-        (none)    pick with fzf; moving the cursor recolors, Enter keeps, Esc resets
-        PALETTE   apply PALETTE
-        --list    list palettes
-        --reset   restore the colors kitty started with
-      Colors last until kitty restarts; set myTheme.palette to keep one.
-      EOF
-      }
-
-      # $1: color file, or empty to reset. Stale sockets from dead kittys fail quietly.
-      apply() {
-        local sock ok=0
-        shopt -s nullglob
-        for sock in "''${XDG_RUNTIME_DIR:?}"/kitty-*; do
-          [ -S "$sock" ] || continue
-          if [ -n "$1" ]; then
-            kitten @ --to "unix:$sock" set-colors --all --configured "$1" 2>/dev/null && ok=1
-          else
-            kitten @ --to "unix:$sock" set-colors --reset 2>/dev/null && ok=1
-          fi
-        done
-        if [ "$ok" = 0 ]; then
-          echo "kitty-palette: no kitty listening in $XDG_RUNTIME_DIR (kittys started before the switch need a restart)" >&2
-          return 1
-        fi
-      }
-
-      list() {
-        for f in "$confs"/*.conf; do basename "$f" .conf; done
-      }
-
-      # fzf preview: ANSI 0-15 and sample text, drawn in the live colors.
-      swatch() {
-        local i
-        printf '%s\n\n' "$1"
-        for i in 0 1 2 3 4 5 6 7; do printf '\e[48;5;%sm    ' "$i"; done
-        printf '\e[0m\n'
-        for i in 8 9 10 11 12 13 14 15; do printf '\e[48;5;%sm    ' "$i"; done
-        printf '\e[0m\n\n'
-        printf 'plain text \e[2mdim text\e[0m \e[90mcomment\e[0m\n'
-        printf '\e[31merror\e[0m \e[33mwarning\e[0m \e[32mok\e[0m \e[34minfo\e[0m \e[35mkeyword\e[0m \e[36mstring\e[0m\n'
-        printf '\e[91merror\e[0m \e[93mwarning\e[0m \e[92mok\e[0m \e[94minfo\e[0m \e[95mkeyword\e[0m \e[96mstring\e[0m\n'
-        printf '\e[1;37mbold white\e[0m \e[1;97mbold bright white\e[0m\n'
-      }
-
-      pick() {
-        local choice
-        # The Stylix fzf colors are the active palette's hex; ANSI colors follow the preview.
-        if choice=$(list | FZF_DEFAULT_OPTS="" fzf --color=16 --prompt 'palette> ' \
-          --bind "focus:execute-silent($0 {})" \
-          --preview "$0 --swatch {}" --preview-window right,60%); then
-          echo "kitty-palette: $choice applies until kitty restarts; to keep it, set myTheme.palette = \"$choice\";"
-        else
-          apply ""
-        fi
-      }
-
-      case "''${1:-}" in
-        "") pick ;;
-        -h | --help) usage ;;
-        --list) list ;;
-        --reset) apply "" ;;
-        --swatch) swatch "$2" ;;
-        -*) usage >&2; exit 2 ;;
-        *)
-          if [ ! -f "$confs/$1.conf" ]; then
-            echo "kitty-palette: unknown palette '$1' (see --list)" >&2
-            exit 2
-          fi
-          apply "$confs/$1.conf"
-          ;;
-      esac
+  # LS_COLORS is `vivid generate` of the Stylix vivid target's theme, whose
+  # styles name slots; each palette fills them in.
+  vividTheme = config.programs.vivid.themes.${config.programs.vivid.activeTheme};
+  shellTheme = { name, colors, roles, ... }: pkgs.runCommandLocal "shell-theme-${name}"
+    { nativeBuildInputs = [ config.programs.vivid.package ]; } ''
+      # JSON, not formats.yaml: unquoted hex like 2e3440 reads as a float.
+      vivid=$(vivid generate ${pkgs.writeText "vivid-${name}.yml" (builtins.toJSON (vividTheme // {
+        colors = lib.getAttrs (lib.attrNames vividTheme.colors) colors;
+      }))})
+      printf 'export LS_COLORS=%q\n' "$vivid" > $out
+      # Default hint is ANSI 8, 1.9:1 on catppuccin-latte.
+      printf 'ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE=%q\n' ${lib.escapeShellArg (if roles.light then "fg=#${roles.hint}" else "fg=8")} >> $out
     '';
-  };
+  shellSlot = config.myTheme.apps.shell.path;
 in
 {
   options.myPrompt = {
@@ -170,16 +80,15 @@ in
 
   config = {
     # Stylix's kitty target only emits base16 colors and is off (see
-    # modules/personal/theme); colors come from ../theme/kitty-colors.nix, fonts from stylix.*.
+    # modules/personal/theme); colors come from the kitty theme slot, fonts from stylix.*.
     programs.kitty = {
       enable = true;
       font = {
         name = stylix.fonts.monospace.name;
         size = stylix.fonts.sizes.terminal;
       };
-      settings = kittyColors { inherit colors; lightContrast = lc; }
-      // {
-        # kitty-palette recolors over this socket (kitty appends -<pid>);
+      settings = {
+        # `theme` recolors over this socket (kitty appends -<pid>);
         # $XDG_RUNTIME_DIR is 0700, and socket-only refuses escape-code requests.
         allow_remote_control = "socket-only";
         listen_on = "unix:\${XDG_RUNTIME_DIR}/kitty";
@@ -203,18 +112,66 @@ in
         detect_urls = "yes";
         open_url_with = "default";
       };
+      extraConfig = "include ${config.myTheme.apps.kitty.path}";
     };
-    home.packages = [ kittyPalette ];
+
+    myTheme.apps = {
+      kitty = {
+        render = theme: lib.concatStrings
+          (lib.mapAttrsToList (k: v: "${k} ${v}\n") (kittyColors theme));
+        reload = ''
+          shopt -s nullglob
+          for sock in "$XDG_RUNTIME_DIR"/kitty-*; do
+            # Sockets of exited kittys linger.
+            kill -0 "''${sock##*-}" 2>/dev/null || continue
+            ${config.programs.kitty.package}/bin/kitten @ --to "unix:$sock" \
+              set-colors --all --configured "$THEME_FILE"
+          done
+        '';
+      };
+      # The rendered settings plus the palette; starship rereads it every prompt.
+      starship = {
+        render = theme@{ name, ... }: toml.generate "starship-${name}.toml"
+          (config.programs.starship.settings // {
+            palette = "base16";
+            palettes.base16 = promptColors theme;
+          });
+        path = "${config.xdg.configHome}/starship.toml";
+      };
+      # Sourced by zsh before the next prompt once the slot moves.
+      shell.render = shellTheme;
+      fzf.render = { colors, ... }: with colors.withHashtag; "--color=" + lib.concatStringsSep "," [
+        "bg:${base00}" "bg+:${base01}" "fg:${base04}" "fg+:${base06}"
+        "header:${base0D}" "hl:${base0D}" "hl+:${base0D}" "info:${base0A}"
+        "marker:${base0C}" "pointer:${base0C}" "prompt:${base0A}" "spinner:${base0C}"
+      ] + "\n";
+      tmux = {
+        render = { colors, ... }: colors {
+          templateRepo = config.stylix.inputs.tinted-tmux;
+          target = "base16";
+        };
+        reload = ''
+          shopt -s nullglob
+          for sock in "''${TMUX_TMPDIR:-/tmp}/tmux-$(id -u)"/*; do
+            # Sockets of exited servers linger.
+            ${pkgs.tmux}/bin/tmux -S "$sock" list-sessions >/dev/null 2>&1 || continue
+            ${pkgs.tmux}/bin/tmux -S "$sock" source-file "$THEME_FILE"
+          done
+        '';
+      };
+    };
+    # The slot replaces the generated starship.toml; settings stay the source.
+    xdg.configFile."starship.toml".enable = false;
+    stylix.targets = {
+      fzf.enable = false;
+      starship.enable = false;
+      tmux.enable = false;
+    };
 
     # Zsh
     programs.zsh = {
       enable = true;
-      autosuggestion = {
-        enable = true;
-        # Default hint is ANSI 8 (base04), 1.9:1 on catppuccin-latte; light
-        # palettes get an ink mix that clears 3:1 as a dim hint.
-        highlight = lib.mkIf light "fg=${promptColors.subtle}";
-      };
+      autosuggestion.enable = true;
       syntaxHighlighting.enable = true;
       enableCompletion = true;
 
@@ -267,10 +224,22 @@ in
           source "$(fzf-share)/key-bindings.zsh"
           source "$(fzf-share)/completion.zsh"
         fi
+
+        export FZF_DEFAULT_OPTS_FILE=${config.myTheme.apps.fzf.path}
+
+        # Re-source the shell theme slot whenever `theme` re-points it.
+        _my_theme_shell() {
+          local target=''${''${:-${shellSlot}}:A}
+          [[ $target == $_my_theme_shell_seen ]] && return
+          _my_theme_shell_seen=$target
+          [[ -r ${shellSlot} ]] && source ${shellSlot}
+        }
+        _my_theme_shell
+        precmd_functions+=(_my_theme_shell)
       '';
     };
 
-    # Colors come from the Stylix fzf/bat/btop targets.
+    # fzf colors come from the fzf theme slot; bat/btop from Stylix.
     programs.fzf = {
       enable = true;
       enableZshIntegration = false;
@@ -279,12 +248,12 @@ in
     programs.bat.enable = true;
     programs.btop.enable = true;
 
-    # LS_COLORS (read by eza and ls) is `vivid generate` of the theme the
-    # Stylix vivid target defines; the zsh integration exports it.
-    # Directories use base0D: the target's base0F is unreadable on gruvbox-dark.
+    # The Stylix vivid target defines the theme the shell slot generates
+    # LS_COLORS from. Directories use base0D: the target's base0F is
+    # unreadable on gruvbox-dark.
     programs.vivid = {
       enable = true;
-      enableZshIntegration = true;
+      enableZshIntegration = false;
       themes.${config.programs.vivid.activeTheme}.core.directory.foreground =
         lib.mkForce "base0D";
     };
@@ -338,8 +307,9 @@ in
         setw -g monitor-activity off
         set -g bell-action none
 
-        # Colors: none set here. Styles for the status line, windows, panes,
-        # messages, copy mode and clock come from the Stylix tmux target.
+        # Colors: styles for the status line, windows, panes, messages, copy
+        # mode and clock come from the tmux theme slot (tinted-tmux base16).
+        source-file -q ${config.myTheme.apps.tmux.path}
 
         # statusbar
         set -g status-position bottom
@@ -388,8 +358,6 @@ in
           "$line_break$character"
         ];
         right_format = "$status$cmd_duration$jobs$time";
-
-        palettes.base16 = promptColors;
 
         username = {
           style_user = "bg:neutral fg:neutral_fg";

@@ -1,4 +1,4 @@
-# Alacritty terminal, themed from the active palette.
+# Alacritty terminal; colors come from the alacritty theme slot.
 # Note: this coexists with the existing programs.kitty config in
 # terminal.nix — both can be installed; the user picks at runtime.
 
@@ -7,16 +7,33 @@
 let
   cfg = config.myRice;
   stylix = config.stylix;
-  colors = config.lib.stylix.colors;
-  ansi = import ../../theme/ansi.nix colors;
+  toml = pkgs.formats.toml { };
   # Alacritty wants colors as "0x" + hex.
   hex = v: "0x${v}";
   ansiNames = [ "black" "red" "green" "yellow" "blue" "magenta" "cyan" "white" ];
-  ansiHalf = offset: lib.listToAttrs (lib.imap0
-    (i: name: lib.nameValuePair name (hex (builtins.elemAt ansi (offset + i)))) ansiNames);
+  themeColors = { name, colors, ... }:
+    let
+      ansi = import ../../theme/ansi.nix colors;
+      ansiHalf = offset: lib.listToAttrs (lib.imap0
+        (i: n: lib.nameValuePair n (hex (builtins.elemAt ansi (offset + i)))) ansiNames);
+    in
+    toml.generate "alacritty-${name}.toml" {
+      window.decorations_theme_variant = if colors.variant == "dark" then "Dark" else "Light";
+      colors = {
+        primary = {
+          background = hex colors.base00;
+          foreground = hex colors.base05;
+        };
+        normal = ansiHalf 0;
+        bright = ansiHalf 8;
+      };
+    };
 in
 {
   config = lib.mkIf cfg.enable {
+    # live_config_reload picks up the imported slot when it moves.
+    myTheme.apps.alacritty.render = themeColors;
+
     programs.alacritty = {
       enable = true;
       settings = {
@@ -27,7 +44,6 @@ in
           dynamic_padding = true;
           decorations = "full";
           opacity = stylix.opacity.terminal;
-          decorations_theme_variant = if stylix.polarity == "dark" then "Dark" else "Light";
           dimensions = {
             columns = 100;
             lines = 30;
@@ -48,15 +64,7 @@ in
           italic = { family = stylix.fonts.monospace.name; style = "Italic"; };
           bold_italic = { family = stylix.fonts.monospace.name; style = "Bold Italic"; };
         };
-        colors = {
-          draw_bold_text_with_bright_colors = true;
-          primary = {
-            background = hex colors.base00;
-            foreground = hex colors.base05;
-          };
-          normal = ansiHalf 0;
-          bright = ansiHalf 8;
-        };
+        colors.draw_bold_text_with_bright_colors = true;
         selection = {
           semantic_escape_chars = ",│`|:\"' ()[]{}<>\t";
           save_to_clipboard = true;
@@ -71,6 +79,7 @@ in
         };
         general = {
           live_config_reload = true;
+          import = [ config.myTheme.apps.alacritty.path ];
         };
       };
     };

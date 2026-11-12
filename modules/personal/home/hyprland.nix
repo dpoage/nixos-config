@@ -10,14 +10,95 @@ let
       "socat -U - UNIX-CONNECT:$XDG_RUNTIME_DIR/hypr/$HYPRLAND_INSTANCE_SIGNATURE/.socket2.sock | while read -r line; do case $line in monitoradded*|monitorremoved*) pkill waybar; sleep 0.5; waybar & ;; esac; done";
 in
 {
-  # Stylix's hyprpaper target owns the wallpaper; with myRice, awww does.
-  stylix.targets.hyprland.hyprpaper.enable = !config.myRice.enable;
+  # Colors come from the hyprland theme slot's $theme_* variables, which
+  # hyprlock (lock.nix) sources too.
+  stylix.targets.hyprland.enable = false;
+  stylix.targets.dunst.enable = false;
+  stylix.targets.hyprpaper.enable = false;
 
-  # Launcher and notifier; Stylix themes both (rofi/dunst targets). The
-  # keybind below runs rofi. dunst runs only without the myRice bundle,
-  # whose mako owns notifications: one daemon per host, never both.
+  myTheme.apps = {
+    hyprland = {
+      render = { colors, roles, ... }:
+        lib.concatMapStrings (s: "$theme_base${s} = ${colors."base${s}"}\n") [
+          "00" "01" "02" "03" "04" "05" "06" "07" "08" "09" "0A" "0B" "0C" "0D" "0E" "0F"
+          "10" "11" "12" "13" "14" "15" "16" "17"
+        ]
+        # base00 on light palettes is a cream glow, not a shadow; use the (dark) text color there.
+        + "$theme_shadow = ${if roles.light then "rgba(${colors.base05}66)" else "rgba(${colors.base00}99)"}\n";
+      reload = ''
+        shopt -s nullglob
+        for dir in "$XDG_RUNTIME_DIR"/hypr/*/; do
+          [ -S "$dir.socket.sock" ] || continue
+          HYPRLAND_INSTANCE_SIGNATURE=$(basename "$dir") ${config.wayland.windowManager.hyprland.finalPackage}/bin/hyprctl reload
+        done
+      '';
+    };
+    # Rofi's default theme (as Stylix's rofi target writes it) reads these
+    # variables; the keybind imports them over it with -theme-str.
+    rofi.render = { colors, ... }:
+      let
+        rgb = s: "rgba ( ${colors."${s}-rgb-r"}, ${colors."${s}-rgb-g"}, ${colors."${s}-rgb-b"}, 100 % )";
+        vars = {
+          background = rgb "base00"; lightbg = rgb "base01"; red = rgb "base08"; blue = rgb "base0D";
+          lightfg = rgb "base06"; foreground = rgb "base05"; background-color = rgb "base00";
+          base-text = rgb "base05"; normal-text = rgb "base05"; active-text = rgb "base0D";
+          urgent-text = rgb "base08"; selected-normal-text = rgb "base01";
+          selected-active-text = rgb "base00"; selected-urgent-text = rgb "base00";
+          alternate-normal-text = rgb "base05"; alternate-active-text = rgb "base0D";
+          alternate-urgent-text = rgb "base08";
+        };
+      in
+      "* {\n" + lib.concatStrings (lib.mapAttrsToList (k: v: "  ${k}: ${v};\n") vars) + "}\n";
+    # dunst reads drop-ins after dunstrc.
+    dunst = lib.mkIf config.services.dunst.enable {
+      render = { colors, ... }: with colors.withHashtag; ''
+        [global]
+        separator_color = "${base02}"
+        icon_theme = "${if colors.variant == "light" then config.stylix.icons.light else config.stylix.icons.dark}"
+        ${lib.concatMapStrings ({ u, frame }: ''
+          [urgency_${u}]
+          background = "${base01}ff"
+          foreground = "${base05}"
+          frame_color = "${frame}"
+          highlight = "${frame}"
+        '') [ { u = "low"; frame = base03; } { u = "normal"; frame = base0D; } { u = "critical"; frame = base08; } ]}
+      '';
+      path = "${config.xdg.configHome}/dunst/dunstrc.d/50-theme.conf";
+      reload = "if ${pkgs.procps}/bin/pgrep -U \"$UID\" dunst >/dev/null; then ${config.services.dunst.package}/bin/dunstctl reload; fi";
+    };
+    wallpaper = lib.mkIf config.services.hyprpaper.enable {
+      render = theme: theme.wallpaper;
+      reload = ''
+        if ${pkgs.procps}/bin/pgrep -U "$UID" hyprpaper >/dev/null; then
+          shopt -s nullglob
+          for dir in "$XDG_RUNTIME_DIR"/hypr/*/; do
+            HYPRLAND_INSTANCE_SIGNATURE=$(basename "$dir") ${config.wayland.windowManager.hyprland.finalPackage}/bin/hyprctl \
+              hyprpaper wallpaper ",$(readlink -f "$THEME_FILE")"
+          done
+        fi
+      '';
+    };
+  };
+
+  # With myRice, awww owns the wallpaper.
+  services.hyprpaper = lib.mkIf (!config.myRice.enable) {
+    enable = true;
+    settings = {
+      wallpaper = [ { monitor = ""; path = config.myTheme.apps.wallpaper.path; } ];
+      splash = false;
+    };
+  };
+
+  # Launcher and notifier. dunst runs only without the myRice bundle, whose
+  # mako owns notifications: one daemon per host, never both.
   programs.rofi.enable = true;
-  services.dunst.enable = !config.myRice.enable;
+  services.dunst = {
+    enable = !config.myRice.enable;
+    settings.global = {
+      font = "${config.stylix.fonts.sansSerif.name} ${toString config.stylix.fonts.sizes.popups}";
+      enable_recursive_icon_lookup = true;
+    };
+  };
   # HM's dunst unit is only dbus-activated; start it with the session, as
   # the exec-once it replaces did.
   systemd.user.services = lib.mkIf config.services.dunst.enable {
@@ -56,11 +137,26 @@ in
         };
       };
 
+      source = [ config.myTheme.apps.hyprland.path ];
+
       general = {
         gaps_in = 4;
         gaps_out = 8;
         border_size = 2;
         layout = "dwindle";
+        "col.active_border" = "rgb($theme_base0D)";
+        "col.inactive_border" = "rgb($theme_base03)";
+      };
+
+      group = {
+        "col.border_inactive" = "rgb($theme_base03)";
+        "col.border_active" = "rgb($theme_base0D)";
+        "col.border_locked_active" = "rgb($theme_base0C)";
+        groupbar = {
+          text_color = "rgb($theme_base05)";
+          "col.active" = "rgb($theme_base0D)";
+          "col.inactive" = "rgb($theme_base03)";
+        };
       };
 
       decoration = {
@@ -75,10 +171,7 @@ in
           enabled = true;
           range = 8;
           render_power = 2;
-          # Stylix's target paints the shadow in base00, which on light palettes
-          # is a cream glow, not a shadow; use the (dark) text color there.
-          color = lib.mkIf (config.stylix.polarity == "light")
-            (lib.mkForce "rgba(${config.lib.stylix.colors.base05}66)");
+          color = "$theme_shadow";
         };
       };
 
@@ -100,6 +193,7 @@ in
       misc = {
         force_default_wallpaper = 0;
         disable_hyprland_logo = true;
+        background_color = "rgb($theme_base00)";
       };
 
       # Autostart
@@ -111,7 +205,7 @@ in
       bind = [
         # Launch
         "$mod, Return, exec, kitty"
-        "$mod, Space, exec, rofi -show drun -show-icons"
+        "$mod, Space, exec, rofi -show drun -show-icons -theme-str '@import \"${config.myTheme.apps.rofi.path}\"'"
         "$mod, E, exec, nautilus"
         "$mod, B, exec, firefox"
 

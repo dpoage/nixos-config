@@ -13,22 +13,32 @@
       dependencies = [ pkgs.vimPlugins.plenary-nvim ];
     };
 
-    # Each entry sets colorschemes.<name>; light/dark follows `background` below.
-    tokyonight = style: { name = "tokyonight"; settings.style = style; };
-    rosePine = variant: { name = "rose-pine"; settings.variant = variant; };
-    kanagawa = theme: { name = "kanagawa"; settings.background.dark = theme; };
-    everforest = c: { name = "everforest"; settings.background = c; };
-    gruvboxMaterial = c: { name = "gruvbox-material-nvim"; settings.contrast = c; };
+    # Upstream colorscheme plugin per palette: `module` is set up with
+    # `settings` (or `globals` for Vimscript plugins) before `:colorscheme`.
+    gruvbox = settings: { plugin = "gruvbox-nvim"; module = "gruvbox"; inherit settings; };
+    catppuccin = flavour: { plugin = "catppuccin-nvim"; module = "catppuccin"; settings.flavour = flavour; };
+    tokyonight = style: { plugin = "tokyonight-nvim"; module = "tokyonight"; settings.style = style; };
+    rosePine = variant: { plugin = "rose-pine"; module = "rose-pine"; settings.variant = variant; };
+    kanagawa = theme: { plugin = "kanagawa-nvim"; module = "kanagawa"; settings.background.dark = theme; };
+    everforest = c: { plugin = "everforest"; colorscheme = "everforest"; globals.everforest_background = c; };
+    gruvboxMaterial = c: {
+      plugin = "gruvbox-material-nvim"; module = "gruvbox-material"; settings.contrast = c;
+    };
+    solarizedOsaka = {
+      plugin = "solarized-osaka-nvim"; module = "solarized-osaka";
+      # It defaults to a transparent background; the others paint theirs.
+      settings.transparent = false;
+    };
     # <family>-hard/-medium/-soft palettes.
     contrasts = family: mk:
       lib.listToAttrs (map (c: lib.nameValuePair "${family}-${c}" (mk c)) [ "hard" "medium" "soft" ]);
 
-    nvimScheme = {
-      gruvbox-dark = { name = "gruvbox"; settings.contrast = "hard"; };
-      catppuccin-mocha = { name = "catppuccin"; settings.flavour = "mocha"; };
+    nvimScheme = name: colors: ({
+      gruvbox-dark = gruvbox { contrast = "hard"; };
+      catppuccin-mocha = catppuccin "mocha";
       # The scheme's own base00 is gruvbox.nvim's default (medium) light background.
-      gruvbox-light = { name = "gruvbox"; settings = { }; };
-      catppuccin-latte = { name = "catppuccin"; settings.flavour = "latte"; };
+      gruvbox-light = gruvbox { };
+      catppuccin-latte = catppuccin "latte";
       tokyo-night-dark = tokyonight "night";
       tokyo-night-storm = tokyonight "storm";
       tokyo-night-moon = tokyonight "moon";
@@ -38,24 +48,57 @@
       rose-pine = rosePine "main";
       rose-pine-moon = rosePine "moon";
       rose-pine-dawn = rosePine "dawn";
-      nord = { name = "nord"; settings = { }; };
+      nord = { plugin = "nord-nvim"; colorscheme = "nord"; };
       # nord.nvim has no light variant; paint the Stylix palette with base16-nvim.
       nord-light = {
-        name = "base16";
-        colorscheme = lib.mapAttrs (_: c: "#${c}") (lib.getAttrs
+        plugin = "base16-nvim";
+        module = "base16-colorscheme";
+        settings = lib.mapAttrs (_: c: "#${c}") (lib.getAttrs
           (map (i: "base0${i}") [ "0" "1" "2" "3" "4" "5" "6" "7" "8" "9" "A" "B" "C" "D" "E" "F" ])
-          config.lib.stylix.colors);
+          colors);
+        colorscheme = null;
       };
-      dracula = { name = "dracula"; settings = { }; };
-      # solarized-osaka defaults to a transparent background; the others paint theirs.
-      solarized-dark = { name = "solarized-osaka"; settings.transparent = false; };
-      solarized-light = { name = "solarized-osaka"; settings.transparent = false; };
+      dracula = { plugin = "dracula-vim"; colorscheme = "dracula"; };
+      solarized-dark = solarizedOsaka;
+      solarized-light = solarizedOsaka;
     }
     // contrasts "everforest-dark" everforest // contrasts "everforest-light" everforest
-    // contrasts "gruvbox-material-dark" gruvboxMaterial // contrasts "gruvbox-material-light" gruvboxMaterial;
-    activeScheme = nvimScheme.${config.myTheme.palette};
+    // contrasts "gruvbox-material-dark" gruvboxMaterial // contrasts "gruvbox-material-light" gruvboxMaterial
+    ).${name};
+
+    # base16-nvim's setup applies the colors itself; the rest need :colorscheme.
+    schemeLua = { name, colors, ... }:
+      let
+        s = nvimScheme name colors;
+        colorscheme = s.colorscheme or s.module;
+      in
+      ''
+        vim.o.background = "${colors.variant}"
+        ${lib.concatStrings (lib.mapAttrsToList (k: v: "vim.g[${builtins.toJSON k}] = ${lib.generators.toLua { } v}\n") (s.globals or { }))}
+        ${lib.optionalString (s ? module) "require(${builtins.toJSON s.module}).setup(${lib.generators.toLua { } (s.settings or { })})"}
+        ${lib.optionalString (colorscheme != null) "vim.cmd.colorscheme(${builtins.toJSON colorscheme})"}
+      '';
+    themeSlot = "myTheme/nvim";
   in
   {
+    home-manager.sharedModules = [
+      ({ config, ... }: {
+        myTheme.apps.nvim = {
+          render = schemeLua;
+          path = "${config.xdg.stateHome}/${themeSlot}";
+          reload = ''
+            shopt -s nullglob
+            for sock in "$XDG_RUNTIME_DIR"/nvim.*.0; do
+              # Sockets of exited instances linger.
+              pid=''${sock#"$XDG_RUNTIME_DIR"/nvim.}
+              kill -0 "''${pid%.0}" 2>/dev/null || continue
+              ${pkgs.neovim-unwrapped}/bin/nvim --server "$sock" --remote-expr "execute('luafile $THEME_FILE')" >/dev/null
+            done
+          '';
+        };
+      })
+    ];
+
     programs.nixvim = {
       enable = true;
 
@@ -88,10 +131,17 @@
         completeopt = "menu,menuone,noselect";
         showmode = false;                                                                                                   
         mouse = "a";                                                                                                      
-        background = config.stylix.polarity;
       };                                                                                                                    
    
-      colorschemes.${activeScheme.name} = { enable = true; } // removeAttrs activeScheme [ "name" ];
+      # The nvim theme slot picks the scheme, so every palette's plugin is installed.
+      extraConfigLuaPre = ''
+        local theme = (os.getenv("XDG_STATE_HOME") or (os.getenv("HOME") .. "/.local/state")) .. "/${themeSlot}"
+        if vim.uv.fs_stat(theme) then
+          dofile(theme)
+        else
+          ${schemeLua (config.myTheme.palettes.${config.myTheme.palette} // { name = config.myTheme.palette; })}
+        end
+      '';
                                                                                                                             
       # Keymaps (LazyVim-style)
       keymaps = [                                                                                                           
@@ -403,7 +453,8 @@
       };                                                                                                                    
                                                             
       # TLA+ support
-      extraPlugins = [ tla-nvim ];
+      extraPlugins = [ tla-nvim ]
+        ++ lib.unique (map (p: pkgs.vimPlugins.${(nvimScheme p { }).plugin}) (lib.attrNames config.myTheme.palettes));
       extraConfigLua = ''
         -- Lazygit toggle via toggleterm
         local Terminal = require("toggleterm.terminal").Terminal

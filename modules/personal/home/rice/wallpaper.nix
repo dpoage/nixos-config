@@ -36,7 +36,7 @@ let
           pick=$(find "$WALLPAPER_DIR" -type f \
             \( -iname '*.jpg' -o -iname '*.jpeg' -o -iname '*.png' \) \
             2>/dev/null | shuf -n 1 || true)
-          echo "''${pick:-${config.stylix.image}}"
+          echo "''${pick:-${config.myTheme.apps.wallpaper.path}}"
       }
 
       mode="''${1:-random}"
@@ -80,6 +80,17 @@ in
 {
   config = lib.mkIf cfg.enable {
     home.packages = [ pkgs.awww setWallpaper ];
+
+    # Re-shown on a palette switch only while it is what awww displays.
+    myTheme.apps.wallpaper = {
+      render = theme: theme.wallpaper;
+      reload = ''
+        state="''${XDG_CACHE_HOME:-$HOME/.cache}/awww/current"
+        if [ "$(cat "$state" 2>/dev/null)" = "$THEME_FILE" ] && ${pkgs.awww}/bin/awww query >/dev/null 2>&1; then
+          ${lib.getExe setWallpaper} "$THEME_FILE"
+        fi
+      '';
+    };
 
     # Hyprland users want the daemon spawned via exec-once; the niri module
     # handles the spawn-sh-at-startup line itself when compositor=niri.

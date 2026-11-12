@@ -1,22 +1,44 @@
-# Fuzzel app launcher; fonts, colors and icon theme come from the Stylix
-# fuzzel target. `programs.fuzzel` writes ~/.config/fuzzel/fuzzel.ini.
+# Fuzzel app launcher; colors come from the fuzzel theme slot, which fuzzel
+# reads on every launch. `programs.fuzzel` writes ~/.config/fuzzel/fuzzel.ini.
 
 { config, lib, pkgs, ... }:
 
 let
   cfg = config.myRice;
-  colors = config.lib.stylix.colors;
-  light = config.stylix.polarity == "light";
-  lc = config.myTheme.lightContrast;
-  mix = import ../../theme/mix.nix { inherit lib; };
-  red = pct: "${mix.mixHex { from = colors.${lc.red}; toward = colors.${lc.ink}; inherit pct; }}ff";
+  fonts = config.stylix.fonts;
 in
 {
   config = lib.mkIf cfg.enable {
+    stylix.targets.fuzzel.enable = false;
+
+    myTheme.apps.fuzzel.render = { colors, roles, ... }:
+      let
+        ink = if roles.light then roles.ink else colors.base05;
+      in
+      with colors; ''
+        [colors]
+        background=${base00}ff
+        text=${base05}ff
+        placeholder=${base03}ff
+        prompt=${base05}ff
+        input=${base05}ff
+        match=${roles.match}ff
+        selection=${base02}ff
+        selection-text=${ink}ff
+        selection-match=${roles.matchSelected}ff
+        counter=${base06}ff
+        border=${base0D}ff
+        # fuzzel.ini continues [main] after the include.
+        [main]
+        icon-theme=${if roles.light then config.stylix.icons.light else config.stylix.icons.dark}
+      '';
+
     programs.fuzzel = {
       enable = true;
       settings = {
         main = {
+          include = config.myTheme.apps.fuzzel.path;
+          font = "${fonts.sansSerif.name}:size=${toString fonts.sizes.popups}";
           prompt = "\">  \"";
           icons-enabled = "yes";
           terminal = "alacritty";
@@ -34,13 +56,6 @@ in
         border = {
           width = 2;
           radius = 14;
-        };
-        # The Stylix fuzzel target's match color is base0A, 2.2-2.3:1 on the
-        # light backgrounds; light palettes take their red, pulled toward the ink.
-        colors = lib.mkIf light {
-          match = lib.mkForce (red lc.match);
-          selection-text = lib.mkForce "${colors.${lc.ink}}ff";
-          selection-match = lib.mkForce (red lc.selectionMatch);
         };
         dmenu = {
           exit-immediately-if-empty = "yes";

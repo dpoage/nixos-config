@@ -40,10 +40,10 @@ defaultThinkingLevel: medium
 # main session (an arbiter) can roll its own context over without losing its
 # attached background agents, instead of summary compaction.
 # Rollover rules wait for the near-threshold reminder (~32k before the trigger),
-# so it lands at ~256k; 288k is the automatic rollover backstop.
+# so it lands at ~352k; 384k is the automatic rollover backstop.
 compaction:
   experimentalContextManagement: true
-  thresholdTokens: 288000
+  thresholdTokens: 384000
 
 # TTSR rules fire once per session by default; the checkpoint rule must re-fire.
 ttsr:

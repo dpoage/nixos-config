@@ -45,10 +45,10 @@ compaction:
   experimentalContextManagement: true
   thresholdTokens: 384000
 
-# TTSR rules fire once per session by default; the checkpoint rule must re-fire.
+# TTSR rules fire once per session by default; the checkpoint rule must re-fire, but rarely.
 ttsr:
   repeatMode: after-gap
-  repeatGap: 20
+  repeatGap: 60
 
 retry:
   fallbackChains:

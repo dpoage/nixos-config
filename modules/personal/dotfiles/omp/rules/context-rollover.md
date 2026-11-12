@@ -1,10 +1,10 @@
 ---
-description: Roll your own context over with new_context at natural cutover points, not at the window limit
+description: Roll your own context over with new_context at natural cutover points, once the window nears its rollover threshold
 alwaysApply: true
 ---
 # Context rollover
 
-If your tools include `context_notes` and `new_context`, start each new context window yourself at a natural cutover point. Do not wait for the window to fill. A rollover at the window limit cuts work in the middle of a unit and loses the reasoning behind it.
+If your tools include `context_notes` and `new_context`, roll your own context over at a natural cutover point, but only after this window has received the runtime reminder that "the current context window is nearing its rollover threshold". Before that reminder, do not roll over: the window still has ample room. After it, take the next natural cutover point instead of waiting for the automatic rollover, which cuts work in the middle of a unit and loses the reasoning behind it.
 
 A natural cutover point is a moment when the finished work no longer needs its raw tool output:
 
@@ -15,10 +15,9 @@ A natural cutover point is a moment when the finished work no longer needs its r
 - An investigation ends, and you recorded its conclusion.
 - The user moves to an unrelated topic.
 
-Roll over at a cutover point only if work remains in this session and the window holds earlier work that you no longer read. Skip the rollover in these cases:
+Roll over at a cutover point only if the threshold reminder has arrived in this window, work remains in this session, and the window holds earlier work that you no longer read. Skip the rollover in these cases:
 
 - You are about to give your final answer or yield. A checkpoint reminder that arrives after your final answer overrides this case.
-- This window holds fewer than about 20 of your turns, counted from the session start or the last rollover.
 - You are in the middle of a debug loop, or you have edits whose reasons are not recorded.
 
 ## Procedure

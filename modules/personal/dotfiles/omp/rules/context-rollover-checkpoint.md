@@ -4,11 +4,11 @@ agents: [main, architect]
 scope: "text"
 question: "The content is a status message an AI orchestrating agent wrote to its user. Answer yes if the message closes out a checkpoint: the agent made or recorded a decision, ruling, approval, or merge, and handed the next step to other agents or the user, so nothing is left for the agent itself except waiting. Answer no if the message is a question to the user, reports that the agent is still investigating, or describes work the agent will do next itself."
 ---
-Your last message closed a checkpoint: you recorded a decision and handed the next step to others. That is a natural cutover point, so roll the context over now.
+Your last message closed a checkpoint: you recorded a decision and handed the next step to others. That is a natural cutover point.
 
 Skip the rollover in these cases, and reply with one line that says why:
 
-- This window holds fewer than about 20 of your turns, counted from the session start or the last rollover. A rollover then frees little and drops raw detail.
+- This window has not received the runtime reminder that "the current context window is nearing its rollover threshold". The window still has ample room.
 - You are a subagent and you already called `yield`.
 - The next checkpoint needs raw detail from this window that you cannot write into the notebook.
 

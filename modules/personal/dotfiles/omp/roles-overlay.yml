@@ -39,11 +39,13 @@ defaultThinkingLevel: medium
 # Notes-backed context windows: adds context_notes/new_context, so a long-running
 # main session (an arbiter) can roll its own context over without losing its
 # attached background agents, instead of summary compaction.
+# Rollover rules wait for the near-threshold reminder (~32k before the trigger),
+# so it lands at ~256k; 288k is the automatic rollover backstop.
 compaction:
   experimentalContextManagement: true
+  thresholdTokens: 288000
 
-# TTSR rules fire once per session by default. The context-rollover checkpoint
-# rule must fire at every checkpoint; a 20-turn gap matches its small-window skip.
+# TTSR rules fire once per session by default; the checkpoint rule must re-fire.
 ttsr:
   repeatMode: after-gap
   repeatGap: 20

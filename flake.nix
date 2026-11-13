@@ -152,6 +152,12 @@
             inputs.microvm.nixosModules.host
           ];
         };
+        shilka = mkHost [ dev dev-cloud ] {
+          imports = [
+            ./shilka
+            inputs.nixos-hardware.nixosModules.lenovo-thinkpad-x1-11th-gen
+          ];
+        };
       };
 
       # A work laptop for someone else, built from the shared layers alone.

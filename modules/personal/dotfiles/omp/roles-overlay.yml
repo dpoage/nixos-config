@@ -25,7 +25,8 @@ modelRoles:
   ORACLE: anthropic/claude-opus-5-5:high
   AUGUR: zai/glm-5.3:high
   ARCHITECT: anthropic/claude-opus-5-5:medium
-  IMPLEMENTER: zai/glm-5.3:high
+  # opencode-go's name for DeepSeek Flash (the deepseek provider's deepseek-flash).
+  IMPLEMENTER: opencode-go/deepseek-v4.1-flash:high
   # Fan-out sweepers an oracle spawns per unit x bug family; leads only, the
   # oracle re-runs every candidate. High fan-out, so the cheapest capable model.
   SWEEP: minimax-code/MiniMax-M3:medium
@@ -51,10 +52,14 @@ ttsr:
   repeatGap: 60
 
 retry:
+  # Walk the chains on outages and 5xx too, not only on quota walls.
+  fallbackOn: any
   fallbackChains:
     AUGUR:
       - anthropic/claude-opus-5-5
     IMPLEMENTER:
+      - commandcode/deepseek/deepseek-v4.1-flash
+      - deepseek/deepseek-flash
       - anthropic/claude-sonnet-5-5
     SWEEP: []
     # No fallback: falling back to the authoring model would quietly remove the

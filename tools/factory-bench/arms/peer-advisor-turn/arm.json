@@ -1,0 +1,12 @@
+{
+  "summary": "One implementer watched on every turn by an advisor on the implementer model: a concurrent peer reviewer.",
+  "driver_prompt": "solo.md",
+  "driver_model": "anthropic/claude-haiku-4-5",
+  "driver_tools": "task,wait",
+  "max_cost": 15,
+  "max_time": "90m",
+  "members": 1,
+  "expect_workers": 1,
+  "expect_advisor": true,
+  "advisor_tier": "implementer"
+}

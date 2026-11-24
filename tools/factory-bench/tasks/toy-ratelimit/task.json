@@ -1,0 +1,5 @@
+{
+  "summary": "Implement a token-bucket limiter with env-read defaults; boundary, default and validation properties.",
+  "test_dir": "tests",
+  "hidden_total": 32
+}

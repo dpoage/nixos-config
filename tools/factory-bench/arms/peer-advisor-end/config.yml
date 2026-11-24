@@ -1,0 +1,5 @@
+# The implementer agent gets an advisor. The runner sets the advisor model to the
+# implementer model of the run (arm.json: advisor_tier).
+task:
+  agentAdvisor:
+    implementer: "on"

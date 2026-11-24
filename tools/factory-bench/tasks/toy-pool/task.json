@@ -1,0 +1,5 @@
+{
+  "summary": "Implement a quota pool over a tenant tree: half-open reservations, ancestor quotas, preemption, a waitlist, quota eviction, keys, an event log; next to a helper module it must not edit.",
+  "test_dir": "tests",
+  "hidden_total": 116
+}

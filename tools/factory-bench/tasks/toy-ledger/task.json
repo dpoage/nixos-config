@@ -1,0 +1,5 @@
+{
+  "summary": "Implement a multi-currency double-entry ledger: atomic posts, idempotency keys, reversals, dated queries, closed accounts.",
+  "test_dir": "tests",
+  "hidden_total": 57
+}

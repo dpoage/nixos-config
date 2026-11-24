@@ -1,0 +1,10 @@
+{
+  "summary": "Three implementers build the same brief together in one tree: they agree a plan, review each other's work and deliver one result.",
+  "driver_prompt": "coop.md",
+  "driver_model": "anthropic/claude-haiku-4-5",
+  "driver_tools": "task,wait",
+  "max_cost": 15,
+  "max_time": "90m",
+  "members": 1,
+  "expect_workers": 3
+}

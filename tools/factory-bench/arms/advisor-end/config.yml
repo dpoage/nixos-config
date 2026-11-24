@@ -1,0 +1,6 @@
+# The implementer agent gets an advisor; nothing else does.
+modelRoles:
+  advisor: anthropic/claude-opus-5-5:medium
+task:
+  agentAdvisor:
+    implementer: "on"

@@ -1,0 +1,11 @@
+{
+  "summary": "gang3, plus one revision round in which each member sees the peer tests its code fails.",
+  "driver_prompt": "solo.md",
+  "driver_model": "anthropic/claude-haiku-4-5",
+  "driver_tools": "task,wait",
+  "max_cost": 15,
+  "max_time": "90m",
+  "members": 3,
+  "cross_revise": true,
+  "expect_workers": 1
+}

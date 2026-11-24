@@ -1,0 +1,5 @@
+{
+  "summary": "Implement a normalized half-open integer interval set; adjacency, boundary and no-op properties.",
+  "test_dir": "tests",
+  "hidden_total": 30
+}

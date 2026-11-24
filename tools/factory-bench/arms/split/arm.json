@@ -1,0 +1,9 @@
+{
+  "summary": "Deeper tree: a strong lead splits the slice into sub-slices and fans implementers out.",
+  "driver_prompt": "lead-split.md",
+  "driver_model": "anthropic/claude-opus-5-5",
+  "driver_tools": "task,read,grep,glob,bash,wait",
+  "max_cost": 30,
+  "max_time": "90m",
+  "members": 1
+}

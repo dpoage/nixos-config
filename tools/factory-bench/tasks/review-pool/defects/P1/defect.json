@@ -1,0 +1,10 @@
+{
+  "edits": [
+    {
+      "file": "pool/__init__.py",
+      "old": "            if self._covers_violation(node, units, start, end, candidate):\n                self._remove_usage(candidate)\n                taken.append(candidate)",
+      "new": "            self._remove_usage(candidate)\n            taken.append(candidate)"
+    }
+  ],
+  "drop_tests": []
+}

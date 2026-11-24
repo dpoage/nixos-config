@@ -1,0 +1,13 @@
+{
+  "summary": "One review seat: an oracle reviews the delivered slice and writes a verdict with a probe per finding.",
+  "kind": "review",
+  "driver_prompt": "solo.md",
+  "driver_model": "deepseek/deepseek-flash",
+  "driver_tools": "task,wait",
+  "worker": "oracle",
+  "agents": ["oracle"],
+  "max_cost": 60,
+  "max_time": "2h",
+  "members": 1,
+  "expect_workers": 1
+}

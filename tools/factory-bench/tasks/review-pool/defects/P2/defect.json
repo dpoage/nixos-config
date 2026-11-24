@@ -1,0 +1,14 @@
+{
+  "edits": [
+    {
+      "file": "pool/__init__.py",
+      "old": "                self._activate(reservation)\n                self._events.append((ACTIVE, reservation.id))\n                self._settle()\n",
+      "new": "                self._settle()\n                self._activate(reservation)\n                self._events.append((ACTIVE, reservation.id))\n"
+    }
+  ],
+  "drop_tests": [
+    "tests/test_pool.py::PreemptionTest.test_displaced_waiting_reservation_waits_again",
+    "tests/test_pool.py::PreemptionTest.test_lower_priority_is_preempted",
+    "tests/test_pool.py::PreemptionTest.test_settle_runs_after_preemption"
+  ]
+}

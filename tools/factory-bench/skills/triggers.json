@@ -1,0 +1,167 @@
+{
+ "acceptance-replay": {
+  "should": [
+   "PR #812 claims it fixes the duplicate-charge bug from last week's incident. Check that it actually does before we merge.",
+   "The release notes for v2.4 say the new --dry-run flag never writes to disk and that retries are now capped at 5. Verify those claims against the built binary.",
+   "Here is the incident timeline and the fix branch. Replay the incident against the fixed build and tell me if every acceptance criterion holds."
+  ],
+  "should_not": [
+   "Review this diff for module depth and coupling problems before I open the PR.",
+   "Write a README section that explains how to install the CLI."
+  ]
+ },
+ "arbiter-architect": {
+  "should": [
+   "We have an epic of about twelve beads across three repos. Drive it as a series of oracle-gated rounds, one architect per round, and keep only rulings and checkpoints here.",
+   "Run the whole migration epic: hand each round to an architect subagent and act as the arbiter at the checkpoints.",
+   "This session should last the entire SAR epic. Delegate each round and keep yourself to scope decisions and merge authorizations."
+  ],
+  "should_not": [
+   "Fix the off-by-one in the pagination helper and add a test.",
+   "My session died during the round. Resume from where it stopped."
+  ]
+ },
+ "bend": {
+  "should": [
+   "Write a Bend 2 function that sums a list and prove in LAWS.bend that it is associative over concatenation.",
+   "My PROOF.bend fails the checker on the induction step for reverse. Help me fix the proof.",
+   "Port this TLA+ spec of a two-phase commit to Bend so its invariants are checked as laws."
+  ],
+  "should_not": [
+   "Write a TLA+ spec for a bounded queue and model-check it with TLC.",
+   "Encode the order lifecycle as a Rust enum so invalid transitions do not compile."
+  ]
+ },
+ "bug-hunt": {
+  "should": [
+   "Before we release, hunt for latent bugs in the rate limiter package. Try inputs and paths the tests never exercised.",
+   "Probe the session-store adapter for defects: concurrency, error paths, boundary values. Report only what you can reproduce.",
+   "Act as the adversarial-correctness seat on the retry state machine and find what breaks it."
+  ],
+  "should_not": [
+   "Review the design of this module: is the interface too wide?",
+   "Users report the export button does nothing. Add logging so we can see why."
+  ]
+ },
+ "comment-compactor": {
+  "should": [
+   "The generated diff is full of comments like 'Now we loop over the items'. Clean them up without touching code.",
+   "Prune the verbose comments across src/ingest: narration, change-log residue, references to ticket numbers.",
+   "Compact the comments in this package; the doc blocks are three times longer than the functions."
+  ],
+  "should_not": [
+   "Write package-level doc comments for the public API of the ingest module.",
+   "Rename the ingest functions to follow our naming convention."
+  ]
+ },
+ "design-review": {
+  "should": [
+   "Review this branch for design quality: module depth, information hiding, and whether the new interface is worth its cost.",
+   "Does this PR introduce illegal representable states or shallow modules? Give me a design review.",
+   "Look at the new cache package and tell me whether its coupling and cohesion are reasonable."
+  ],
+  "should_not": [
+   "Find bugs in the cache package by running adversarial inputs.",
+   "Design a new module boundary for the billing subsystem before we write code."
+  ]
+ },
+ "doc-writer": {
+  "should": [
+   "Write a getting-started guide for the docs/ site covering installation and the first deploy.",
+   "Revise the README: the install steps are out of date and the usage section is confusing.",
+   "Draft the changelog entry for the 3.0 release from these merged PRs."
+  ],
+  "should_not": [
+   "Write the PR description for this branch.",
+   "Clean up the inline comments in this file; they narrate the code."
+  ]
+ },
+ "github-voice": {
+  "should": [
+   "Write the PR body for this branch: it adds retry jitter and fixes the flaky upload test.",
+   "Draft a reply to the reviewer who asked why we didn't use a mutex here.",
+   "Open an issue describing the memory leak we found in the parser, with the repro."
+  ],
+  "should_not": [
+   "Write a tutorial for the docs site on configuring retries.",
+   "Summarize what changed in this repo over the last week for me."
+  ]
+ },
+ "handoff": {
+  "should": [
+   "The machine is going down for a reboot in ten minutes. Make sure the work in flight survives it.",
+   "My last session crashed mid-round. Pick up where it left off.",
+   "The API is having an outage; prepare so another session can resume this lane later."
+  ],
+  "should_not": [
+   "Write a status update for the team channel about this week's progress.",
+   "Plan the next development round for the auth epic."
+  ]
+ },
+ "interface-contract": {
+  "should": [
+   "Add a --format flag to the CLI. Other tools parse its output, so design the flag and its error surface carefully.",
+   "We need to change the JSON wire format of the events endpoint without breaking consumers. Design the change.",
+   "Design the exported Storage trait that three crates will implement."
+  ],
+  "should_not": [
+   "Refactor the private helper functions in this file for readability.",
+   "Make the Order type's illegal states unrepresentable."
+  ]
+ },
+ "module-design": {
+  "should": [
+   "Before writing code, decide how to split the monolithic sync service into modules and what each one owns.",
+   "We want to move the auth logic out of the web handler package into its own crate. Design the boundary first.",
+   "The brief asks for a --design record for the new scheduler subsystem. Produce it."
+  ],
+  "should_not": [
+   "Review this finished PR for design quality.",
+   "Add a new field to the existing User struct and update the callers."
+  ]
+ },
+ "oracle-rounds": {
+  "should": [
+   "Implement these five beads in parallel worktrees, gate each slice with two adversarial oracle reviews, and merge into a feature branch.",
+   "Run a development round on the open P1 issues: slice them, dispatch implementers, gate with oracles, leave the branch PR-ready.",
+   "Drive a multi-issue round with parallel subagents and dual oracle gating for the telemetry beads."
+  ],
+  "should_not": [
+   "Fix this single failing test.",
+   "Review the oracle-rounds skill file for clarity and best practices."
+  ]
+ },
+ "premortem": {
+  "should": [
+   "Here is the plan for the database migration. Assume it shipped and failed, and find how, before any code exists.",
+   "Attack this rollout plan before we start: what will go wrong when it meets production state?",
+   "Run the plan-stage oracle on the slicing we just agreed, before worktrees are created."
+  ],
+  "should_not": [
+   "Write a retro for the round that finished last week.",
+   "Find bugs in the migration code that just merged."
+  ]
+ },
+ "skill-review": {
+  "should": [
+   "I wrote a new SKILL.md for release tagging. Review it: does it make sense and will agents follow it?",
+   "Review my edits to the implementer agent definition and the oracle rule file.",
+   "Check how the premortem, bug-hunt and acceptance-replay skills compose into the oracle seats."
+  ],
+  "should_not": [
+   "Review this Go PR for design quality.",
+   "Write documentation for our CLI's new subcommands."
+  ]
+ },
+ "type-driven-design": {
+  "should": [
+   "Encode the payment state machine so that refunding an unsettled payment does not compile.",
+   "Design the Email type so an unvalidated string can never reach the mailer: parse, don't validate.",
+   "Model the connection handle so it cannot be used after close, using the type system."
+  ],
+  "should_not": [
+   "Change the public REST API of the payments service without breaking clients.",
+   "Add a docstring to the PaymentState enum."
+  ]
+ }
+}

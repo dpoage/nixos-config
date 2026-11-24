@@ -1,0 +1,10 @@
+{
+  "edits": [
+    {
+      "file": "pool/__init__.py",
+      "old": "            self._events.append((WAITING, reservation.id))\n            self._claim(key, reservation.id, request)\n",
+      "new": "            self._events.append((WAITING, reservation.id))\n"
+    }
+  ],
+  "drop_tests": []
+}

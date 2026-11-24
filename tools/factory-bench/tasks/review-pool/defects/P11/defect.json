@@ -1,0 +1,10 @@
+{
+  "edits": [
+    {
+      "file": "pool/__init__.py",
+      "old": "        for rid in self.waiting():\n            reservation = self._reservations[rid]\n            if self._first_violation(",
+      "new": "        for rid in sorted(self.waiting()):\n            reservation = self._reservations[rid]\n            if self._first_violation("
+    }
+  ],
+  "drop_tests": []
+}

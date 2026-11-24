@@ -1,0 +1,12 @@
+{
+  "edits": [
+    {
+      "file": "ledger/__init__.py",
+      "old": "(txn.when, txn.id, value.quantize(quantum), running.quantize(quantum))",
+      "new": "(txn.when, txn.id, value, running.quantize(quantum))"
+    }
+  ],
+  "drop_tests": [
+    "tests/test_ledger.py::TestStatement.test_row_values_keep_exponent"
+  ]
+}

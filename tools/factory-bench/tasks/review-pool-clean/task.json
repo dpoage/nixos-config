@@ -1,0 +1,8 @@
+{
+  "summary": "Control for review-pool: the same delivered slice with no seeded defect. Measures false REJECTs and probes that fail on clean code.",
+  "kind": "review",
+  "fixture": "toy-pool",
+  "from": "review-pool",
+  "defects": [],
+  "forbidden": ["tools/factory-bench"]
+}

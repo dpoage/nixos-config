@@ -1,0 +1,13 @@
+{
+  "summary": "One fix round by implementer-max against the verdict; no re-review.",
+  "kind": "fix",
+  "driver_prompt": "solo.md",
+  "driver_model": "deepseek/deepseek-flash",
+  "driver_tools": "task,wait",
+  "worker": "implementer-max",
+  "agents": ["implementer-max"],
+  "max_cost": 20,
+  "max_time": "90m",
+  "members": 1,
+  "expect_workers": 1
+}

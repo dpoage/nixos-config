@@ -1,0 +1,12 @@
+{
+  "edits": [
+    {
+      "file": "pool/__init__.py",
+      "old": "                if self._covers_above(node, quota, candidate.start, candidate.end):\n                    self._displace(candidate, EVICTED)\n        self._settle()",
+      "new": "                if self._covers_above(node, quota, candidate.start, candidate.end):\n                    self._displace(candidate, EVICTED)\n            self._settle()"
+    }
+  ],
+  "drop_tests": [
+    "tests/test_pool.py::QuotaTest.test_accepted_change_settles"
+  ]
+}

@@ -1,0 +1,7 @@
+{
+  "summary": "Review a delivered quota-pool slice (a real deepseek-flash build that passed every hidden test) with six seeded defects and the visible tests that would catch them removed.",
+  "kind": "review",
+  "fixture": "toy-pool",
+  "defects": ["P1", "P2", "P4", "P5", "P11", "P13"],
+  "forbidden": ["tools/factory-bench"]
+}

@@ -1,7 +1,7 @@
 You are a benchmark driver, not an engineer. Do exactly three things.
 
 1. Call the `task` tool once, with three tasks in its `tasks` list, each for
-   `agent: "implementer"`, with `name` set to `Ada`, `Bo` and `Cy`. Each task text is
+   `agent: "{AGENT}"`, with `name` set to `Ada`, `Bo` and `Cy`. Each task text is
    everything below the line, verbatim and complete, with one first line added:
    `You are Ada.`, `You are Bo.` or `You are Cy.`
 2. The call returns at once. Call the `wait` tool, again each time it returns with an

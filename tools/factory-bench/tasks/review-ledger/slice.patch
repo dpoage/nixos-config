@@ -1,0 +1,956 @@
+diff --git a/README.md b/README.md
+index 6a5ac21..68fdaf3 100644
+--- a/README.md
++++ b/README.md
+@@ -3,3 +3,82 @@
+ A double-entry ledger that holds several currencies.
+ 
+ Run the suite: `python3 -m unittest discover -s tests -t .`
++
++## Usage
++
++A ledger is created with the currencies it knows, mapping each currency code to
++the number of decimal places it keeps:
++
++```python
++from decimal import Decimal
++from ledger import Ledger
++
++ledger = Ledger({"USD": 2, "JPY": 0})
++ledger.open("cash", "USD")
++ledger.open("revenue", "USD")
++ledger.open("yen", "JPY")
++```
++
++The exponent must not be negative. `open` rejects an unknown currency with
++`KeyError` and an account that already exists with `ValueError`.
++
++### Posting
++
++`post` takes an iterable of `(account, amount)` pairs, an integer `when`
++timestamp, and an optional idempotency `key`. Amounts are strings: a positive
++amount is a debit, a negative amount is a credit, and an amount is written with
++at most as many decimal places as its currency keeps.
++
++```python
++sale = ledger.post([("cash", "5.00"), ("revenue", "-5.00")], when=1, key="sale-1")
++assert sale == 1
++```
++
++Every post has at least two entries, every account must exist and be open, and
++the entries of each currency must sum to zero; otherwise the call raises
++`ValueError` (or `KeyError` for an unknown account) and changes nothing. The
++transaction id is its position in the order of accepted transactions, counting
++from 1. Passing a `key` that an accepted transaction already used with the same
++request returns that transaction's id instead of posting again:
++
++```python
++assert ledger.post(
++    [("revenue", "-5.0"), ("cash", "5")], when=1, key="sale-1"
++) == sale
++```
++
++### Balances and statements
++
++`balance` returns a `Decimal` with exactly the currency's number of decimal
++places; an optional `at` timestamp limits the sum to transactions with
++`when <= at`:
++
++```python
++assert ledger.balance("cash") == Decimal("5.00")
++assert ledger.balance("cash", at=0) == Decimal("0.00")
++```
++
++`balances` returns a mapping of account name to balance in name order, leaving
++out accounts whose balance is zero. `statement` lists one account's nonzero
++lines in the half-open range `start <= when < end`, ordered by timestamp and then
++by transaction id, as `(when, txn_id, amount, running)` tuples; the running
++balance counts every earlier line, including lines before `start`:
++
++```python
++assert ledger.statement("cash", 0, 2) == [(1, 1, Decimal("5.00"), Decimal("5.00"))]
++```
++
++### Reversing and closing
++
++`reverse` accepts a new transaction that negates the lines of an earlier one; its
++`when` may equal but not precede the original's:
++
++```python
++back = ledger.reverse(sale, when=2)
++assert ledger.balance("cash") == Decimal("0.00")
++```
++
++`reverse` raises `ValueError` for a reversal of a reversal, for a transaction that
++was already reversed, and when one of its accounts is closed. `close` marks an
++account closed once its balance is zero; a closed account keeps answering
++`balance` and `statement`, but rejects new postings.
+diff --git a/ledger/__init__.py b/ledger/__init__.py
+index 5ad2f9a..44c29d3 100644
+--- a/ledger/__init__.py
++++ b/ledger/__init__.py
+@@ -1,6 +1,248 @@
+-"""Double-entry ledger. Not implemented yet."""
++"""A double-entry ledger that holds several currencies.
++
++Amounts are strings so that every value keeps the number of decimal places its
++currency allows.  Each currency has an exponent: the number of decimal places it
++keeps (USD 2, JPY 0).  A positive amount is a debit, a negative amount a credit,
++and every transaction balances to zero within each currency separately.
++"""
++
++from __future__ import annotations
++
++import re
++from decimal import Decimal
++
++__all__ = ["Ledger"]
++
++_AMOUNT_RE = re.compile(r"-?\d+(?:\.\d+)?")
++
++
++def _quantum(exponent: int) -> Decimal:
++    """The value of one unit in the last decimal place a currency keeps."""
++    return Decimal(1).scaleb(-exponent)
++
++
++def _parse_amount(amount, exponent: int) -> Decimal:
++    """Return the exact value of a valid amount, else raise ``ValueError``."""
++    if not isinstance(amount, str):
++        raise ValueError("amount must be a string: %r" % (amount,))
++    if _AMOUNT_RE.fullmatch(amount) is None:
++        raise ValueError("invalid amount: %r" % (amount,))
++    point = amount.find(".")
++    places = 0 if point < 0 else len(amount) - point - 1
++    if places > exponent:
++        raise ValueError(
++            "amount %r has more decimal places than its currency allows" % (amount,)
++        )
++    value = Decimal(amount)
++    if value == 0:
++        raise ValueError("amount must not be zero: %r" % (amount,))
++    return value
++
++
++class _Account:
++    __slots__ = ("currency", "closed")
++
++    def __init__(self, currency: str) -> None:
++        self.currency = currency
++        self.closed = False
++
++
++class _Transaction:
++    __slots__ = ("id", "when", "lines", "reversal", "reversed_by")
++
++    def __init__(self, txn_id: int, when: int, lines: dict, reversal: bool) -> None:
++        self.id = txn_id
++        self.when = when
++        self.lines = lines
++        self.reversal = reversal
++        self.reversed_by = None
+ 
+ 
+ class Ledger:
+-    def __init__(self, currencies):
+-        raise NotImplementedError
++    """A ledger of accounts in fixed currencies, written in balanced transactions."""
++
++    def __init__(self, currencies: dict[str, int]):
++        self._currencies: dict[str, int] = {}
++        for code, exponent in currencies.items():
++            if not isinstance(exponent, int) or isinstance(exponent, bool):
++                raise TypeError("currency exponent must be an int: %r" % (code,))
++            if exponent < 0:
++                raise ValueError("currency %r has a negative exponent" % (code,))
++            self._currencies[code] = exponent
++        self._accounts: dict[str, _Account] = {}
++        self._transactions: list[_Transaction] = []
++        self._keys: dict[str, tuple[int, tuple]] = {}
++
++    # -- setup -----------------------------------------------------------------
++
++    def open(self, account: str, currency: str) -> None:
++        if currency not in self._currencies:
++            raise KeyError(currency)
++        if account in self._accounts:
++            raise ValueError("account already exists: %r" % (account,))
++        self._accounts[account] = _Account(currency)
++
++    # -- posting ---------------------------------------------------------------
++
++    @staticmethod
++    def _entry_pairs(entries):
++        try:
++            items = list(entries)
++        except TypeError:
++            raise ValueError("entries must be an iterable of pairs") from None
++        pairs = []
++        for item in items:
++            try:
++                account, amount = item
++            except (TypeError, ValueError):
++                raise ValueError("each entry must be an (account, amount) pair") from None
++            pairs.append((account, amount))
++        return pairs
++
++    @staticmethod
++    def _request_signature(pairs):
++        """The multiset form of a post request: ``when`` is added by the caller."""
++        items = []
++        for account, amount in pairs:
++            if not isinstance(amount, str):
++                raise ValueError("amount must be a string: %r" % (amount,))
++            if _AMOUNT_RE.fullmatch(amount) is None:
++                raise ValueError("invalid amount: %r" % (amount,))
++            items.append((account, Decimal(amount)))
++        try:
++            return tuple(sorted(items))
++        except TypeError:
++            # Account names that do not sort still compare as a multiset of reprs.
++            return tuple(sorted((repr(account), value) for account, value in items))
++
++    def _lookup_key(self, key, signature):
++        """Return the id a reused key already claimed, or ``None``."""
++        if key is None or key not in self._keys:
++            return None
++        txn_id, claimed = self._keys[key]
++        if claimed != signature:
++            raise ValueError("key %r was already used for a different request" % (key,))
++        return txn_id
++
++    def post(self, entries, *, when: int, key: str | None = None) -> int:
++        pairs = self._entry_pairs(entries)
++        for account, _amount in pairs:
++            if account not in self._accounts:
++                raise KeyError(account)
++        signature = ("post", when, self._request_signature(pairs))
++        replayed = self._lookup_key(key, signature)
++        if replayed is not None:
++            return replayed
++        if len(pairs) < 2:
++            raise ValueError("a transaction needs at least two entries")
++        values: dict[str, Decimal] = {}
++        for account, amount in pairs:
++            exponent = self._currencies[self._accounts[account].currency]
++            value = _parse_amount(amount, exponent)
++            values[account] = values.get(account, Decimal(0)) + value
++        for account in values:
++            if self._accounts[account].closed:
++                raise ValueError("account is closed: %r" % (account,))
++        totals: dict[str, Decimal] = {}
++        for account, value in values.items():
++            currency = self._accounts[account].currency
++            totals[currency] = totals.get(currency, Decimal(0)) + value
++        for currency, total in totals.items():
++            if total != 0:
++                raise ValueError("entries in %r do not sum to zero" % (currency,))
++        lines = {account: value for account, value in values.items() if value != 0}
++        txn_id = self._accept(when, lines, reversal=False)
++        if key is not None:
++            self._keys[key] = (txn_id, signature)
++        return txn_id
++
++    def _accept(self, when: int, lines: dict, *, reversal: bool) -> int:
++        txn_id = len(self._transactions) + 1
++        self._transactions.append(_Transaction(txn_id, when, lines, reversal))
++        return txn_id
++
++    def _transaction(self, txn_id) -> _Transaction:
++        if (
++            not isinstance(txn_id, int)
++            or isinstance(txn_id, bool)
++            or not 1 <= txn_id <= len(self._transactions)
++        ):
++            raise KeyError(txn_id)
++        return self._transactions[txn_id - 1]
++
++    def reverse(self, txn_id: int, *, when: int, key: str | None = None) -> int:
++        signature = ("reverse", when, txn_id)
++        replayed = self._lookup_key(key, signature)
++        if replayed is not None:
++            return replayed
++        txn = self._transaction(txn_id)
++        if txn.reversal:
++            raise ValueError("cannot reverse a reversal: %r" % (txn_id,))
++        if txn.reversed_by is not None:
++            raise ValueError("transaction %r was already reversed" % (txn_id,))
++        if when < txn.when:
++            raise ValueError("a reversal cannot precede the original transaction")
++        for account in txn.lines:
++            if self._accounts[account].closed:
++                raise ValueError("account is closed: %r" % (account,))
++        lines = {account: -value for account, value in txn.lines.items()}
++        new_id = self._accept(when, lines, reversal=True)
++        txn.reversed_by = new_id
++        if key is not None:
++            self._keys[key] = (new_id, signature)
++        return new_id
++
++    # -- queries ---------------------------------------------------------------
++
++    def _account(self, account: str) -> _Account:
++        found = self._accounts.get(account)
++        if found is None:
++            raise KeyError(account)
++        return found
++
++    def balance(self, account: str, *, at: int | None = None) -> Decimal:
++        found = self._account(account)
++        total = Decimal(0)
++        for txn in self._transactions:
++            if at is not None and txn.when > at:
++                continue
++            value = txn.lines.get(account)
++            if value is not None:
++                total += value
++        return total.quantize(_quantum(self._currencies[found.currency]))
++
++    def balances(self, *, at: int | None = None) -> dict[str, Decimal]:
++        result: dict[str, Decimal] = {}
++        for account in sorted(self._accounts):
++            value = self.balance(account, at=at)
++            if value != 0:
++                result[account] = value
++        return result
++
++    def statement(self, account: str, start: int, end: int) -> list[tuple]:
++        found = self._account(account)
++        if start > end:
++            raise ValueError("start must not be greater than end")
++        quantum = _quantum(self._currencies[found.currency])
++        running = Decimal(0)
++        rows: list[tuple] = []
++        for txn in sorted(self._transactions, key=lambda t: (t.when, t.id)):
++            value = txn.lines.get(account)
++            if value is None:
++                continue
++            running += value
++            if start <= txn.when < end:
++                rows.append(
++                    (txn.when, txn.id, value.quantize(quantum), running.quantize(quantum))
++                )
++        return rows
++
++    # -- lifecycle -------------------------------------------------------------
++
++    def close(self, account: str) -> None:
++        found = self._account(account)
++        if found.closed:
++            raise ValueError("account is already closed: %r" % (account,))
++        if self.balance(account) != 0:
++            raise ValueError("account balance is not zero: %r" % (account,))
++        found.closed = True
+diff --git a/tests/test_ledger.py b/tests/test_ledger.py
+new file mode 100644
+index 0000000..8d8e5ab
+--- /dev/null
++++ b/tests/test_ledger.py
+@@ -0,0 +1,607 @@
++"""Tests for the double-entry ledger."""
++
++import unittest
++from decimal import Decimal
++
++from ledger import Ledger
++
++
++def usd_ledger():
++    ledger = Ledger({"USD": 2, "JPY": 0})
++    for account in ("bank", "cash", "equity", "fee"):
++        ledger.open(account, "USD")
++    for account in ("jpy", "jpy2", "jpy3"):
++        ledger.open(account, "JPY")
++    return ledger
++
++
++def places(value):
++    return value.as_tuple().exponent
++
++
++class TestSetup(unittest.TestCase):
++    """Property 1: currency exponents, unknown currencies, duplicate accounts."""
++
++    def test_negative_exponent_raises_value_error(self):
++        with self.assertRaises(ValueError):
++            Ledger({"USD": -1})
++
++    def test_zero_exponent_is_allowed(self):
++        ledger = Ledger({"JPY": 0})
++        ledger.open("jpy", "JPY")
++        self.assertEqual(ledger.balance("jpy"), Decimal("0"))
++
++    def test_open_unknown_currency_raises_key_error(self):
++        ledger = Ledger({"USD": 2})
++        with self.assertRaises(KeyError):
++            ledger.open("cash", "EUR")
++        # The failed open left nothing behind.
++        ledger.open("cash", "USD")
++        self.assertEqual(ledger.balance("cash"), Decimal("0.00"))
++
++    def test_second_open_raises_value_error(self):
++        ledger = Ledger({"USD": 2})
++        ledger.open("cash", "USD")
++        with self.assertRaises(ValueError):
++            ledger.open("cash", "USD")
++        self.assertEqual(ledger.balance("cash"), Decimal("0.00"))
++
++    def test_second_open_in_another_currency_raises_value_error(self):
++        ledger = Ledger({"USD": 2, "JPY": 0})
++        ledger.open("cash", "USD")
++        with self.assertRaises(ValueError):
++            ledger.open("cash", "JPY")
++        self.assertEqual(ledger.balance("cash"), Decimal("0.00"))
++
++
++class TestPostingAtomic(unittest.TestCase):
++    """Property 2: a rejected post raises, changes nothing, and uses no id."""
++
++    def assert_untouched(self, ledger):
++        self.assertEqual(ledger.balances(), {})
++        self.assertEqual(ledger.statement("cash", 0, 100), [])
++        self.assertEqual(ledger.statement("bank", 0, 100), [])
++
++    def test_unknown_account_raises_key_error(self):
++        ledger = usd_ledger()
++        with self.assertRaises(KeyError):
++            ledger.post([("cash", "5"), ("nope", "-5")], when=1)
++        self.assert_untouched(ledger)
++        self.assertEqual(ledger.post([("cash", "5"), ("bank", "-5")], when=1), 1)
++
++    def test_invalid_amounts_raise_value_error(self):
++        bad_amounts = ["5.000", "+5", "1e2", "0.00", 5, "abc", "", "5.", ".5", "-0"]
++        for bad in bad_amounts:
++            with self.subTest(amount=bad):
++                ledger = usd_ledger()
++                with self.assertRaises(ValueError):
++                    ledger.post([("cash", bad), ("bank", "-5")], when=1)
++                self.assert_untouched(ledger)
++                self.assertEqual(
++                    ledger.post([("cash", "5"), ("bank", "-5")], when=1), 1
++                )
++
++    def test_boundary_amounts_are_valid(self):
++        for good in ("5", "5.0", "-5.25", "0.01", "5.25", "5.00"):
++            with self.subTest(amount=good):
++                ledger = usd_ledger()
++                other = good[1:] if good.startswith("-") else "-" + good
++                self.assertEqual(
++                    ledger.post([("cash", good), ("bank", other)], when=1), 1
++                )
++
++    def test_fewer_than_two_entries_raises_value_error(self):
++        ledger = usd_ledger()
++        for entries in ([], [("cash", "5")]):
++            with self.subTest(entries=entries):
++                with self.assertRaises(ValueError):
++                    ledger.post(entries, when=1)
++                self.assert_untouched(ledger)
++        self.assertEqual(ledger.post([("cash", "5"), ("bank", "-5")], when=1), 1)
++
++    def test_post_to_closed_account_raises_value_error(self):
++        ledger = usd_ledger()
++        ledger.close("cash")
++        with self.assertRaises(ValueError):
++            ledger.post([("cash", "5"), ("bank", "-5")], when=1)
++        self.assert_untouched(ledger)
++        self.assertEqual(ledger.post([("bank", "5"), ("equity", "-5")], when=1), 1)
++
++    def test_unbalanced_currency_raises_value_error(self):
++        ledger = usd_ledger()
++        with self.assertRaises(ValueError):
++            ledger.post([("cash", "5"), ("bank", "-4")], when=1)
++        self.assert_untouched(ledger)
++        self.assertEqual(ledger.post([("cash", "5"), ("bank", "-5")], when=1), 1)
++
++    def test_balance_is_checked_per_currency(self):
++        # Each currency is unbalanced even though the grand total is zero.
++        ledger = usd_ledger()
++        with self.assertRaises(ValueError):
++            ledger.post([("cash", "5"), ("jpy", "-5")], when=1)
++        self.assert_untouched(ledger)
++        self.assertEqual(
++            ledger.post(
++                [
++                    ("cash", "5"),
++                    ("bank", "-5"),
++                    ("jpy", "3"),
++                    ("jpy2", "-3"),
++                ],
++                when=1,
++            ),
++            1,
++        )
++
++    def test_balanced_multi_currency_post_is_accepted(self):
++        ledger = usd_ledger()
++        txn_id = ledger.post(
++            [("cash", "5"), ("bank", "-5"), ("jpy", "3"), ("jpy2", "-3")], when=1
++        )
++        self.assertEqual(txn_id, 1)
++        self.assertEqual(ledger.balance("cash"), Decimal("5.00"))
++        self.assertEqual(ledger.balance("jpy"), Decimal("3"))
++
++    def test_unknown_account_wins_over_other_faults(self):
++        ledger = usd_ledger()
++        cases = [
++            [("nope", "5"), ("cash", "5"), ("bank", "5")],  # also unbalanced
++            [("nope", "5"), ("cash", "bad"), ("bank", "-5")],  # also invalid amount
++            [("nope", "5"), ("cash", "5")],  # also fewer than two real entries
++        ]
++        for entries in cases:
++            with self.subTest(entries=entries):
++                with self.assertRaises(KeyError):
++                    ledger.post(entries, when=1)
++                self.assert_untouched(ledger)
++
++    def test_failed_posts_use_no_ids(self):
++        ledger = usd_ledger()
++        attempts = [
++            [("cash", "5"), ("nope", "-5")],
++            [("cash", "5.000"), ("bank", "-5")],
++            [("cash", "5")],
++            [("cash", "5"), ("bank", "-4")],
++        ]
++        for entries in attempts:
++            with self.assertRaises((KeyError, ValueError)):
++                ledger.post(entries, when=1)
++        self.assertEqual(ledger.post([("cash", "5"), ("bank", "-5")], when=1), 1)
++
++    def test_repeated_account_entries_form_one_line(self):
++        ledger = usd_ledger()
++        self.assertEqual(
++            ledger.post([("cash", "5"), ("cash", "2"), ("bank", "-7")], when=1), 1
++        )
++        self.assertEqual(ledger.balance("cash"), Decimal("7.00"))
++        rows = ledger.statement("cash", 0, 10)
++        self.assertEqual(len(rows), 1)
++        self.assertEqual(rows[0][2], Decimal("7.00"))
++
++    def test_entries_netting_to_zero_for_an_account_are_accepted(self):
++        ledger = usd_ledger()
++        self.assertEqual(
++            ledger.post(
++                [
++                    ("cash", "5"),
++                    ("cash", "-5"),
++                    ("bank", "5"),
++                    ("bank", "-5"),
++                ],
++                when=1,
++            ),
++            1,
++        )
++        self.assertEqual(ledger.balance("cash"), Decimal("0.00"))
++        self.assertEqual(ledger.statement("cash", 0, 10), [])
++
++
++class TestExponent(unittest.TestCase):
++    """Property 3: balances carry exactly their currency's decimal places."""
++
++    def test_new_usd_balance_keeps_two_places(self):
++        ledger = usd_ledger()
++        value = ledger.balance("cash")
++        self.assertEqual(value, Decimal("0.00"))
++        self.assertEqual(places(value), -2)
++
++    def test_new_jpy_balance_keeps_no_places(self):
++        ledger = usd_ledger()
++        value = ledger.balance("jpy")
++        self.assertEqual(value, Decimal("0"))
++        self.assertEqual(places(value), 0)
++
++    def test_four_place_currency(self):
++        ledger = Ledger({"GBP": 4})
++        ledger.open("cash", "GBP")
++        value = ledger.balance("cash")
++        self.assertEqual(value, Decimal("0.0000"))
++        self.assertEqual(places(value), -4)
++
++    def test_posted_balance_keeps_exponent(self):
++        ledger = usd_ledger()
++        ledger.post([("cash", "5.5"), ("bank", "-5.5")], when=1)
++        value = ledger.balance("cash")
++        self.assertEqual(value, Decimal("5.50"))
++        self.assertEqual(places(value), -2)
++
++    def test_integer_spelling_still_keeps_exponent(self):
++        ledger = usd_ledger()
++        ledger.post([("cash", "5"), ("bank", "-5")], when=1)
++        value = ledger.balance("cash")
++        self.assertEqual(places(value), -2)
++
++    def test_balances_carry_exponent(self):
++        ledger = usd_ledger()
++        ledger.post([("cash", "5"), ("bank", "-5"), ("jpy", "3"), ("jpy2", "-3")], when=1)
++        values = ledger.balances()
++        self.assertEqual(places(values["cash"]), -2)
++        self.assertEqual(places(values["jpy"]), 0)
++
++
++class TestDatedBalance(unittest.TestCase):
++    """Property 4: balance(at=t) sums lines in transactions with when <= t."""
++
++    def test_boundary_is_inclusive(self):
++        ledger = usd_ledger()
++        ledger.post([("cash", "5"), ("bank", "-5")], when=10)
++        self.assertEqual(ledger.balance("cash", at=9), Decimal("0.00"))
++        self.assertEqual(ledger.balance("cash", at=10), Decimal("5.00"))
++        self.assertEqual(ledger.balance("cash", at=11), Decimal("5.00"))
++
++    def test_acceptance_order_does_not_matter(self):
++        ledger = usd_ledger()
++        ledger.post([("cash", "5"), ("bank", "-5")], when=10)
++        ledger.post([("cash", "3"), ("bank", "-3")], when=5)
++        self.assertEqual(ledger.balance("cash", at=4), Decimal("0.00"))
++        self.assertEqual(ledger.balance("cash", at=5), Decimal("3.00"))
++        self.assertEqual(ledger.balance("cash", at=9), Decimal("3.00"))
++        self.assertEqual(ledger.balance("cash", at=10), Decimal("8.00"))
++        self.assertEqual(ledger.balance("cash"), Decimal("8.00"))
++
++
++class TestBalances(unittest.TestCase):
++    """Property 5: balances() is zero-free and ordered by account name."""
++
++    def test_zero_balances_are_omitted(self):
++        ledger = usd_ledger()
++        ledger.open("aaa", "USD")
++        ledger.post([("cash", "5"), ("bank", "-5")], when=1)
++        self.assertEqual(
++            ledger.balances(),
++            {"bank": Decimal("-5.00"), "cash": Decimal("5.00")},
++        )
++
++    def test_accounts_are_in_name_order(self):
++        ledger = usd_ledger()
++        ledger.post([("cash", "5"), ("equity", "-5")], when=1)
++        self.assertEqual(list(ledger.balances()), ["cash", "equity"])
++
++    def test_at_filter_and_exponents(self):
++        ledger = usd_ledger()
++        ledger.post([("cash", "5"), ("bank", "-5")], when=10)
++        ledger.post([("jpy", "3"), ("jpy2", "-3")], when=5)
++        self.assertEqual(ledger.balances(at=4), {})
++        self.assertEqual(
++            ledger.balances(at=10),
++            {
++                "bank": Decimal("-5.00"),
++                "cash": Decimal("5.00"),
++                "jpy": Decimal("3"),
++                "jpy2": Decimal("-3"),
++            },
++        )
++
++
++class TestStatement(unittest.TestCase):
++    """Property 6: statement rows, ordering, bounds, and running balance."""
++
++    def test_running_includes_lines_before_start(self):
++        ledger = usd_ledger()
++        ledger.post([("cash", "10"), ("bank", "-10")], when=1)
++        ledger.post([("cash", "3"), ("bank", "-3")], when=5)
++        ledger.post([("cash", "-4"), ("bank", "4")], when=9)
++        self.assertEqual(
++            ledger.statement("cash", 5, 9),
++            [(5, 2, Decimal("3.00"), Decimal("13.00"))],
++        )
++        self.assertEqual(
++            ledger.statement("cash", 5, 10),
++            [
++                (5, 2, Decimal("3.00"), Decimal("13.00")),
++                (9, 3, Decimal("-4.00"), Decimal("9.00")),
++            ],
++        )
++
++    def test_orders_by_when_then_id(self):
++        ledger = usd_ledger()
++        ledger.post([("cash", "2"), ("bank", "-2")], when=10)
++        ledger.post([("cash", "3"), ("bank", "-3")], when=5)
++        ledger.post([("cash", "4"), ("bank", "-4")], when=10)
++        rows = ledger.statement("cash", 0, 100)
++        self.assertEqual([(row[0], row[1]) for row in rows], [(5, 2), (10, 1), (10, 3)])
++        self.assertEqual(
++            [row[3] for row in rows],
++            [Decimal("3.00"), Decimal("5.00"), Decimal("9.00")],
++        )
++
++    def test_zero_lines_are_omitted(self):
++        ledger = usd_ledger()
++        ledger.post(
++            [("cash", "5"), ("cash", "-5"), ("bank", "5"), ("bank", "-5")], when=1
++        )
++        self.assertEqual(ledger.statement("cash", 0, 10), [])
++
++    def test_start_after_end_raises(self):
++        ledger = usd_ledger()
++        with self.assertRaises(ValueError):
++            ledger.statement("cash", 5, 4)
++        self.assertEqual(ledger.statement("cash", 5, 5), [])
++
++    def test_start_is_inclusive(self):
++        ledger = usd_ledger()
++        ledger.post([("cash", "5"), ("bank", "-5")], when=1)
++        ledger.post([("cash", "3"), ("bank", "-3")], when=2)
++        self.assertEqual(
++            [(row[0], row[1]) for row in ledger.statement("cash", 1, 3)],
++            [(1, 1), (2, 2)],
++        )
++        self.assertEqual(
++            [(row[0], row[1]) for row in ledger.statement("cash", 2, 3)],
++            [(2, 2)],
++        )
++
++    def test_end_is_exclusive(self):
++        ledger = usd_ledger()
++        ledger.post([("cash", "5"), ("bank", "-5")], when=1)
++        self.assertEqual(ledger.statement("cash", 0, 1), [])
++        self.assertEqual(
++            ledger.statement("cash", 0, 2),
++            [(1, 1, Decimal("5.00"), Decimal("5.00"))],
++        )
++
++    def test_row_values_keep_exponent(self):
++        ledger = usd_ledger()
++        ledger.post([("cash", "5"), ("bank", "-5")], when=1)
++        (row,) = ledger.statement("cash", 0, 10)
++        self.assertEqual(places(row[2]), -2)
++        self.assertEqual(places(row[3]), -2)
++
++    def test_rows_include_reversals(self):
++        ledger = usd_ledger()
++        ledger.post([("cash", "5"), ("bank", "-5")], when=1)
++        ledger.reverse(1, when=3)
++        self.assertEqual(
++            ledger.statement("cash", 0, 10),
++            [
++                (1, 1, Decimal("5.00"), Decimal("5.00")),
++                (3, 2, Decimal("-5.00"), Decimal("0.00")),
++            ],
++        )
++
++
++class TestKeys(unittest.TestCase):
++    """Property 7: idempotency keys compare whole requests as multisets."""
++
++    def test_same_key_same_request_reordered_returns_id(self):
++        ledger = usd_ledger()
++        first = ledger.post([("cash", "5"), ("bank", "-5")], when=1, key="k")
++        second = ledger.post([("bank", "-5.0"), ("cash", "5")], when=1, key="k")
++        self.assertEqual(first, 1)
++        self.assertEqual(second, 1)
++        self.assertEqual(
++            ledger.balances(),
++            {"bank": Decimal("-5.00"), "cash": Decimal("5.00")},
++        )
++        self.assertEqual(len(ledger.statement("cash", 0, 10)), 1)
++
++    def test_same_key_different_when_raises(self):
++        ledger = usd_ledger()
++        ledger.post([("cash", "5"), ("bank", "-5")], when=1, key="k")
++        with self.assertRaises(ValueError):
++            ledger.post([("cash", "5"), ("bank", "-5")], when=2, key="k")
++        self.assertEqual(len(ledger.statement("cash", 0, 10)), 1)
++
++    def test_same_key_different_splitting_raises(self):
++        ledger = usd_ledger()
++        ledger.post([("cash", "5"), ("bank", "-5")], when=1, key="k")
++        with self.assertRaises(ValueError):
++            ledger.post(
++                [("cash", "2"), ("cash", "3"), ("bank", "-5")], when=1, key="k"
++            )
++        self.assertEqual(ledger.balance("cash"), Decimal("5.00"))
++
++    def test_same_key_different_amount_raises(self):
++        ledger = usd_ledger()
++        ledger.post([("cash", "5"), ("bank", "-5")], when=1, key="k")
++        with self.assertRaises(ValueError):
++            ledger.post([("cash", "6"), ("bank", "-6")], when=1, key="k")
++        self.assertEqual(ledger.balance("cash"), Decimal("5.00"))
++
++    def test_replay_returns_id_after_accounts_close(self):
++        ledger = usd_ledger()
++        self.assertEqual(
++            ledger.post([("cash", "5"), ("bank", "-5")], when=1, key="a"), 1
++        )
++        self.assertEqual(
++            ledger.post([("cash", "-5"), ("bank", "5")], when=2, key="b"), 2
++        )
++        ledger.close("bank")
++        ledger.close("cash")
++        self.assertEqual(
++            ledger.post([("cash", "-5"), ("bank", "5")], when=2, key="b"), 2
++        )
++        self.assertEqual(
++            ledger.post([("cash", "5"), ("bank", "-5")], when=1, key="a"), 1
++        )
++        with self.assertRaises(ValueError):
++            ledger.post([("cash", "5"), ("bank", "-5")], when=1, key="b")
++
++    def test_post_and_reverse_share_keys(self):
++        ledger = usd_ledger()
++        ledger.post([("cash", "5"), ("bank", "-5")], when=1, key="k")
++        with self.assertRaises(ValueError):
++            ledger.reverse(1, when=1, key="k")
++        self.assertEqual(ledger.balance("cash"), Decimal("5.00"))
++        self.assertEqual(ledger.reverse(1, when=1, key="r"), 2)
++        # Replaying the reversal returns its id even though it is a reversal.
++        self.assertEqual(ledger.reverse(1, when=1, key="r"), 2)
++        with self.assertRaises(ValueError):
++            ledger.post([("cash", "5"), ("bank", "-5")], when=1, key="r")
++        self.assertEqual(ledger.balance("cash"), Decimal("0.00"))
++
++    def test_failed_call_does_not_claim_key(self):
++        ledger = usd_ledger()
++        with self.assertRaises(ValueError):
++            ledger.post([("cash", "5"), ("bank", "-4")], when=1, key="k")
++        self.assertEqual(
++            ledger.post([("cash", "5"), ("bank", "-5")], when=1, key="k"), 1
++        )
++        with self.assertRaises(KeyError):
++            ledger.post([("nope", "5"), ("bank", "-5")], when=2, key="n")
++        self.assertEqual(
++            ledger.post([("equity", "1"), ("bank", "-1")], when=2, key="n"), 2
++        )
++
++    def test_failed_reversal_does_not_claim_key(self):
++        ledger = usd_ledger()
++        ledger.post([("cash", "5"), ("bank", "-5")], when=5)
++        with self.assertRaises(ValueError):
++            ledger.reverse(1, when=4, key="r")
++        with self.assertRaises(KeyError):
++            ledger.reverse(99, when=5, key="s")
++        self.assertEqual(ledger.reverse(1, when=5, key="r"), 2)
++        self.assertEqual(ledger.reverse(1, when=5, key="r"), 2)
++
++    def test_replay_uses_no_new_id(self):
++        ledger = usd_ledger()
++        ledger.post([("cash", "5"), ("bank", "-5")], when=1, key="k")
++        ledger.post([("cash", "5"), ("bank", "-5")], when=1, key="k")
++        self.assertEqual(
++            ledger.post([("cash", "1"), ("bank", "-1")], when=2), 2
++        )
++
++
++class TestReversal(unittest.TestCase):
++    """Property 8: reversals negate lines and refuse invalid requests."""
++
++    def test_reverse_negates_lines(self):
++        ledger = usd_ledger()
++        original = ledger.post([("cash", "5"), ("bank", "-5")], when=10)
++        self.assertEqual(ledger.reverse(original, when=10), 2)
++        self.assertEqual(ledger.balance("cash"), Decimal("0.00"))
++        self.assertEqual(ledger.balance("bank"), Decimal("0.00"))
++
++    def test_reverse_of_unknown_id_raises_key_error(self):
++        ledger = usd_ledger()
++        with self.assertRaises(KeyError):
++            ledger.reverse(99, when=1)
++        self.assertEqual(ledger.post([("cash", "5"), ("bank", "-5")], when=1), 1)
++
++    def test_reverse_of_reversal_raises(self):
++        ledger = usd_ledger()
++        ledger.post([("cash", "5"), ("bank", "-5")], when=1)
++        ledger.reverse(1, when=1)
++        with self.assertRaises(ValueError):
++            ledger.reverse(2, when=1)
++
++    def test_second_reversal_raises(self):
++        ledger = usd_ledger()
++        ledger.post([("cash", "5"), ("bank", "-5")], when=1)
++        ledger.reverse(1, when=1)
++        with self.assertRaises(ValueError):
++            ledger.reverse(1, when=2)
++        self.assertEqual(ledger.balance("cash"), Decimal("0.00"))
++        self.assertEqual(ledger.balance("bank"), Decimal("0.00"))
++
++    def test_when_below_original_raises(self):
++        ledger = usd_ledger()
++        ledger.post([("cash", "5"), ("bank", "-5")], when=10)
++        with self.assertRaises(ValueError):
++            ledger.reverse(1, when=9)
++        self.assertEqual(ledger.balance("cash"), Decimal("5.00"))
++        self.assertEqual(ledger.reverse(1, when=11), 2)
++
++    def test_closed_account_blocks_reversal(self):
++        ledger = usd_ledger()
++        ledger.post([("cash", "5"), ("bank", "-5")], when=1)
++        ledger.post([("cash", "-5"), ("equity", "5")], when=2)
++        ledger.close("cash")
++        with self.assertRaises(ValueError):
++            ledger.reverse(1, when=2)
++        self.assertEqual(ledger.balance("cash"), Decimal("0.00"))
++        self.assertEqual(ledger.post([("bank", "1"), ("equity", "-1")], when=3), 3)
++
++    def test_failed_reversal_uses_no_id(self):
++        ledger = usd_ledger()
++        ledger.post([("cash", "5"), ("bank", "-5")], when=1)
++        ledger.reverse(1, when=1)
++        for attempt in (lambda: ledger.reverse(1, when=2), lambda: ledger.reverse(2, when=2)):
++            with self.assertRaises(ValueError):
++                attempt()
++        self.assertEqual(ledger.post([("cash", "1"), ("bank", "-1")], when=3), 3)
++
++    def test_reversal_negates_only_the_originals_lines(self):
++        ledger = usd_ledger()
++        ledger.post([("cash", "5"), ("cash", "2"), ("bank", "-7")], when=1)
++        ledger.reverse(1, when=1)
++        self.assertEqual(ledger.balance("cash"), Decimal("0.00"))
++        self.assertEqual(ledger.balance("bank"), Decimal("0.00"))
++        rows = ledger.statement("cash", 0, 10)
++        self.assertEqual([row[2] for row in rows], [Decimal("7.00"), Decimal("-7.00")])
++
++
++class TestClose(unittest.TestCase):
++    """Property 9: closing rules and history retention."""
++
++    def test_unknown_account_raises_key_error(self):
++        ledger = usd_ledger()
++        with self.assertRaises(KeyError):
++            ledger.close("nope")
++
++    def test_nonzero_balance_raises_value_error(self):
++        ledger = usd_ledger()
++        ledger.post([("cash", "5"), ("bank", "-5")], when=1)
++        with self.assertRaises(ValueError):
++            ledger.close("cash")
++        self.assertEqual(ledger.balance("cash"), Decimal("5.00"))
++
++    def test_double_close_raises_value_error(self):
++        ledger = usd_ledger()
++        ledger.close("cash")
++        with self.assertRaises(ValueError):
++            ledger.close("cash")
++
++    def test_closed_account_keeps_history(self):
++        ledger = usd_ledger()
++        ledger.post([("cash", "5"), ("bank", "-5")], when=1)
++        ledger.post([("cash", "-5"), ("bank", "5")], when=2)
++        ledger.close("cash")
++        self.assertEqual(ledger.balance("cash"), Decimal("0.00"))
++        self.assertEqual(len(ledger.statement("cash", 0, 10)), 2)
++        self.assertEqual(ledger.balance("cash", at=1), Decimal("5.00"))
++
++    def test_zero_balance_in_another_currency_closes(self):
++        ledger = usd_ledger()
++        ledger.close("jpy")
++        self.assertEqual(ledger.balance("jpy"), Decimal("0"))
++
++
++class TestUnknownQueries(unittest.TestCase):
++    """Property 10: queries on unknown accounts raise KeyError."""
++
++    def test_balance_unknown_raises_key_error(self):
++        ledger = usd_ledger()
++        with self.assertRaises(KeyError):
++            ledger.balance("nope")
++        with self.assertRaises(KeyError):
++            ledger.balance("nope", at=1)
++
++    def test_statement_unknown_raises_key_error(self):
++        ledger = usd_ledger()
++        with self.assertRaises(KeyError):
++            ledger.statement("nope", 0, 10)
++
++
++if __name__ == "__main__":
++    unittest.main()

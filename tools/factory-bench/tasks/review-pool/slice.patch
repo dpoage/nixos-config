@@ -1,0 +1,1042 @@
+diff --git a/README.md b/README.md
+index a39c157..cbc0301 100644
+--- a/README.md
++++ b/README.md
+@@ -2,4 +2,39 @@
+ 
+ Reservations of capacity for the nodes of a tenant tree.
+ 
++## Usage
++
++`Pool(tree, quotas)` builds a pool over a tenant tree. `tree` maps each node to
++its parent, and the root to `None`. `quotas` maps every node of the tree to an
++integer quota of at least 0.
++
++```python
++from pool import NoCapacity, Pool
++
++pool = Pool({"root": None, "team": "root"}, {"root": 10, "team": 6})
++rid = pool.reserve("team", 4, 0, 5)
++```
++
++`reserve` returns an integer id. A reservation holds `units` of capacity at its
++node for the instants `t` with `start <= t < end`, and it must fit under the
++quota of every node in the chain from its own node up to the root. A request
++that fits becomes active. With `wait=True`, a request that does not fit becomes
++waiting and keeps its place in line. With `preempt=True`, a request that does
++not fit may displace active reservations of a strictly lower priority.
++
++`usage(node, at)` is the capacity used by the active reservations in the
++subtree of `node` at instant `at`. `peak(node, start, end)` is the highest usage
++at an instant in `[start, end)`, and `timeline(node)` lists the `(instant,
++usage)` pairs at which the usage of the node changes. `waiting()` lists the ids
++of the waiting reservations in waiting order, and `cancel(rid)` cancels an
++active or waiting reservation.
++
++`set_quota(node, quota, evict=True)` lowers a quota, evicting active
++reservations as needed. Without `evict=True`, a quota that the current usage is
++above raises `ValueError`. `events()` returns the events appended so far, in
++order, as a new list.
++
++A request that cannot be placed raises `NoCapacity`; its `node` and `at`
++attributes name the first violation.
++
+ `pool/steps.py` is maintained by the timeline slice.
+diff --git a/pool/__init__.py b/pool/__init__.py
+index b83f094..80957d2 100644
+--- a/pool/__init__.py
++++ b/pool/__init__.py
+@@ -1,9 +1,394 @@
+-"""Quota pool. See the slice brief."""
++"""Quota pool: capacity reservations over a tree of nodes."""
++
++from .steps import Steps as _Steps
++
++__all__ = ["NoCapacity", "Pool"]
++
++ACTIVE = "active"
++WAITING = "waiting"
++CANCELLED = "cancelled"
++PREEMPTED = "preempted"
++EVICTED = "evicted"
++
++
++def _is_int(value):
++    """An int that is not a bool."""
++    return isinstance(value, int) and not isinstance(value, bool)
+ 
+ 
+ class NoCapacity(Exception):
+-    pass
++    """Raised when a request cannot be placed.
++
++    `node` and `at` are the first violation, read before anything was displaced.
++    """
++
++    def __init__(self, node, at):
++        self.node = node
++        self.at = at
++        super().__init__(f"no capacity at node {node!r} at instant {at}")
++
++
++class _Reservation:
++    __slots__ = (
++        "id",
++        "node",
++        "units",
++        "start",
++        "end",
++        "priority",
++        "wait",
++        "preempt",
++        "status",
++    )
++
++    def __init__(self, rid, node, units, start, end, priority, wait, preempt):
++        self.id = rid
++        self.node = node
++        self.units = units
++        self.start = start
++        self.end = end
++        self.priority = priority
++        self.wait = wait
++        self.preempt = preempt
++        self.status = WAITING
+ 
+ 
+ class Pool:
+-    pass
++    """Reservations of capacity for the nodes of a tenant tree."""
++
++    def __init__(self, tree, quotas):
++        if not tree:
++            raise ValueError("tree is empty")
++        nodes = set(tree)
++        roots = [node for node, parent in tree.items() if parent is None]
++        if len(roots) != 1:
++            raise ValueError("tree must have exactly one root")
++        for node, parent in tree.items():
++            if parent is not None and parent not in nodes:
++                raise ValueError(f"parent {parent!r} of {node!r} is not a node")
++        # Reject cycles: walking parents from any node must reach the root.
++        for node in nodes:
++            seen = set()
++            current = node
++            while current is not None:
++                if current in seen:
++                    raise ValueError("parent links form a cycle")
++                seen.add(current)
++                current = tree[current]
++        if set(quotas) != nodes:
++            raise ValueError("quotas must name exactly the nodes of the tree")
++        checked = {}
++        for node in nodes:
++            quota = quotas[node]
++            if not _is_int(quota) or quota < 0:
++                raise ValueError(f"quota of {node!r} is not an int of at least 0")
++            checked[node] = quota
++
++        self._tree = dict(tree)
++        self._quotas = checked
++        self._chain = {}
++        for node in nodes:
++            chain = []
++            current = node
++            while current is not None:
++                chain.append(current)
++                current = tree[current]
++            self._chain[node] = chain
++        self._steps = {node: _Steps() for node in nodes}
++        self._reservations = {}
++        self._keys = {}
++        self._next_id = 1
++        self._events = []
++
++    # -- internal helpers -------------------------------------------------
++
++    def _steps_for(self, reservation):
++        return (self._steps[node] for node in self._chain[reservation.node])
++
++    def _remove_usage(self, reservation):
++        for steps in self._steps_for(reservation):
++            steps.remove(reservation.start, reservation.end, reservation.units)
++
++    def _add_usage(self, reservation):
++        for steps in self._steps_for(reservation):
++            steps.add(reservation.start, reservation.end, reservation.units)
++
++    def _activate(self, reservation):
++        reservation.status = ACTIVE
++        self._add_usage(reservation)
++
++    def _displace(self, reservation, kind):
++        if reservation.status == ACTIVE:
++            self._remove_usage(reservation)
++        self._events.append((kind, reservation.id))
++        if reservation.wait:
++            reservation.status = WAITING
++            self._events.append((WAITING, reservation.id))
++        else:
++            reservation.status = kind
++
++    def _segment_starts(self, node, start, end):
++        """Candidate instants in [start, end) at which usage can change."""
++        starts = [start]
++        for point in self._steps[node].points():
++            if start < point < end:
++                starts.append(point)
++        return starts
++
++    def _first_violation(self, node, units, start, end):
++        """The nearest-node, lowest-instant violation, or None."""
++        for ancestor in self._chain[node]:
++            quota = self._quotas[ancestor]
++            steps = self._steps[ancestor]
++            for at in self._segment_starts(ancestor, start, end):
++                if steps.value(at) + units > quota:
++                    return (ancestor, at)
++        return None
++
++    def _covers_violation(self, node, units, start, end, candidate):
++        """True when a violation touches the candidate's node and interval."""
++        low = max(start, candidate.start)
++        high = min(end, candidate.end)
++        if low >= high:
++            return False
++        candidate_chain = self._chain[candidate.node]
++        for ancestor in self._chain[node]:
++            if ancestor not in candidate_chain:
++                continue
++            quota = self._quotas[ancestor]
++            steps = self._steps[ancestor]
++            starts = [low]
++            for point in steps.points():
++                if low < point < high:
++                    starts.append(point)
++            for at in starts:
++                if steps.value(at) + units > quota:
++                    return True
++        return False
++
++    def _usage_above(self, node, quota):
++        steps = self._steps[node]
++        for point in steps.points():
++            if steps.value(point) > quota:
++                return True
++        return False
++
++    def _covers_above(self, node, quota, start, end):
++        steps = self._steps[node]
++        points = steps.points()
++        for index, point in enumerate(points):
++            if steps.value(point) <= quota:
++                continue
++            segment_end = points[index + 1] if index + 1 < len(points) else None
++            low = max(start, point)
++            high = end if segment_end is None else min(end, segment_end)
++            if low < high:
++                return True
++        return False
++
++    @staticmethod
++    def _victim_key(reservation):
++        return (reservation.priority, -reservation.start, -reservation.id)
++
++    def _waiting_key(self, rid):
++        reservation = self._reservations[rid]
++        return (-reservation.priority, rid)
++
++    def _settle(self):
++        for rid in self.waiting():
++            reservation = self._reservations[rid]
++            if self._first_violation(
++                reservation.node, reservation.units, reservation.start, reservation.end
++            ) is None:
++                self._activate(reservation)
++                self._events.append(("promoted", rid))
++
++    def _preemption_pass(self, node, units, start, end, priority):
++        """Tentatively displace candidates.
++
++        Returns the list of displaced candidates when the request now fits, or
++        None after restoring every tentative displacement.
++        """
++        candidates = [
++            reservation
++            for reservation in self._reservations.values()
++            if reservation.status == ACTIVE
++            and reservation.priority < priority
++            and max(reservation.start, start) < min(reservation.end, end)
++        ]
++        candidates.sort(key=self._victim_key)
++        taken = []
++        for candidate in candidates:
++            if self._first_violation(node, units, start, end) is None:
++                break
++            if self._covers_violation(node, units, start, end, candidate):
++                self._remove_usage(candidate)
++                taken.append(candidate)
++        if self._first_violation(node, units, start, end) is None:
++            return taken
++        for candidate in taken:
++            self._add_usage(candidate)
++        return None
++
++    def _new_reservation(self, node, units, start, end, priority, wait, preempt):
++        rid = self._next_id
++        self._next_id += 1
++        reservation = _Reservation(rid, node, units, start, end, priority, wait, preempt)
++        self._reservations[rid] = reservation
++        return reservation
++
++    def _claim(self, key, rid, request):
++        if key is not None:
++            self._keys[key] = (rid, request)
++
++    # -- public surface ---------------------------------------------------
++
++    def reserve(
++        self,
++        node,
++        units,
++        start,
++        end,
++        *,
++        priority=0,
++        key=None,
++        wait=False,
++        preempt=False,
++    ):
++        if node not in self._tree:
++            raise KeyError(node)
++        if not _is_int(units) or units < 1:
++            raise ValueError("units must be an int of at least 1")
++        if not _is_int(start) or not _is_int(end):
++            raise ValueError("start and end must be ints")
++        if start >= end:
++            raise ValueError("start must be below end")
++        if not _is_int(priority) or not 0 <= priority <= 9:
++            raise ValueError("priority must be an int from 0 to 9")
++
++        request = (node, units, start, end, priority, wait, preempt)
++        if key is not None and key in self._keys:
++            rid, previous = self._keys[key]
++            if previous != request:
++                raise ValueError("key was claimed by a different request")
++            return rid
++
++        first = self._first_violation(node, units, start, end)
++        if first is None:
++            reservation = self._new_reservation(
++                node, units, start, end, priority, wait, preempt
++            )
++            self._activate(reservation)
++            self._events.append((ACTIVE, reservation.id))
++            self._claim(key, reservation.id, request)
++            return reservation.id
++
++        if preempt:
++            taken = self._preemption_pass(node, units, start, end, priority)
++            if taken is not None:
++                for candidate in taken:
++                    self._events.append((PREEMPTED, candidate.id))
++                    if candidate.wait:
++                        candidate.status = WAITING
++                        self._events.append((WAITING, candidate.id))
++                    else:
++                        candidate.status = PREEMPTED
++                reservation = self._new_reservation(
++                    node, units, start, end, priority, wait, preempt
++                )
++                self._activate(reservation)
++                self._events.append((ACTIVE, reservation.id))
++                self._settle()
++                self._claim(key, reservation.id, request)
++                return reservation.id
++
++        if wait:
++            reservation = self._new_reservation(
++                node, units, start, end, priority, wait, preempt
++            )
++            self._events.append((WAITING, reservation.id))
++            self._claim(key, reservation.id, request)
++            return reservation.id
++
++        raise NoCapacity(first[0], first[1])
++
++    def cancel(self, rid):
++        reservation = self._reservations.get(rid)
++        if reservation is None:
++            raise KeyError(rid)
++        if reservation.status not in (ACTIVE, WAITING):
++            raise ValueError(f"reservation {rid} is {reservation.status}")
++        if reservation.status == ACTIVE:
++            self._remove_usage(reservation)
++        reservation.status = CANCELLED
++        self._events.append((CANCELLED, rid))
++        self._settle()
++
++    def set_quota(self, node, quota, *, evict=False):
++        if node not in self._tree:
++            raise KeyError(node)
++        if not _is_int(quota) or quota < 0:
++            raise ValueError("quota must be an int of at least 0")
++        old = self._quotas[node]
++        if quota == old:
++            return
++        above = self._usage_above(node, quota)
++        if above and not evict:
++            raise ValueError(f"usage above the new quota of {node!r}")
++        self._quotas[node] = quota
++        self._events.append(("quota", node, old, quota))
++        if above:
++            candidates = [
++                reservation
++                for reservation in self._reservations.values()
++                if reservation.status == ACTIVE and node in self._chain[reservation.node]
++            ]
++            candidates.sort(key=self._victim_key)
++            for candidate in candidates:
++                if not self._usage_above(node, quota):
++                    break
++                if self._covers_above(node, quota, candidate.start, candidate.end):
++                    self._displace(candidate, EVICTED)
++        self._settle()
++
++    def usage(self, node, at):
++        if node not in self._tree:
++            raise KeyError(node)
++        return self._steps[node].value(at)
++
++    def peak(self, node, start, end):
++        if node not in self._tree:
++            raise KeyError(node)
++        if start >= end:
++            raise ValueError("start must be below end")
++        steps = self._steps[node]
++        best = steps.value(start)
++        for point in steps.points():
++            if start < point < end:
++                best = max(best, steps.value(point))
++        return best
++
++    def timeline(self, node):
++        if node not in self._tree:
++            raise KeyError(node)
++        steps = self._steps[node]
++        return [(point, steps.value(point)) for point in steps.points()]
++
++    def status(self, rid):
++        reservation = self._reservations.get(rid)
++        if reservation is None:
++            raise KeyError(rid)
++        return reservation.status
++
++    def waiting(self):
++        return sorted(
++            (
++                reservation.id
++                for reservation in self._reservations.values()
++                if reservation.status == WAITING
++            ),
++            key=self._waiting_key,
++        )
++
++    def events(self):
++        return list(self._events)
+diff --git a/tests/test_pool.py b/tests/test_pool.py
+new file mode 100644
+index 0000000..8f2b4e0
+--- /dev/null
++++ b/tests/test_pool.py
+@@ -0,0 +1,590 @@
++import unittest
++
++from pool import NoCapacity, Pool
++
++TREE = {"root": None, "a": "root", "b": "root", "a1": "a", "a2": "a"}
++
++
++def quotas(**overrides):
++    base = {"root": 10, "a": 10, "b": 10, "a1": 10, "a2": 10}
++    base.update(overrides)
++    return base
++
++
++def make(**overrides):
++    return Pool(TREE, quotas(**overrides))
++
++
++class SetupTest(unittest.TestCase):
++    def test_rejects_bad_trees(self):
++        cases = [
++            ({}, {}),
++            ({"r": None, "s": None}, {"r": 0, "s": 0}),
++            ({"r": None, "x": "missing"}, {"r": 0, "x": 0}),
++            ({"r": None, "a": "b", "b": "a"}, {"r": 0, "a": 0, "b": 0}),
++            ({"r": None, "a": "a"}, {"r": 0, "a": 0}),
++            ({"r": None}, {"r": 0, "extra": 0}),
++            ({"r": None}, {}),
++        ]
++        for tree, tree_quotas in cases:
++            with self.subTest(tree=tree, quotas=tree_quotas):
++                with self.assertRaises(ValueError):
++                    Pool(tree, tree_quotas)
++
++    def test_rejects_bad_quotas(self):
++        for quota in (True, -1, 1.0, "1", None):
++            with self.subTest(quota=quota):
++                with self.assertRaises(ValueError):
++                    Pool({"r": None}, {"r": quota})
++
++    def test_accepts_a_zero_quota(self):
++        pool = Pool({"r": None}, {"r": 0})
++        self.assertEqual(pool.usage("r", 0), 0)
++
++    def test_rejects_a_quota_of_true(self):
++        with self.assertRaises(ValueError):
++            Pool({"r": None}, {"r": True})
++
++
++class ValidationTest(unittest.TestCase):
++    def setUp(self):
++        self.pool = make()
++
++    def test_unknown_node_is_key_error_even_with_other_bad_arguments(self):
++        with self.assertRaises(KeyError):
++            self.pool.reserve("nope", 1, 0, 1)
++        with self.assertRaises(KeyError):
++            self.pool.reserve("nope", 0, 5, 5)
++
++    def test_rejects_bad_units(self):
++        for units in (0, -1, True, 1.0, "1"):
++            with self.subTest(units=units):
++                with self.assertRaises(ValueError):
++                    self.pool.reserve("root", units, 0, 1)
++
++    def test_rejects_bad_instants(self):
++        for start, end in (
++            (True, 1),
++            (0, True),
++            (1.0, 2),
++            (0, 1.0),
++            ("0", 1),
++            (0, "1"),
++        ):
++            with self.subTest(start=start, end=end):
++                with self.assertRaises(ValueError):
++                    self.pool.reserve("root", 1, start, end)
++
++    def test_rejects_empty_and_reversed_intervals(self):
++        with self.assertRaises(ValueError):
++            self.pool.reserve("root", 1, 5, 5)
++        with self.assertRaises(ValueError):
++            self.pool.reserve("root", 1, 6, 5)
++
++    def test_accepts_boundary_values(self):
++        pool = make()
++        self.assertEqual(pool.reserve("root", 1, 0, 1, priority=9), 1)
++        self.assertEqual(pool.reserve("root", 1, 1, 2, priority=0), 2)
++
++    def test_rejects_bad_priority(self):
++        for priority in (10, -1, True, 1.5, "0"):
++            with self.subTest(priority=priority):
++                with self.assertRaises(ValueError):
++                    self.pool.reserve("root", 1, 0, 1, priority=priority)
++
++
++class CapacityTest(unittest.TestCase):
++    def test_fitting_request_is_active(self):
++        pool = make(root=5)
++        rid = pool.reserve("root", 5, 0, 5)
++        self.assertEqual(rid, 1)
++        self.assertEqual(pool.status(rid), "active")
++        self.assertEqual(pool.events(), [("active", 1)])
++        self.assertEqual(pool.usage("root", 0), 5)
++
++    def test_usage_may_equal_a_quota(self):
++        pool = make(root=9, a=5, b=4)
++        self.assertEqual(pool.reserve("a", 5, 0, 5), 1)
++        self.assertEqual(pool.reserve("b", 4, 0, 5), 2)
++        self.assertEqual(pool.usage("root", 0), 9)
++
++    def test_every_ancestor_limits_the_request(self):
++        pool = make(root=8, a=6, b=6)
++        self.assertEqual(pool.reserve("a", 5, 0, 5), 1)
++        with self.assertRaises(NoCapacity):
++            pool.reserve("b", 4, 0, 5)
++        self.assertEqual(pool.events(), [("active", 1)])
++        # No id was consumed by the rejected call.
++        self.assertEqual(pool.reserve("b", 3, 0, 5), 2)
++
++
++class NoCapacityTest(unittest.TestCase):
++    def test_reports_the_nearest_violation(self):
++        pool = make(root=4, a1=4)
++        pool.reserve("a1", 3, 5, 9)
++        before = pool.events()
++        with self.assertRaises(NoCapacity) as caught:
++            pool.reserve("a1", 2, 0, 10)
++        error = caught.exception
++        self.assertEqual(error.node, "a1")
++        self.assertEqual(error.at, 5)
++        self.assertIn("a1", str(error))
++        self.assertIn("5", str(error))
++        self.assertEqual(pool.events(), before)
++        self.assertEqual(pool.status(1), "active")
++        # No id was consumed.
++        self.assertEqual(pool.reserve("root", 1, 0, 1), 2)
++
++    def test_nothing_changes_on_failure(self):
++        pool = make(root=5)
++        pool.reserve("root", 5, 0, 10)
++        before = pool.events()
++        with self.assertRaises(NoCapacity):
++            pool.reserve("root", 1, 0, 10)
++        self.assertEqual(pool.events(), before)
++        self.assertEqual(pool.usage("root", 0), 5)
++
++
++class QueriesTest(unittest.TestCase):
++    def test_usage_is_subtree_and_half_open(self):
++        pool = make()
++        pool.reserve("a1", 2, 0, 5)
++        self.assertEqual(pool.usage("a1", 0), 2)
++        self.assertEqual(pool.usage("a", 4), 2)
++        self.assertEqual(pool.usage("root", 0), 2)
++        self.assertEqual(pool.usage("a1", 5), 0)
++        self.assertEqual(pool.usage("b", 0), 0)
++
++    def test_usage_ignores_waiting_reservations(self):
++        pool = make(root=1)
++        pool.reserve("root", 1, 0, 10)
++        pool.reserve("root", 1, 0, 10, wait=True)
++        self.assertEqual(pool.usage("root", 0), 1)
++
++    def test_peak_excludes_the_end_instant(self):
++        pool = make()
++        pool.reserve("root", 2, 0, 5)
++        pool.reserve("root", 3, 5, 9)
++        self.assertEqual(pool.peak("root", 0, 5), 2)
++        self.assertEqual(pool.peak("root", 0, 9), 3)
++        self.assertEqual(pool.peak("root", 5, 9), 3)
++        self.assertEqual(pool.peak("root", 9, 10), 0)
++        with self.assertRaises(ValueError):
++            pool.peak("root", 5, 5)
++        with self.assertRaises(ValueError):
++            pool.peak("root", 6, 5)
++
++    def test_peak_for_a_leaf_ignores_siblings(self):
++        pool = make()
++        pool.reserve("a", 4, 0, 5)
++        self.assertEqual(pool.peak("b", 0, 5), 0)
++
++    def test_timeline_lists_change_instants(self):
++        pool = make()
++        pool.reserve("root", 2, 0, 5)
++        pool.reserve("root", 3, 5, 9)
++        self.assertEqual(pool.timeline("root"), [(0, 2), (5, 3), (9, 0)])
++
++    def test_timeline_skips_cancelling_changes(self):
++        pool = make()
++        pool.reserve("root", 2, 0, 5)
++        pool.reserve("root", 2, 5, 9)
++        self.assertEqual(pool.timeline("root"), [(0, 2), (9, 0)])
++
++    def test_timeline_is_empty_without_active_reservations(self):
++        pool = make()
++        self.assertEqual(pool.timeline("root"), [])
++        pool.reserve("a1", 2, 0, 5)
++        self.assertEqual(pool.timeline("b"), [])
++        self.assertEqual(pool.timeline("a2"), [])
++
++    def test_timeline_follows_the_subtree(self):
++        pool = make()
++        pool.reserve("a1", 2, 0, 5)
++        self.assertEqual(pool.timeline("a"), [(0, 2), (5, 0)])
++        self.assertEqual(pool.timeline("a1"), [(0, 2), (5, 0)])
++        pool.cancel(1)
++        self.assertEqual(pool.timeline("a"), [])
++
++    def test_queries_reject_unknown_nodes(self):
++        pool = make()
++        with self.assertRaises(KeyError):
++            pool.usage("nope", 0)
++        with self.assertRaises(KeyError):
++            pool.peak("nope", 0, 1)
++        with self.assertRaises(KeyError):
++            pool.timeline("nope")
++
++
++class WaitingTest(unittest.TestCase):
++    def test_waiting_request_gets_an_id_and_event(self):
++        pool = make(root=1)
++        pool.reserve("root", 1, 0, 10)
++        rid = pool.reserve("root", 1, 0, 10, wait=True)
++        self.assertEqual(rid, 2)
++        self.assertEqual(pool.status(2), "waiting")
++        self.assertEqual(pool.events(), [("active", 1), ("waiting", 2)])
++        self.assertEqual(pool.waiting(), [2])
++        self.assertEqual(pool.usage("root", 0), 1)
++
++    def test_waiting_order_is_priority_then_id(self):
++        pool = make(root=5)
++        pool.reserve("root", 5, 0, 10)
++        pool.reserve("root", 3, 0, 10, priority=1, wait=True)
++        pool.reserve("root", 1, 0, 10, priority=5, wait=True)
++        pool.reserve("root", 1, 0, 10, priority=5, wait=True)
++        self.assertEqual(pool.waiting(), [3, 4, 2])
++
++
++class PreemptionTest(unittest.TestCase):
++    def test_lower_priority_is_preempted(self):
++        pool = make(root=5)
++        pool.reserve("root", 5, 0, 10, priority=0)
++        rid = pool.reserve("root", 5, 0, 10, priority=5, preempt=True)
++        self.assertEqual(rid, 2)
++        self.assertEqual(pool.status(1), "preempted")
++        self.assertEqual(pool.status(2), "active")
++        self.assertEqual(
++            pool.events(),
++            [("active", 1), ("preempted", 1), ("active", 2)],
++        )
++
++    def test_equal_priority_is_not_preempted(self):
++        pool = make(root=5)
++        pool.reserve("root", 5, 0, 10, priority=2)
++        with self.assertRaises(NoCapacity):
++            pool.reserve("root", 1, 0, 10, priority=2, preempt=True)
++        self.assertEqual(pool.status(1), "active")
++        self.assertEqual(pool.events(), [("active", 1)])
++
++    def test_only_overlapping_reservations_are_candidates(self):
++        pool = make(root=10)
++        pool.reserve("root", 5, 0, 5, priority=0)
++        pool.reserve("root", 5, 5, 10, priority=0)
++        rid = pool.reserve("root", 6, 0, 5, priority=5, preempt=True)
++        self.assertEqual(rid, 3)
++        self.assertEqual(pool.status(1), "preempted")
++        self.assertEqual(pool.status(2), "active")
++
++    def test_victim_order_is_priority_then_id_descending(self):
++        pool = make(root=5)
++        pool.reserve("root", 2, 0, 10, priority=0)
++        pool.reserve("root", 2, 0, 10, priority=1)
++        pool.reserve("root", 1, 0, 10, priority=0)
++        pool.reserve("root", 1, 0, 10, priority=5, preempt=True)
++        self.assertEqual(pool.status(3), "preempted")
++        self.assertEqual(pool.status(1), "active")
++        self.assertEqual(pool.status(2), "active")
++
++    def test_victim_order_prefers_a_later_start(self):
++        pool = make(root=5)
++        pool.reserve("root", 2, 0, 10, priority=0)
++        pool.reserve("root", 2, 2, 10, priority=0)
++        pool.reserve("root", 2, 0, 10, priority=5, preempt=True)
++        self.assertEqual(pool.status(1), "active")
++        self.assertEqual(pool.status(2), "preempted")
++
++    def test_failed_preemption_restores_everything(self):
++        pool = make(root=5)
++        pool.reserve("a", 3, 0, 5, priority=0)
++        pool.reserve("root", 5, 5, 10, priority=5)
++        before = pool.events()
++        with self.assertRaises(NoCapacity) as caught:
++            pool.reserve("root", 5, 0, 10, priority=5, preempt=True)
++        # First violation read before anything was displaced: instant 0.
++        self.assertEqual(caught.exception.node, "root")
++        self.assertEqual(caught.exception.at, 0)
++        self.assertEqual(pool.events(), before)
++        self.assertEqual(pool.status(1), "active")
++        self.assertEqual(pool.status(2), "active")
++        # No id was consumed by the failed call.
++        self.assertEqual(pool.reserve("root", 1, 20, 21), 3)
++
++    def test_failed_preemption_with_wait_creates_a_waiting_reservation(self):
++        pool = make(root=5)
++        pool.reserve("a", 3, 0, 5, priority=0)
++        pool.reserve("root", 5, 5, 10, priority=5)
++        rid = pool.reserve("root", 5, 0, 10, priority=5, preempt=True, wait=True)
++        self.assertEqual(rid, 3)
++        self.assertEqual(pool.status(3), "waiting")
++        self.assertEqual(pool.status(1), "active")
++        self.assertEqual(pool.waiting(), [3])
++
++    def test_displaced_waiting_reservation_waits_again(self):
++        pool = make(root=5)
++        pool.reserve("root", 5, 0, 10, priority=0, wait=True)
++        rid = pool.reserve("root", 5, 0, 10, priority=5, preempt=True)
++        self.assertEqual(rid, 2)
++        self.assertEqual(pool.status(1), "waiting")
++        self.assertEqual(pool.waiting(), [1])
++        self.assertEqual(
++            pool.events(),
++            [
++                ("active", 1),
++                ("preempted", 1),
++                ("waiting", 1),
++                ("active", 2),
++            ],
++        )
++
++    def test_settle_runs_after_preemption(self):
++        pool = make(root=5)
++        pool.reserve("root", 4, 0, 10, priority=3)
++        pool.reserve("root", 2, 0, 10, priority=0, wait=True)
++        rid = pool.reserve("root", 2, 0, 10, priority=5, preempt=True)
++        self.assertEqual(rid, 3)
++        self.assertEqual(pool.status(1), "preempted")
++        self.assertEqual(pool.status(2), "active")
++        self.assertEqual(
++            pool.events(),
++            [
++                ("active", 1),
++                ("waiting", 2),
++                ("preempted", 1),
++                ("active", 3),
++                ("promoted", 2),
++            ],
++        )
++
++
++class CancelTest(unittest.TestCase):
++    def test_unknown_id_is_key_error(self):
++        pool = make()
++        with self.assertRaises(KeyError):
++            pool.cancel(99)
++
++    def test_cancel_frees_capacity_and_settles(self):
++        pool = make(root=5)
++        pool.reserve("root", 5, 0, 10)
++        pool.reserve("root", 5, 0, 10, wait=True)
++        pool.cancel(1)
++        self.assertEqual(pool.status(1), "cancelled")
++        self.assertEqual(pool.status(2), "active")
++        self.assertEqual(
++            pool.events(),
++            [
++                ("active", 1),
++                ("waiting", 2),
++                ("cancelled", 1),
++                ("promoted", 2),
++            ],
++        )
++        self.assertEqual(pool.usage("root", 0), 5)
++
++    def test_cancel_waiting_reservation(self):
++        pool = make(root=1)
++        pool.reserve("root", 1, 0, 10)
++        pool.reserve("root", 1, 0, 10, wait=True)
++        pool.cancel(2)
++        self.assertEqual(pool.status(2), "cancelled")
++        self.assertEqual(pool.waiting(), [])
++
++    def test_cancel_rejects_finished_reservations(self):
++        pool = make(root=5)
++        pool.reserve("root", 5, 0, 10, priority=0)
++        pool.reserve("root", 5, 0, 10, priority=5, preempt=True)
++        with self.assertRaises(ValueError):
++            pool.cancel(1)
++        pool.cancel(2)
++        with self.assertRaises(ValueError):
++            pool.cancel(2)
++
++
++class QuotaTest(unittest.TestCase):
++    def test_validates_arguments(self):
++        pool = make()
++        with self.assertRaises(KeyError):
++            pool.set_quota("nope", 1)
++        for quota in (True, -1, 1.5, "1"):
++            with self.subTest(quota=quota):
++                with self.assertRaises(ValueError):
++                    pool.set_quota("root", quota)
++
++    def test_equal_quota_changes_nothing(self):
++        pool = make(root=5)
++        pool.set_quota("root", 5)
++        self.assertEqual(pool.events(), [])
++
++    def test_above_new_quota_without_evict_raises(self):
++        pool = make(root=5)
++        pool.reserve("root", 5, 0, 10)
++        before = pool.events()
++        with self.assertRaises(ValueError):
++            pool.set_quota("root", 4)
++        self.assertEqual(pool.events(), before)
++        self.assertEqual(pool.usage("root", 0), 5)
++        self.assertEqual(pool.status(1), "active")
++
++    def test_usage_may_equal_the_new_quota(self):
++        pool = make(root=10)
++        pool.reserve("root", 4, 0, 5)
++        pool.set_quota("root", 4)
++        self.assertEqual(
++            pool.events(),
++            [("active", 1), ("quota", "root", 10, 4)],
++        )
++        self.assertEqual(pool.status(1), "active")
++        # The same quota again is not a change.
++        pool.set_quota("root", 4)
++        self.assertEqual(
++            pool.events(),
++            [("active", 1), ("quota", "root", 10, 4)],
++        )
++
++    def test_eviction_follows_victim_order(self):
++        pool = make(root=10)
++        pool.reserve("root", 4, 0, 10)
++        pool.reserve("root", 4, 0, 10)
++        pool.set_quota("root", 5, evict=True)
++        self.assertEqual(
++            pool.events(),
++            [
++                ("active", 1),
++                ("active", 2),
++                ("quota", "root", 10, 5),
++                ("evicted", 2),
++            ],
++        )
++        self.assertEqual(pool.status(1), "active")
++        self.assertEqual(pool.status(2), "evicted")
++        self.assertEqual(pool.usage("root", 0), 4)
++
++    def test_eviction_leaves_candidates_that_cover_no_excess(self):
++        pool = make(root=10)
++        pool.reserve("root", 4, 0, 5)
++        pool.reserve("root", 2, 10, 20)
++        pool.set_quota("root", 3, evict=True)
++        self.assertEqual(
++            pool.events(),
++            [
++                ("active", 1),
++                ("active", 2),
++                ("quota", "root", 10, 3),
++                ("evicted", 1),
++            ],
++        )
++        self.assertEqual(pool.status(2), "active")
++
++    def test_accepted_change_settles(self):
++        pool = make(root=5)
++        pool.reserve("root", 5, 0, 10)
++        pool.reserve("root", 2, 0, 10, wait=True)
++        pool.set_quota("root", 7)
++        self.assertEqual(pool.status(2), "active")
++        self.assertEqual(
++            pool.events(),
++            [
++                ("active", 1),
++                ("waiting", 2),
++                ("quota", "root", 5, 7),
++                ("promoted", 2),
++            ],
++        )
++
++    def test_eviction_then_settle(self):
++        pool = make(root=8)
++        pool.reserve("root", 4, 0, 10, priority=0)
++        pool.reserve("root", 4, 0, 10, priority=0)
++        pool.reserve("root", 1, 0, 10, priority=7, wait=True)
++        pool.set_quota("root", 5, evict=True)
++        self.assertEqual(pool.status(2), "evicted")
++        self.assertEqual(pool.status(1), "active")
++        self.assertEqual(pool.status(3), "active")
++        self.assertEqual(
++            pool.events(),
++            [
++                ("active", 1),
++                ("active", 2),
++                ("waiting", 3),
++                ("quota", "root", 8, 5),
++                ("evicted", 2),
++                ("promoted", 3),
++            ],
++        )
++
++
++class KeysTest(unittest.TestCase):
++    def test_same_key_and_request_returns_the_same_id(self):
++        pool = make()
++        rid = pool.reserve("root", 1, 0, 5, key="k")
++        pool.cancel(rid)
++        before = pool.events()
++        self.assertEqual(pool.reserve("root", 1, 0, 5, key="k"), rid)
++        self.assertEqual(pool.events(), before)
++        self.assertEqual(pool.status(rid), "cancelled")
++
++    def test_same_key_different_request_is_value_error(self):
++        pool = make()
++        pool.reserve("root", 1, 0, 5, key="k")
++        with self.assertRaises(ValueError):
++            pool.reserve("root", 2, 0, 5, key="k")
++
++    def test_key_request_includes_wait(self):
++        pool = make()
++        pool.reserve("root", 1, 0, 5, key="k")
++        with self.assertRaises(ValueError):
++            pool.reserve("root", 1, 0, 5, wait=True, key="k")
++
++    def test_key_request_includes_preempt(self):
++        pool = make()
++        pool.reserve("root", 1, 0, 5, key="k")
++        with self.assertRaises(ValueError):
++            pool.reserve("root", 1, 0, 5, preempt=True, key="k")
++
++    def test_a_raising_call_claims_nothing(self):
++        pool = make(root=5)
++        pool.reserve("root", 5, 0, 10)
++        with self.assertRaises(NoCapacity):
++            pool.reserve("root", 3, 0, 10, key="k")
++        self.assertEqual(pool.reserve("root", 3, 10, 20, key="k"), 2)
++
++    def test_arguments_are_validated_before_the_key(self):
++        pool = make()
++        pool.reserve("root", 1, 0, 5, key="k")
++        with self.assertRaises(ValueError):
++            pool.reserve("root", 0, 0, 5, key="k")
++        with self.assertRaises(KeyError):
++            pool.reserve("nope", 1, 0, 5, key="k")
++
++    def test_raising_calls_use_no_id(self):
++        pool = make(root=5)
++        with self.assertRaises(NoCapacity):
++            pool.reserve("root", 6, 0, 5)
++        self.assertEqual(pool.reserve("root", 1, 0, 5), 1)
++
++
++class StatusEventsTest(unittest.TestCase):
++    def test_status_of_unknown_id_is_key_error(self):
++        pool = make()
++        with self.assertRaises(KeyError):
++            pool.status(99)
++
++    def test_events_returns_a_copy(self):
++        pool = make()
++        pool.reserve("root", 1, 0, 5)
++        events = pool.events()
++        events.append(("bogus", 0))
++        self.assertEqual(pool.events(), [("active", 1)])
++
++    def test_raising_calls_append_no_event(self):
++        pool = make()
++        pool.reserve("root", 1, 0, 5)
++        before = pool.events()
++        with self.assertRaises(ValueError):
++            pool.reserve("root", 0, 0, 5)
++        with self.assertRaises(KeyError):
++            pool.reserve("nope", 1, 0, 5)
++        self.assertEqual(pool.events(), before)
++
++    def test_statuses_after_displacement(self):
++        pool = make(root=5)
++        pool.reserve("root", 5, 0, 10, priority=0)
++        pool.reserve("root", 5, 0, 10, priority=5, preempt=True)
++        self.assertEqual(pool.status(1), "preempted")
++        self.assertEqual(pool.status(2), "active")
++        pool.set_quota("root", 1, evict=True)
++        self.assertEqual(pool.status(2), "evicted")
++
++
++if __name__ == "__main__":
++    unittest.main()

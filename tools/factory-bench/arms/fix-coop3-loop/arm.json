@@ -1,0 +1,15 @@
+{
+  "summary": "fix-loop, with each fix round done by three implementer-max agents cooperating in one tree.",
+  "kind": "fix",
+  "driver_prompt": "coop.md",
+  "driver_model": "deepseek/deepseek-flash",
+  "driver_tools": "task,wait",
+  "worker": "implementer-max",
+  "agents": ["implementer-max"],
+  "max_cost": 30,
+  "max_time": "90m",
+  "members": 1,
+  "expect_workers": 3,
+  "rereview": true,
+  "loop_cap": 2
+}

@@ -1,0 +1,12 @@
+{
+  "edits": [
+    {
+      "file": "ledger/__init__.py",
+      "old": "            items.append((account, Decimal(amount)))",
+      "new": "            items.append((account, amount))"
+    }
+  ],
+  "drop_tests": [
+    "tests/test_ledger.py::TestKeys.test_same_key_same_request_reordered_returns_id"
+  ]
+}

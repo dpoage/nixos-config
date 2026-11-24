@@ -1,0 +1,8 @@
+{
+  "summary": "Control for review-ledger: the same delivered slice with no seeded defect. Measures false REJECTs and probes that fail on clean code.",
+  "kind": "review",
+  "fixture": "toy-ledger",
+  "from": "review-ledger",
+  "defects": [],
+  "forbidden": ["tools/factory-bench"]
+}

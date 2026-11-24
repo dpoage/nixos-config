@@ -5,8 +5,11 @@ each result with checks the workers never see. It exists to answer one question 
 a change reaches the skills: does the change shorten a round without lowering what the
 review seats find?
 
-Status: the runner, three fixture tasks, six arms and a gate replay are built. Three
-real-slice tasks are curated and have not run. Bead: `nc-kif`.
+Status: the runner, the gate replay, and three task kinds are built: build (four
+fixtures, three curated real slices), review (two seeded tasks and their clean
+controls), and fix (written by `mkfix`; none written yet). Skill trigger cases cover
+all 15 skills. Live runs wait for open-weight model quota; see "Built on 2026-11-24".
+Bead: `nc-kif`.
 
 ## Why rounds are slow: what the fx records show
 
@@ -167,14 +170,13 @@ the runs say nothing about the process. Harder fixtures would not fix this: the 
 records place the cost of a round in briefs, premises, prose-only REJECTs and fix
 loops, not in coding ability.
 
-**An AUGUR substitution needs a fix-round task.** `AUGUR` is the model of
-`implementer-max`, the agent that runs fix rounds after an oracle REJECT. It is not a
-review seat. Replacing it with a cheaper fixer, such as a `gang3` on deepseek-flash,
-moves cost into the oracle re-reviews and gates of every extra iteration. The comparison
-is therefore the cost of the whole loop to APPROVE or the loop cap: fixer, re-review
-and gate spend together. The `gang3` selector, which counts the members' own tests, cannot
-see the oracle's blockers. For a fix round the selector is the replay-seat probe of the
-original blockers.
+**The AUGUR experiment is a review-seat substitution.** On another host, one seat of
+a dual review ran on the AUGUR model. Replacing that seat with three deepseek-flash
+reviewers that cooperate, in the shape of `gang3-coop`, scored lower than the AUGUR seat
+and cost much less. In this repository `AUGUR` is also the model of `implementer-max`,
+which runs fix rounds; the fix-round task kind measures that role. The seat question
+needs a review task: seeded defects with a judge-free score, single-seat arms, and
+pairs of seats compared by what their union catches. `review-coop3` is that seat.
 
 ### Next steps, in priority order
 
@@ -210,3 +212,46 @@ original blockers.
   held-out set that no skill edit was tuned against.
 - Check the bench against the outcome ledger. An arm that wins here and does not lower
   `escaped-from:` defects shows that the proxy is wrong.
+
+### Built on 2026-11-24
+
+Branch `factory-bench-extensions`. Every arm's driver runs on `deepseek/deepseek-flash`;
+no arm uses Haiku. The tool's `README.md` documents each piece.
+
+| Step | Bead | Built | Not done |
+|---|---|---|---|
+| 1 | `nc-kif.1` | `result.json` records `versions`: omp version and digests of defs, skills, harness, arm and task. `--model AGENT=MODEL` routes any agent. | A spend quota separate from live rounds. |
+| 2 | `nc-kif.2` | Fix kind: `mkfix`, arms `fix-solo`, `fix-loop` (re-review seat, cap of two rounds), `fix-coop3-loop`; score of closed and broken hidden tests, findings closed, spend per APPROVE, false APPROVE. | No fix task yet: `mkfix` needs one paid seat per task. Fix tasks from fx REJECTs (real slices) are not mined. |
+| 3 | `nc-kif.3` | Review kind: `review-ledger` and `review-pool` (six seeded defects each, on a real deepseek-flash build) and `-clean` controls; arms `review-solo` and `review-coop3`; judge-free probe score; dual-review pair table. | Defects seeded into real fx diffs. |
+| 4 | `nc-kif.4` | The host is quiet and the three base commits exist. Replay seats now run on the arm's driver model. | The runs. |
+| 5 | `nc-kif.5` | `trigger` subcommand and `skills/triggers.json` (3 should and 2 should-not asks per skill). Outcome layer: two arms that differ by `skills.ignoredSkills` in `config.yml`. | The compliance layer: per-skill transcript checks. No trigger run has completed. |
+| 6 | `nc-kif.6` | `report`: pass^k, spend per full pass, the cost-score frontier, saturated tasks, `--compare` bootstrap, review and fix tables. | — |
+
+One live run completed before quota ran out: `review-solo` on `review-pool`, seat and
+driver on `openrouter/deepseek/deepseek-v4-flash`, $0.04. The seat REJECTed with four
+findings. Three probes caught P2, P4 and P11. The fourth probe failed on the clean
+slice as well; by hand, its scenario also violates the root quota, so the clean
+slice's preemption is correct and the finding is false. A `review-coop3` run was void:
+OpenRouter refused three concurrent agents on the remaining credit.
+
+Quota on 2026-11-24: `deepseek` and `minimax-code` return 402, `zai/glm-5.3` is limited
+until 2026-11-27 05:43 (and falls back to Opus), `cerebras` returns 402, and OpenRouter
+has credit for one agent at a time.
+
+### Resume on a host with quota
+
+1. Check out `factory-bench-extensions` and run `tools/factory-bench/bench.py selftest`.
+2. Run the AUGUR-seat question: `review-solo` and `review-coop3` on `review-pool`,
+   `review-ledger` and both clean controls, with `--model oracle=deepseek/deepseek-flash`,
+   and `review-solo` with the default oracle model as the reference seat. Use five runs
+   per cell. The dual-review table in `report` then compares the pairs.
+3. Write fix tasks with `mkfix` from the failing builds in `tools/factory-bench/builds/`
+   (Haiku builds of `toy-ledger` at 41, 49 and 51 of 57 hidden tests), then run the
+   three fix arms:
+
+   ```sh
+   tools/factory-bench/bench.py mkfix --fixture toy-ledger --name fix-ledger-41 \
+     --patch tools/factory-bench/builds/toy-ledger-41.patch
+   ```
+4. Run `trigger` once per main-session model in use.
+5. Run the real slices on a quiet host.

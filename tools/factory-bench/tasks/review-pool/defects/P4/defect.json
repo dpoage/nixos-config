@@ -1,0 +1,10 @@
+{
+  "edits": [
+    {
+      "file": "pool/__init__.py",
+      "old": "        if reservation.status == ACTIVE:\n            self._remove_usage(reservation)\n        reservation.status = CANCELLED",
+      "new": "        self._remove_usage(reservation)\n        reservation.status = CANCELLED"
+    }
+  ],
+  "drop_tests": []
+}

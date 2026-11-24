@@ -1,0 +1,10 @@
+{
+  "edits": [
+    {
+      "file": "ledger/__init__.py",
+      "old": "        txn_id = len(self._transactions) + 1\n",
+      "new": "        txn_id = len(self._transactions) + 1\n        if any(t.when > when for t in self._transactions):\n            self._transactions.sort(key=lambda t: t.when)\n"
+    }
+  ],
+  "drop_tests": []
+}

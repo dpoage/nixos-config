@@ -1,0 +1,15 @@
+{
+  "summary": "Fix rounds by implementer-max, each re-reviewed by an oracle seat, until APPROVE or the loop cap of two rounds (the seat's second consecutive REJECT forces triage).",
+  "kind": "fix",
+  "driver_prompt": "solo.md",
+  "driver_model": "deepseek/deepseek-flash",
+  "driver_tools": "task,wait",
+  "worker": "implementer-max",
+  "agents": ["implementer-max"],
+  "max_cost": 20,
+  "max_time": "90m",
+  "members": 1,
+  "expect_workers": 1,
+  "rereview": true,
+  "loop_cap": 2
+}

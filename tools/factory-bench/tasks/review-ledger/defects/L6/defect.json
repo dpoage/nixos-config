@@ -1,0 +1,13 @@
+{
+  "edits": [
+    {
+      "file": "ledger/__init__.py",
+      "old": "        txn.reversed_by = new_id\n        if key is not None:\n            self._keys[key] = (new_id, signature)",
+      "new": "        txn.reversed_by = new_id"
+    }
+  ],
+  "drop_tests": [
+    "tests/test_ledger.py::TestKeys.test_failed_reversal_does_not_claim_key",
+    "tests/test_ledger.py::TestKeys.test_post_and_reverse_share_keys"
+  ]
+}

@@ -1,7 +1,7 @@
 {
   "summary": "gang3, plus one revision round in which each member sees the peer tests its code fails.",
   "driver_prompt": "solo.md",
-  "driver_model": "anthropic/claude-haiku-4-5",
+  "driver_model": "deepseek/deepseek-flash",
   "driver_tools": "task,wait",
   "max_cost": 15,
   "max_time": "90m",

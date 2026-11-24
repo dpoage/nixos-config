@@ -1,0 +1,13 @@
+{
+  "summary": "One review seat filled by three oracles that split the brief, cross-check each other's probes and deliver one verdict.",
+  "kind": "review",
+  "driver_prompt": "review-coop.md",
+  "driver_model": "deepseek/deepseek-flash",
+  "driver_tools": "task,wait",
+  "worker": "oracle",
+  "agents": ["oracle"],
+  "max_cost": 60,
+  "max_time": "2h",
+  "members": 1,
+  "expect_workers": 3
+}

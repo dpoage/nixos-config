@@ -1,0 +1,13 @@
+{
+  "edits": [
+    {
+      "file": "ledger/__init__.py",
+      "old": "        lines = {account: value for account, value in values.items() if value != 0}",
+      "new": "        lines = dict(values)"
+    }
+  ],
+  "drop_tests": [
+    "tests/test_ledger.py::TestPostingAtomic.test_entries_netting_to_zero_for_an_account_are_accepted",
+    "tests/test_ledger.py::TestStatement.test_zero_lines_are_omitted"
+  ]
+}

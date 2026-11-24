@@ -25,6 +25,12 @@
   # no-op under 6.12; on 6.18 it means constant max fans, so stay on balanced.
   services.tlp.settings.PLATFORM_PROFILE_ON_AC = "balanced";
 
+  # The LG eDP panel on i915 (Meteor Lake) intermittently stays black after
+  # hypridle's dpms off/on while i915 reports it active with PSR1 enabled; only
+  # a full re-init (suspend, mode change) brought it back. With PSR disabled
+  # at runtime, wakes from dpms off came back every time.
+  boot.kernelParams = [ "i915.enable_psr=0" ];
+
   myTheme.palette = "gruvbox-dark";
 
   myUser = {
